@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>App4</title>
+
+    <!-- WinJS references -->
+    <link href="WinJS/css/ui-dark.css" rel="stylesheet" />
+    <script src="WinJS/js/base.js"></script>
+    <script src="WinJS/js/ui.js"></script>
+
+    <!-- App4 references -->
+    <link href="/css/default.css" rel="stylesheet" />
+    <script src="/js/default.js"></script>
+    <script src="/js/jquery-2.2.0.min.js"></script>
+</head>
+<body class="win-type-body">
+    <div id="contenthost"></div>
+    <div id="navBar" data-win-control="WinJS.UI.NavBar">
+        <div id="globalNav" data-win-control="WinJS.UI.NavBarContainer">
+            <div data-win-control="WinJS.UI.NavBarCommand"
+                 data-win-options="{
+				    label: 'My Documents',
+                    tooltip: 'Show my documents',
+                    id:'mydocumentsButton',
+                    icon: WinJS.UI.AppBarIcon.home,
+                    location: '/pages/mydocuments/mydocuments.html',
+            }">
+            </div>
+            <div data-win-control="WinJS.UI.NavBarCommand"
+                 data-win-options="{
+				    label: 'Upload',
+                    tooltip: 'Upload a new file to the cloud',
+                    id:'uploadButton',
+                    icon: WinJS.UI.AppBarIcon.add,
+                    location: '/pages/upload/upload.html',
+            }">
+            </div>
+            <div data-win-control="WinJS.UI.NavBarCommand"
+                 data-win-options="{
+				    label: 'Settings',
+                    tooltip: 'Configure TrustyDrive',
+                    id:'settingsButton',
+                    icon: WinJS.UI.AppBarIcon.bullets,
+                    location: '/pages/settings/settings.html',
+            }">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
