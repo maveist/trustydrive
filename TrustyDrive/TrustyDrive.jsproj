@@ -78,6 +78,7 @@
     <Content Include="pages\upload\upload.css" />
     <Content Include="pages\upload\upload.html" />
     <Content Include="pages\upload\upload.js" />
+    <Content Include="resources\logo24.png" />
     <Content Include="WinJS\css\ui-dark.css" />
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />
