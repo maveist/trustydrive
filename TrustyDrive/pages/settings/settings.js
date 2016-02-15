@@ -2,7 +2,10 @@
     WinJS.UI.Pages.define('/pages/settings/settings.html', {
         ready: function () {
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
-            $('#picker-button').on('click', chooseDir);
+            // Add click listeners
+            $('#picker-button').click(chooseDir);
+            $('#dropbox').click({'provider': 'dropbox'}, addProvider);
+            // Display the current working directory path
             if (futureAccess.containsItem('PickedFolderToken')) {
                 futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
                     setButtonLabel(folder.path);
@@ -35,5 +38,16 @@
                 // The picker was dismissed with no selected file
             }
         });
+    }
+
+    function addProvider(event) {
+        var provider;
+        switch (event.data.provider) {
+            case 'box':
+                break;
+            case 'dropbox':
+                dropbox_login();
+                break;
+        }
     }
 })();

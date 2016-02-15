@@ -1,5 +1,6 @@
-﻿// For an introduction to the Blank template, see the following documentation:
-// http://go.microsoft.com/fwlink/?LinkId=232509
+﻿// Global variables
+var g_providers = [];
+
 (function () {
     "use strict";
 
@@ -16,14 +17,24 @@
                 // To create a smooth user experience, restore application state here so that it looks like the app never stopped running.
             }
             var start = WinJS.UI.processAll().then(function () {
-                var tokenKey = 'PickedFolderToken';
-                var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
-                if (futureAccess.containsItem(tokenKey)) {
-                    return nav.navigate("/pages/mydocuments/mydocuments.html");
-                } else {
-                    // Choosing a working directory in the settings panel
-                    return nav.navigate("/pages/settings/settings.html");
-                }
+                // Retrieve information from previous sessions
+                var passwordVault = new Windows.Security.Credentials.PasswordVault();
+                var provider;
+                passwordVault.retrieveAll().forEach(function (credential) {
+                    //passwordVault.remove(credential);
+                    switch (credential.resource) {
+                        case 'box':
+                            break;
+                        case 'dropbox':
+                            dropbox_userinfo(passwordVault.retrieve(credential.resource, credential.userName).password, true);
+                            break;
+                        case 'googledrive':
+                            break;
+                        case 'onedrive':
+                            break;
+                    }
+                });
+                return nav.navigate("/pages/mydocuments/mydocuments.html");
             });
             args.setPromise(start);
         }
