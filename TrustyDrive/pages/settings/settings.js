@@ -46,7 +46,7 @@
             case 'box':
                 break;
             case 'dropbox':
-                dropbox_login();
+                dropboxLogin();
                 break;
         }
     }

@@ -1,5 +1,8 @@
 ﻿// Global variables
 var g_providers = [];
+var g_workingDir;
+var g_complete;
+var g_metadata = {};
 
 (function () {
     "use strict";
@@ -26,7 +29,7 @@ var g_providers = [];
                         case 'box':
                             break;
                         case 'dropbox':
-                            dropbox_userinfo(passwordVault.retrieve(credential.resource, credential.userName).password, true);
+                            dropboxUserInfo(passwordVault.retrieve(credential.resource, credential.userName).password, true);
                             break;
                         case 'googledrive':
                             break;
@@ -34,16 +37,18 @@ var g_providers = [];
                             break;
                     }
                 });
+                g_metadata['toto.txt'] = { 'name': 'toto.txt', 'chunks': ['first0.txt', 'second0.txt', 'first2.txt', 'second2.txt', 'first4.txt', 'second4.txt'] };
                 return nav.navigate("/pages/mydocuments/mydocuments.html");
             });
             args.setPromise(start);
         }
-    };
+    }
+
     app.oncheckpoint = function (args) {
         // TODO: This application is about to be suspended. Save any state that needs to persist across suspensions here.
         // You might use the WinJS.Application.sessionState object, which is automatically saved and restored across suspension.
         // If you need to complete an asynchronous operation before your application is suspended, call args.setPromise().
-    };
+    }
 
     nav.onnavigated = function (evt) {
         var contentHost = document.body.querySelector("#contenthost");
@@ -54,5 +59,8 @@ var g_providers = [];
         WinJS.UI.Pages.render(url, contentHost);
     }
 
+    app.onerror = function (error) {
+        $('#debug').append('ERROR: ' + error + '<br>');
+    };
     app.start();
 })();

@@ -10,9 +10,12 @@ function addProvider(p) {
         $('#debug').append('Add provider: ' + p.user);
         g_providers.push(p);
     }
+    g_providers.sort(function (a, b) {
+        return a.user.localeCompare(b.user);
+    });
 }
 
-function dropbox_login() {
+function dropboxLogin() {
     var webtools = Windows.Security.Authentication.Web;
     var webAuthenticationBroker = webtools.WebAuthenticationBroker;
     var uri = 'https://www.dropbox.com/1/oauth2/authorize?';
@@ -22,7 +25,7 @@ function dropbox_login() {
     webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).done(
         function (success) {
             var data = success.responseData;
-            dropbox_userinfo(data.substring(data.indexOf('=') + 1, data.indexOf('&')), false);
+            dropboxUserInfo(data.substring(data.indexOf('=') + 1, data.indexOf('&')), false);
         },
         function (error) {
             $('#debug').append(error + '<br>');
@@ -30,7 +33,7 @@ function dropbox_login() {
     );
 }
 
-function dropbox_userinfo(token, reconnect) {
+function dropboxUserInfo(token, reconnect) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/account/info');
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
@@ -59,35 +62,45 @@ function dropbox_userinfo(token, reconnect) {
         },
         function (error) {
             if (reconnect) {
-                dropbox_login();
+                dropboxLogin();
             }
         }
     );
 }
 
-function dropbox_download(filename, token) {
-    var fileDiv = $('#files');
+function dropboxDownload(metadata, chunkIdx, token) {
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + filename);
+    var chunkName = metadata['chunks'][chunkIdx];
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
-    var buffer = new Windows.Storage.Streams.Buffer(4096);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
-    fileDiv.append('<br>HTTP request:<br>');
-    //workingDir.createFileAsync("toto.txt").done(function () {
-    //    fileDiv.append('HTTP request:<br>');
-    //});
-    httpClient.sendRequestAsync(requestMessage).done(
-        function (success) {
-            fileDiv.append('Success:<br>');
+    //WARN: Delete the file if exists
+    g_workingDir.createFileAsync(chunkName, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (newFile) {
+        httpClient.sendRequestAsync(requestMessage).done(function (success) {
+            //fileDiv.append('Success: ' + success + '<br>');
             success.content.readAsBufferAsync().done(function (buffer) {
-                //WARN: Overwrite the existing file
-                Windows.Storage.PathIO.writeBufferAsync(workingDir.path + '\\' + filename, buffer).done(function () {
-                    fileDiv.append('File downloaded!<br>');
+                Windows.Storage.PathIO.writeBufferAsync(newFile.path, buffer).done(function () {
+                    downloadComplete(metadata);
                 });
             });
+        });
+    });
+}
+
+function dropboxUpload(filename, data, token) {
+    var debug = $('#debug');
+    var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + filename);
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, uri);
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+    httpClient.sendRequestAsync(requestMessage).done(
+        function (success) {
+            //debug.append('Success: ' + success + '<br>');
         },
         function (error) {
-            fileDiv.append('Error:<br>' + error);
+            debug.append('Error:' + error + '<br>');
         }
     );
 }
