@@ -1,5 +1,5 @@
 ﻿// Dropbox connector to one dropbox account
-function addProvider(p) {
+function createProvider(p) {
     var i, found = false;
     for (i = 0; i < g_providers.length; i++) {
         if (g_providers[i].provider == p.provider && g_providers[i].user == p.user) {
@@ -50,7 +50,7 @@ function dropboxUserInfo(token, reconnect) {
                     storage = data['quota_info'];
                     cred = new credentials.PasswordCredential('dropbox', data['email'], token)
                     passwordVault.add(cred);
-                    addProvider({
+                    createProvider({
                         'provider': cred.resource, 'user': cred.userName, 'token': cred.password,
                         'free': (storage['quota'] - storage['shared'] - storage['normal']), 'total': storage['quota']
                     });
@@ -87,11 +87,11 @@ function dropboxDownload(metadata, chunkIdx, token) {
     });
 }
 
-function dropboxUpload(filename, data, token) {
+function dropboxUpload(chunkName, data, token) {
     var debug = $('#debug');
     var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + filename);
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);

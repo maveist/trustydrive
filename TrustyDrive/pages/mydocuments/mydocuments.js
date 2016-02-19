@@ -1,10 +1,22 @@
 ﻿WinJS.UI.Pages.define('/pages/mydocuments/mydocuments.html', {
     ready: function () {
+        var login = 'remy';
+        var debug = $('#debug');
         g_providers.forEach(function (p) {
-            $('#debug').append('user: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1) + '<br>');
+            // Display size in MB
+            debug.append('user: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1) + '<br>');
         });
+        if (g_providers.length > 1) {
+            g_metadata[g_configName] = { 'name': g_configName, 'user': login, 'password': 'toto', 'chunks': [] };
+            g_providers.forEach(function (p) {
+                g_metadata[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + login);
+            });
+            downloadConfiguration();
+        }
         // Add click listeners
         $('#download-button').click({ 'filename': 'toto.txt' }, downloadFile);
+        $('#load-button').click(loadConfiguration);
+        $('#config-button').click(uploadConfiguration);
         var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
         if (futureAccess.containsItem('PickedFolderToken')) {
             futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {

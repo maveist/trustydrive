@@ -3,6 +3,7 @@ var g_providers = [];
 var g_workingDir;
 var g_complete;
 var g_metadata = {};
+var g_configName = 'config1983stuff';
 
 (function () {
     "use strict";
@@ -22,7 +23,6 @@ var g_metadata = {};
             var start = WinJS.UI.processAll().then(function () {
                 // Retrieve information from previous sessions
                 var passwordVault = new Windows.Security.Credentials.PasswordVault();
-                var provider;
                 passwordVault.retrieveAll().forEach(function (credential) {
                     //passwordVault.remove(credential);
                     switch (credential.resource) {
@@ -37,7 +37,6 @@ var g_metadata = {};
                             break;
                     }
                 });
-                g_metadata['toto.txt'] = { 'name': 'toto.txt', 'chunks': ['first0.txt', 'second0.txt', 'first2.txt', 'second2.txt', 'first4.txt', 'second4.txt'] };
                 return nav.navigate("/pages/mydocuments/mydocuments.html");
             });
             args.setPromise(start);
