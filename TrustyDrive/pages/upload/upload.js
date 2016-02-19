@@ -71,7 +71,7 @@ function uploadChunks(filename, readStream) {
         //TODO: delete the existing chunks - dropboxDelete()
     } else {
         while (mychunks.length < nbChunks) {
-            mychunks.push('chunk' + mychunks.length);
+            mychunks.push(filename.substr(0,2) + mychunks.length);
         }
     }
     createChunks(metadata, readStream.getInputStreamAt(0), Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
@@ -149,6 +149,7 @@ function loadConfiguration() {
             config = cBuffer.decodeFromBase64String(encoded);
             encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
             g_metadata = JSON.parse(encoded);
+            displayFiles();
         });
     });
 }

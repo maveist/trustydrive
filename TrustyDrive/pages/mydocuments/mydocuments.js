@@ -14,7 +14,6 @@
             downloadConfiguration();
         }
         // Add click listeners
-        $('#download-button').click({ 'filename': 'toto.txt' }, downloadFile);
         $('#load-button').click(loadConfiguration);
         $('#config-button').click(uploadConfiguration);
         var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
@@ -24,7 +23,22 @@
             });
         }
     }
-});
+})
+
+function displayFiles() {
+    var files = $('#files');
+    $.each(g_metadata, function (key, val) {
+        if (key != g_configName) {
+            var div = $('<div id="' + key + '" class="script file">' + key + '</div>');
+            files.append(div);
+            div.click({ 'filename': key }, print);
+        }
+    });
+}
+
+function print(event) {
+    WinJS.Navigation.navigate("/pages/file/file.html", event.data.filename);
+}
 
 function downloadFile(event) {
     var metadata = g_metadata[event.data.filename];

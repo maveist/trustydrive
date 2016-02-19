@@ -17,6 +17,22 @@
       <Configuration>Debug</Configuration>
       <Platform>x86</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="mobile|AnyCPU">
+      <Configuration>mobile</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="mobile|ARM">
+      <Configuration>mobile</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="mobile|x64">
+      <Configuration>mobile</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="mobile|x86">
+      <Configuration>mobile</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|AnyCPU">
       <Configuration>Release</Configuration>
       <Platform>AnyCPU</Platform>
@@ -67,11 +83,13 @@
     <Content Include="images\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="images\StoreLogo.png" />
     <Content Include="images\Wide310x150Logo.scale-200.png" />
-    <Content Include="js\configuration.js" />
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
     <Content Include="js\dropbox.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
+    <Content Include="pages\file\file.css" />
+    <Content Include="pages\file\file.html" />
+    <Content Include="pages\file\file.js" />
     <Content Include="pages\mydocuments\mydocuments.css" />
     <Content Include="pages\mydocuments\mydocuments.html" />
     <Content Include="pages\mydocuments\mydocuments.js" />

@@ -1,1 +1,28 @@
-﻿
+﻿#debug {
+    height: 160px;
+    overflow: auto;
+    background: green;
+}
+
+.file-list {
+    width: 95%;
+    height: 600px;
+    padding: 5px;
+    margin: auto;
+    background: red;
+}
+
+.file {
+    width: 300px;
+    height: 30px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    padding-top: 12px;
+    padding-left: 50px;
+    border: 1px solid #808080;
+    float: left;
+}
+
+.file:hover {
+    background: blue;
+}
