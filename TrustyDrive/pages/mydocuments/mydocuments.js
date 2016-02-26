@@ -1,117 +1,134 @@
 ﻿WinJS.UI.Pages.define('/pages/mydocuments/mydocuments.html', {
     ready: function () {
-        var login = 'remy';
         var debug = $('#debug');
-        g_providers.forEach(function (p) {
-            // Display size in MB
-            debug.append('user: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1) + '<br>');
-        });
-        if (g_providers.length > 1) {
-            g_metadata[g_configName] = { 'name': g_configName, 'user': login, 'password': 'toto', 'chunks': [] };
-            g_providers.forEach(function (p) {
-                g_metadata[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + login);
-            });
-            downloadConfiguration();
-        }
+        var folder = WinJS.Navigation.state;
+        var height = $('#content').innerHeight();
+        var passwordVault = new Windows.Security.Credentials.PasswordVault();
+        var credentials = passwordVault.retrieveAll();
+        $('.menu-bar').css('top', height - 60);
+        // Remove the menu-bar height and the upper-bar height and padding
+        $('.file-list').innerHeight(height - 60 - 60 - 5);
         // Add click listeners
-        $('#load-button').click(loadConfiguration);
-        $('#config-button').click(uploadConfiguration);
-        var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
-        if (futureAccess.containsItem('PickedFolderToken')) {
-            futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
-                g_workingDir = folder;
-            });
+        $('.upload').click(uploadNewFile);
+        $('.upper-settings').click(function () {
+            WinJS.Navigation.navigate('/pages/settings/settings.html');
+        });
+        if (g_metadata[g_configName] == undefined) {
+            // Connect to existing providers
+            progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
+            setTimeout(function () {
+                connect(credentials, 0, passwordVault);
+            }, 200);
+        } else {
+            displayFiles();
         }
+        /* Progress bar test
+        progressBar(0, 3, 'Connecting to providers...', 'Building a beautiful progress bar');
+        setTimeout(function () {
+        }, 3000);
+        setTimeout(function () {
+            progressBar(2, 3, 'Let\'s go...', function () {
+                $('.user-interface').hide();
+            });
+        }, 6000);
+        */
     }
 })
 
+function connect(credentials, idx, vault) {
+    if (idx < credentials.length) {
+        progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
+        switch (credentials[idx].resource) {
+            case 'box':
+                break;
+            case 'dropbox':
+                dropboxUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
+                    connect(credentials, idx + 1, vault);
+                });
+                break;
+            case 'googledrive':
+                break;
+            case 'onedrive':
+                break;
+        }
+    } else {
+        if (g_providers.length == 0) {
+            WinJS.Navigation.navigate('/pages/settings/settings.html');
+        } else {
+            g_metadata = {};
+            // Every provider is available, build the configuration metadata
+            g_metadata[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [] };
+            g_providers.forEach(function (p) {
+                g_metadata[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + 'remy');
+            });
+            loadConfiguration();
+        }
+    }
+}
+
+function progressBar(current, max, legend, title) {
+    var bar, barLegend, body;
+    if (current == 0) {
+        $('.user-interface').show();
+        // Add the progress bar
+        bar = $('<div class="progress-bar"></div>');
+        barLegend = $('<div class="bar-legend">' + legend + '</div>');
+        body = $('.interface-body');
+        body.empty();
+        body.append('<div class="bar-title">' + title + '</div>').append(bar).append(barLegend);
+    } else {
+        bar = $('.progress-bar');
+        barLegend = $('.bar-legend');
+    }
+    while (current >= bar.children().length) {
+        var step = $('<div class="progress-step"></div>').width(300 / max);
+        bar.append(step);
+        barLegend.html(legend);
+    }
+    if (current == max - 1) {
+        if (typeof title === 'function') {
+            setTimeout(title, 1000);
+        }
+    }
+}
+
 function displayFiles() {
-    var files = $('#files');
+    var files = $('.file-list');
+    files.empty();
     $.each(g_metadata, function (key, val) {
         if (key != g_configName) {
-            var div = $('<div id="' + key + '" class="script file">' + key + '</div>');
+            var div = $('<div id="' + key + '" class="file ' + val.type + '">' + key + '</div>');
+            div.click({ 'filename': key }, displayFile);
             files.append(div);
-            div.click({ 'filename': key }, print);
         }
     });
 }
 
-function print(event) {
-    WinJS.Navigation.navigate("/pages/file/file.html", event.data.filename);
+function displayFolder(event) {
+    WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', event.data.folder);
 }
 
-function downloadFile(event) {
-    var metadata = g_metadata[event.data.filename];
-    var idx, chunks = metadata['chunks'];
-    var debug = $('#debug');
-    g_complete = 0;
-    for (idx = 0; idx < chunks.length; idx++) {
-        dropboxDownload(metadata, idx, g_providers[1].token);
-    }
+function displayFile(event) {
+    WinJS.Navigation.navigate('/pages/file/file.html', event.data.filename);
 }
 
-function downloadComplete(metadata) {
+function loadConfiguration() {
     var debug = $('#debug');
-    g_complete++;
-    if (g_complete == metadata['chunks'].length) {
-        generateFile(metadata);
-    }
-}
-
-function generateFile(metadata) {
-    var debug = $('#debug');
-    debug.append('generate the file: ' + metadata.name + '<br>');
-    // Get chunk names from file metadata and iterate on all chunks
-    g_workingDir.createFileAsync(metadata.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
-        myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
-            var writer = new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0));
-            var i, chunks = metadata['chunks'], builder;
-            assembleFile(writer, 0, chunks);
-        });
-    });
-}
-
-function assembleFile(writer, idx, chunks) {
-    var debug = $('#debug');
-    // Read two chunks
-    g_workingDir.getFileAsync(chunks[idx]).done(function (part0) {
-        part0.openReadAsync().done(function (stream0) {
-            var size0 = stream0.size;
-            var reader0 = new Windows.Storage.Streams.DataReader(stream0.getInputStreamAt(0));
-            g_workingDir.getFileAsync(chunks[idx + 1]).done(function (part1) {
-                part1.openReadAsync().done(function (stream1) {
-                    var j, b0, b1;
-                    var size1 = stream1.size;
-                    var reader1 = new Windows.Storage.Streams.DataReader(stream1.getInputStreamAt(0));
-                    reader0.loadAsync(size0).done(function () {
-                        reader1.loadAsync(size1).done(function () {
-                            for (j = 0; j < size0; j++) {
-                                b0 = reader0.readByte();
-                                writer.writeByte(b0);
-                                if (j < size1) {
-                                    b1 = reader1.readByte();
-                                    writer.writeByte(b1);
-                                }
-                            }
-                        });
-                    });
-                    writer.storeAsync().done(function () {
-                        writer.flushAsync().done(function () {
-                            // Writing chunks to the file is completed
-                            reader0.close();
-                            reader1.close();
-                            // Parse the next chunks
-                            idx += 2;
-                            if (idx < chunks.length) {
-                                assembleFile(writer, idx, chunks);
-                            } else {
-                                debug.append('File generation complete<br>');
-                                writer.close();
-                            }
-                        });
-                    });
-                });
+    debug.append('load configuration<br>');
+    g_workingDir.getFileAsync(g_configName).done(function (configFile) {
+        if (configFile != null) {
+            Windows.Storage.FileIO.readBufferAsync(configFile).done(function (buffer) {
+                var config, encoded;
+                var crypto = Windows.Security.Cryptography;
+                var cBuffer = crypto.CryptographicBuffer;
+                encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, buffer);
+                config = cBuffer.decodeFromBase64String(encoded);
+                encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
+                g_metadata = JSON.parse(encoded);
+                displayFolder({ 'data': { 'folder': 'home' }});
             });
-        });
+        } else {
+            debug.append('Configuration file does not exist<br>');
+        }
     });
 }

@@ -4,7 +4,15 @@
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             // Add click listeners
             $('#picker-button').click(chooseDir);
-            $('#dropbox').click({'provider': 'dropbox'}, addProvider);
+            $('#upload-config').click(uploadConfiguration);
+            $('#download-config').click(downloadConfiguration);
+            $('.upper-back').click({ 'folder': 'home' }, displayFolder);
+            $('#dropbox').click({ 'provider': 'dropbox' }, addProvider);
+            // Compute the available size
+            g_providers.forEach(function (p) {
+                // Display size in MB
+                $('#debug').append('user: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1) + '<br>');
+            });
             // Display the current working directory path
             if (futureAccess.containsItem('PickedFolderToken')) {
                 futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {

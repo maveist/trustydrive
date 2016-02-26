@@ -21,23 +21,16 @@ var g_configName = 'config1983stuff';
                 // To create a smooth user experience, restore application state here so that it looks like the app never stopped running.
             }
             var start = WinJS.UI.processAll().then(function () {
-                // Retrieve information from previous sessions
-                var passwordVault = new Windows.Security.Credentials.PasswordVault();
-                passwordVault.retrieveAll().forEach(function (credential) {
-                    //passwordVault.remove(credential);
-                    switch (credential.resource) {
-                        case 'box':
-                            break;
-                        case 'dropbox':
-                            dropboxUserInfo(passwordVault.retrieve(credential.resource, credential.userName).password, true);
-                            break;
-                        case 'googledrive':
-                            break;
-                        case 'onedrive':
-                            break;
-                    }
-                });
-                return nav.navigate("/pages/mydocuments/mydocuments.html");
+                // Get access to the working directory
+                var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
+                if (futureAccess.containsItem('PickedFolderToken')) {
+                    futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
+                        g_workingDir = folder;
+                        WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', { 'folder' : 'home' });
+                    });
+                } else {
+                    $('#debug').append('No working directory detected!<br>');
+                }
             });
             args.setPromise(start);
         }
@@ -50,7 +43,7 @@ var g_configName = 'config1983stuff';
     }
 
     nav.onnavigated = function (evt) {
-        var contentHost = document.body.querySelector("#contenthost");
+        var contentHost = document.body.querySelector("#content");
         var url = evt.detail.location;
         // Remove existing content from the host element.
         WinJS.Utilities.empty(contentHost);
@@ -58,8 +51,5 @@ var g_configName = 'config1983stuff';
         WinJS.UI.Pages.render(url, contentHost);
     }
 
-    app.onerror = function (error) {
-        $('#debug').append('ERROR: ' + error + '<br>');
-    };
     app.start();
 })();

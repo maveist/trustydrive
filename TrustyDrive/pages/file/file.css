@@ -1,1 +1,99 @@
-﻿
+﻿.file-info {
+    width: 340px;
+    height: 130px;
+    margin: auto;
+    margin-top: 30px;
+}
+
+.file-icon {
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+    float: left;
+}
+
+.file-stats {
+    width: 220px;
+    height: 100px;
+    font-size: 16px;
+    font-weight: bold;
+    float: left;
+}
+
+.file-stats tr td:first-child {
+    width: 100px;
+}
+
+.file-props {
+    font-weight: normal;
+}
+
+.file-providers {
+    width: 343px;
+    height: 300px;
+    margin: auto;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.file-providers span {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.file-providers div {
+    width: 90px;
+    height: 90px;
+    margin-left: 12px;
+    margin-right: 12px;
+    float: left;
+}
+
+/*** File Action Icons ***/
+.download {
+    background: url("../../images/style/download.png") no-repeat;
+}
+
+.download:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/download.png") no-repeat;
+}
+
+.open {
+    background: url("../../images/style/open.png") no-repeat;
+}
+
+.open:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/open.png") no-repeat;
+}
+
+.move {
+    background: url("../../images/style/move.png") no-repeat;
+}
+
+.move:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/move.png") no-repeat;
+}
+
+.cloud-delete {
+    background: url("../../images/style/cloud-delete.png") no-repeat;
+}
+
+.cloud-delete:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/cloud-delete.png") no-repeat;
+}
+
+/*** End of File Action Icons ***/
+
+/*** Provider Icons ***/
+.dropbox {
+    background: url("../../images/style/dropbox.png") no-repeat;
+}
+
+.onedrive {
+    background: url("../../images/style/onedrive.png") no-repeat;
+}
+
+.drive {
+        background: url("../../images/style/drive.png") no-repeat;
+}
+/*** End of Provider Icons ***/

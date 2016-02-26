@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>App4</title>
+    <title></title>
 
     <!-- WinJS references -->
     <link href="WinJS/css/ui-dark.css" rel="stylesheet" />
@@ -13,43 +13,13 @@
     <link href="/css/default.css" rel="stylesheet" />
     <!-- Javascript -->
     <script src="/js/jquery-2.2.0.min.js"></script>
-    <script src="/pages/upload/upload.js"></script>
+    <script src="/js/upload.js"></script>
+    <script src="/js/download.js"></script>
     <script src="/js/dropbox.js"></script>
     <script src="/js/default.js"></script>
 </head>
-<body class="win-type-body">
-    <div id="contenthost"></div>
-    <div id="navBar" data-win-control="WinJS.UI.NavBar">
-        <div id="globalNav" data-win-control="WinJS.UI.NavBarContainer">
-            <div data-win-control="WinJS.UI.NavBarCommand"
-                 data-win-options="{
-				    label: 'My Documents',
-                    tooltip: 'Show my documents',
-                    id:'mydocumentsButton',
-                    icon: WinJS.UI.AppBarIcon.home,
-                    location: '/pages/mydocuments/mydocuments.html',
-            }">
-            </div>
-            <div data-win-control="WinJS.UI.NavBarCommand"
-                 data-win-options="{
-				    label: 'Upload',
-                    tooltip: 'Upload a new file to the cloud',
-                    id:'uploadButton',
-                    icon: WinJS.UI.AppBarIcon.add,
-                    location: '/pages/upload/upload.html',
-            }">
-            </div>
-            <div data-win-control="WinJS.UI.NavBarCommand"
-                 data-win-options="{
-				    label: 'Settings',
-                    tooltip: 'Configure TrustyDrive',
-                    id:'settingsButton',
-                    icon: WinJS.UI.AppBarIcon.bullets,
-                    location: '/pages/settings/settings.html',
-            }">
-            </div>
-        </div>
-    </div>
+<body>
+    <div id="content" data-win-control="Application.PageControlNavigator" class="main-content"></div>
     <div id="debug"></div>
 </body>
 </html>

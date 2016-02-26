@@ -6,10 +6,41 @@
     <script src="file.js"></script>
 </head>
 <body>
-    <div id="filename">Filename: </div>
-    <div id="type">File Type: </div>
-    <div id="chunks">Chunks:<br /></div>
-    <button id="download-button"></button>
-    <button id="open-button"></button>
+    <div class="upper-bar">
+        <div title="Back" class="upper-back"></div>
+        <div class="upper-title"></div>
+        <div title="Configure TrustyDrive" class="upper-settings"></div>
+    </div>
+    <div class="file-info">
+        <div class="file-icon"></div>
+        <table class="file-stats">
+            <tr><td>Type:</td><td id="file-type" class="file-props"></td></tr>
+            <tr><td>Size:</td><td id="file-size" class="file-props"></td></tr>
+            <tr><td>Last Upload:</td><td id="file-upload" class="file-props"></td></tr>
+            <tr><td>Status:</td><td id="file-status" class="file-props"></td></tr>
+        </table>
+    </div>
+    <div class="file-providers">
+        <span>Hosted on</span><br />
+        <div title="spoutniqe@hotmail.com" class="dropbox"></div>
+        <div title="cztgrt@hotmail.com" class="onedrive"></div>
+        <div title="spoutniqe@hotmail.com" class="drive"></div>
+    </div>
+    <div class="menu-bar">
+        <div class="menu-container">
+            <div title="Upload a New Version" class="menu-item upload"></div>
+            <div title="Open this File" class="menu-item open"></div>
+            <div title="Delete the Local Version" class="menu-item local-delete"></div>
+        </div>
+        <div class="menu-container">
+            <div title="Download this File" class="menu-item download"></div>
+            <div title="Rename this File" class="menu-item rename"></div>
+            <div title="Move this File" class="menu-item move"></div>
+            <div title="Delete the Cloud Version" class="menu-item cloud-delete"></div>
+        </div>
+    </div>
+    <div class="user-interface">
+        <div class="interface-body"></div>
+    </div>
 </body>
 </html>

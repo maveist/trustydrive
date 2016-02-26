@@ -1,28 +1,230 @@
-﻿#debug {
-    height: 160px;
-    overflow: auto;
-    background: green;
-}
-
-.file-list {
+﻿.file-list {
     width: 95%;
-    height: 600px;
     padding: 5px;
     margin: auto;
-    background: red;
+    overflow: auto;
 }
 
 .file {
     width: 300px;
-    height: 30px;
+    height: 40px;
     margin-bottom: 10px;
     margin-left: 10px;
-    padding-top: 12px;
-    padding-left: 50px;
-    border: 1px solid #808080;
+    padding-top: 20px;
+    padding-left: 60px;
     float: left;
 }
 
-.file:hover {
-    background: blue;
+/*** The Upper Bar ***/
+.upper-bar {
+    height: 55px;
+    padding-left: 20px;
+    padding-top: 5px;
+    font-size: 20px;
+    background: #5F5F5F;
+    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.16), 0px 2px 10px 0px rgba(0, 0, 0, 0.12);
+    color: #ffffff;
 }
+
+.upper-title {
+    padding-top: 12px;
+    float: left;
+}
+
+.upper-back {
+    width: 50px;
+    height: 50px;
+    background: url("../../images/style/back.png") no-repeat;
+    float: left;
+}
+
+.upper-back:hover {
+    background: rgba(255, 255, 255, 0.2) url('../../images/style/back.png') no-repeat;
+}
+
+.upper-settings {
+    width: 50px;
+    height: 50px;
+    margin-right: 20px;
+    background: url('../../images/style/settings.png') no-repeat;
+    float: right;
+}
+
+.upper-settings:hover {
+    background: rgba(255, 255, 255, 0.2) url('../../images/style/settings.png') no-repeat;
+}
+/*** End of the Upper Bar ***/
+
+/*** File Icons ***/
+.archive {
+    background: url("../../images/style/archive.png") no-repeat;
+}
+
+.archive:hover {
+    background: #A9F5A9 url("../../images/style/archive.png") no-repeat;
+}
+
+.folder {
+    background: url("../../images/style/folder.png") no-repeat;
+}
+
+.folder:hover {
+    background: #F2F5A9 url("../../images/style/folder.png") no-repeat;
+}
+
+.music {
+    background: url("../../images/style/music.png") no-repeat;
+}
+
+.music:hover {
+    background: #E3CEF6 url("../../images/style/music.png") no-repeat;
+}
+
+.pdf {
+    background: url("../../images/style/pdf.png") no-repeat;
+}
+
+.pdf:hover {
+    background: #F5A9A9 url("../../images/style/pdf.png") no-repeat;
+}
+
+.picture {
+    background: url("../../images/style/picture.png") no-repeat;
+}
+
+.picture:hover {
+    background: #F6CEE3 url("../../images/style/picture.png") no-repeat;
+}
+
+.script {
+    background: url("../../images/style/script.png") no-repeat;
+}
+
+.script:hover {
+    background: #CEE3F6 url("../../images/style/script.png") no-repeat;
+}
+
+.text {
+    background: url("../../images/style/text.png") no-repeat;
+}
+
+.text:hover {
+    background: #F5DA81 url("../../images/style/text.png") no-repeat;
+}
+
+.unknown {
+    background: url("../../images/style/unknown.png") no-repeat;
+}
+
+.unknown:hover {
+    background: #A4A4A4 url("../../images/style/unknown.png") no-repeat;
+}
+
+.video {
+    background: url("../../images/style/video.png") no-repeat;
+}
+
+.video:hover {
+    background: #CEE3F6 url("../../images/style/video.png") no-repeat;  
+}
+
+.web {
+    background: url("../../images/style/web.png") no-repeat;
+}
+
+.web:hover {
+    background: #CEF6EC url("../../images/style/web.png") no-repeat;
+}
+/*** End of File Icons ***/
+
+/*** The Menu Bar ***/
+.menu-bar {
+    width: 100%;
+    text-align: center;
+    background: #FFFFFF;
+    border-top: 1px solid #808080;
+    position: absolute;
+}
+
+.menu-item {
+    width: 50px;
+    height: 50px;
+    margin-left: 10px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.upload {
+    background: url('../../images/style/upload.png') no-repeat;
+}
+
+.upload:hover {
+    background: rgba(0, 0, 0, 0.2) url('../../images/style/upload.png') no-repeat;
+}
+
+.create-dir {
+    background: url("../../images/style/create-dir.png") no-repeat;
+}
+
+.create-dir:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/create-dir.png") no-repeat;
+}
+
+.rename {
+    background: url("../../images/style/rename.png") no-repeat;
+}
+
+.rename:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/rename.png") no-repeat;
+}
+
+.local-delete {
+    background: url("../../images/style/local-delete.png") no-repeat;
+}
+
+.local-delete:hover {
+    background: rgba(0, 0, 0, 0.2) url("../../images/style/local-delete.png") no-repeat;
+}
+/*** End of the Menu bar ***/
+
+/*** The Dialog Box to Interact with Users ***/
+.user-interface {
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    display: none;
+}
+
+.interface-body {
+    width: 400px;
+    height: 600px;
+    margin: auto;
+    margin-top: 100px;
+    background: #FFFFFF;
+}
+
+.progress-bar {
+    width: 300px;
+    height: 5px;
+    margin-left: 50px;
+    background: #BDBDBD;
+}
+
+.progress-step {
+    height: 100%;
+    background: #00BFFF;
+    float: left;
+}
+
+.bar-title {
+    font-weight: bold;
+    margin-left: 50px;
+}
+
+.bar-legend {
+    margin-left: 50px;
+}
+/*** End of the Dialog Box ***/

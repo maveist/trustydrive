@@ -6,9 +6,15 @@
     <script src="settings.js"></script>
 </head>
 <body>
-    <p>Settings</p>
-    <b>Working Directory</b>:<br />
-    <button id="picker-button"></button><br />
-    <img id="dropbox" src="../../images/dropbox.png" onclick="javascript:addProvider('dropbox')"/>
+    <div class="upper-bar">
+        <div title="Back" class="upper-back"></div>
+        <div class="upper-title">Settings</div>
+    </div>
+    <div class="settings-params">
+        <b>Working Directory</b>: <button id="picker-button"></button><br />
+        <button id="download-config">Download Configuration</button>&nbsp;
+        <button id="upload-config">Upload Configuration</button><br />
+        <img id="dropbox" src="../../images/style/dropbox.png" onclick="javascript:addProvider('dropbox')"/>
+    </div>
 </body>
 </html>
