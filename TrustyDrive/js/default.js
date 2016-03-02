@@ -1,9 +1,16 @@
-﻿// Global variables
+﻿//TODO: do not write the configuration file to the local drive
+//TODO: Load/download automatically the configuration
+//BUG: Sometimes 'access is denied' error while opening files
+//BUG: Upload large files
+
+// Global variables
+const g_maxChunkSize = 10000
+const g_configName = 'config1983stuff';
+var g_chunks = [];
 var g_providers = [];
 var g_workingDir;
 var g_complete;
 var g_metadata = {};
-var g_configName = 'config1983stuff';
 
 (function () {
     "use strict";
@@ -22,14 +29,13 @@ var g_configName = 'config1983stuff';
             }
             var start = WinJS.UI.processAll().then(function () {
                 // Get access to the working directory
+
                 var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
                 if (futureAccess.containsItem('PickedFolderToken')) {
                     futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
                         g_workingDir = folder;
-                        WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', { 'folder' : 'home' });
+                        WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', { 'folder': 'home' });
                     });
-                } else {
-                    $('#debug').append('No working directory detected!<br>');
                 }
             });
             args.setPromise(start);

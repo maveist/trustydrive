@@ -3,83 +3,61 @@
     var idx, chunks = metadata['chunks'];
     var debug = $('#debug');
     g_complete = 0;
-    progressBar(g_complete, chunks.length + 2, 'Initialization', 'Downloading the File ' + metadata.name);
-    for (idx = 0; idx < chunks.length; idx++) {
-        dropboxDownload(metadata, idx, g_providers[1].token);
-    }
-}
-
-function downloadComplete(metadata) {
-    var debug = $('#debug');
-    g_complete++;
-    progressBar(g_complete, metadata['chunks'].length + 2, 'Number of Downloaded Chunks: ' + g_complete);
-    if (g_complete == metadata['chunks'].length) {
-        generateFile(metadata);
-    }
-}
-
-function generateFile(metadata) {
-    var debug = $('#debug');
-    debug.append('Generate the file: ' + metadata.name + '<br>');
-    progressBar(g_complete + 1, metadata['chunks'].length + 2, 'Building the file ' + metadata.name);
-    // Get chunk names from file metadata and iterate on all chunks
+    chunks.forEach(function (c) {
+        debug.append('conf: ' + c + ' - p: ' + g_providers.length + '<br>');
+    });
+    progressBar(0, chunks.length + 1, 'Initialization', 'Downloading the File ' + metadata.name);
     g_workingDir.createFileAsync(metadata.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
         myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
-            var writer = new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0));
-            var i, chunks = metadata['chunks'], builder;
-            assembleFile(metadata.name, writer, 0, chunks);
+            downloadChunks(metadata, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
         });
     });
 }
 
-function assembleFile(filename, writer, idx, chunks) {
+function downloadChunks(metadata, chunkIdx, writer) {
+    var i;
+    g_chunks = [];
+    for (i = 0; i < g_providers.length; i++) {
+        $('#debug').append('download ' + (chunkIdx + i) + '<br>');
+        dropboxDownload(metadata, chunkIdx + i, g_providers[1].token, writer);
+    }
+}
+
+function downloadComplete(metadata, writer) {
     var debug = $('#debug');
-    // Read two chunks
-    g_workingDir.getFileAsync(chunks[idx]).done(function (part0) {
-        part0.openReadAsync().done(function (stream0) {
-            var size0 = stream0.size;
-            var reader0 = new Windows.Storage.Streams.DataReader(stream0.getInputStreamAt(0));
-            g_workingDir.getFileAsync(chunks[idx + 1]).done(function (part1) {
-                part1.openReadAsync().done(function (stream1) {
-                    var j, b0, b1;
-                    var size1 = stream1.size;
-                    var reader1 = new Windows.Storage.Streams.DataReader(stream1.getInputStreamAt(0));
-                    reader0.loadAsync(size0).done(function () {
-                        reader1.loadAsync(size1).done(function () {
-                            for (j = 0; j < size0; j++) {
-                                b0 = reader0.readByte();
-                                writer.writeByte(b0);
-                                if (j < size1) {
-                                    b1 = reader1.readByte();
-                                    writer.writeByte(b1);
-                                }
-                            }
-                            writer.storeAsync().done(function () {
-                                writer.flushAsync().done(function () {
-                                    // Writing chunks to the file is completed
-                                    reader0.close();
-                                    reader1.close();
-                                    // Parse the next chunks
-                                    idx += 2;
-                                    if (idx < chunks.length) {
-                                        assembleFile(filename, writer, idx, chunks);
-                                    } else {
-                                        debug.append('File generation complete<br>');
-                                        writer.close();
-                                        if (filename != g_configName) {
-                                            setTimeout(function () {
-                                                WinJS.Navigation.navigate('/pages/file/file.html', filename);
-                                            }, 1000);
-                                        }
-                                    }
-                                });
-                            });
-                        });
-                    });
+    var i, nbRead = 0;
+    g_complete++;
+    $('#debug').append('Complete download<br>');
+    progressBar(g_complete, metadata['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
+    if (g_complete % g_providers.length == 0) {
+        g_chunks.sort(function (a, b) {
+            return a.idx - b.idx;
+        });
+        while (nbRead < g_chunks[0].size) {
+            for (i = 0; i < g_providers.length; i++) {
+                if (nbRead < g_chunks[i].size) {
+                    writer.writeByte(g_chunks[i].reader.readByte());
+                }
+            }
+            nbRead++;
+        }
+        for (i = 0 ; i < g_providers.length; i++) {
+            g_chunks[i].reader.close();
+        }
+        if (g_complete < metadata['chunks'].length) {
+            downloadChunks(metadata, g_complete, writer);
+        } else {
+            debug.append('Download ' + metadata.name + ' complete<br>');
+            writer.storeAsync().done(function () {
+                writer.flushAsync().done(function () {
+                    writer.close();
+                    setTimeout(function () {
+                        WinJS.Navigation.navigate('/pages/file/file.html', metadata.name);
+                    }, 1000);
                 });
             });
-        });
-    });
+        }
+    }
 }
 
 function downloadConfiguration() {

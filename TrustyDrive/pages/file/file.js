@@ -13,41 +13,45 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         var metadata = g_metadata[filename];
         // Menu location
         var height = $('#content').innerHeight();
-        // Add click listeners
-        $('.upper-settings').click(function () {
-            WinJS.Navigation.navigate('/pages/settings/settings.html');
-        });
-        $('.upper-back').click({ 'folder': 'home' }, displayFolder);
-        $('.cloud-delete').click({ 'md': metadata }, cloudDelete);
-        $('.download').click({ 'filename': metadata.name }, downloadFile);
-        // Display the file metadata
-        $('.upper-title').append(metadata.name);
-        $('.file-icon').css('background', 'url(../../images/style/' + metadata.type + '-big.png) no-repeat');
-        $('#file-type').html(metadata.type.substr(0, 1).toUpperCase() + metadata.type.substr(1) + ' File');
-        size = sizeString(metadata.size);
-        $('#file-size').html(size.value + ' ' + size.unit);
-        $('#file-upload').html(metadata.lastupload);
-        var status = $('#file-status');
-        g_workingDir.getFileAsync(metadata.name).then(
-            function (file) {
-                $('.menu-bar').css('top', height - 120);
-                $('.upload').click({ 'filename': metadata.name }, uploadFile);
-                $('.open').click({ 'filename': metadata.name }, openFile);
-                $('.local-delete').click({ 'filename': metadata.name }, localDelete);
-                file.getBasicPropertiesAsync().done(function (props) {
-                    if (props.size == metadata.size) {
-                        status.html('On the Local Drive');
-                    } else {
-                        status.html('To Be Upload');
-                    }
-                });
-            },
-            function (error) {
-                $('.menu-bar').css('top', height - 60);
-                $('.menu-container')[0].remove();
-                status.html('On the Cloud');
-            }
-        );
+        if (filename == g_configName) {
+            WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', g_configName);
+        } else {
+            // Add click listeners
+            $('.upper-settings').click(function () {
+                WinJS.Navigation.navigate('/pages/settings/settings.html');
+            });
+            $('.upper-back').click({ 'folder': 'home' }, displayFolder);
+            $('.cloud-delete').click({ 'md': metadata }, cloudDelete);
+            $('.download').click({ 'filename': metadata.name }, downloadFile);
+            // Display the file metadata
+            $('.upper-title').append(metadata.name);
+            $('.file-icon').css('background', 'url(../../images/style/' + metadata.type + '-big.png) no-repeat');
+            $('#file-type').html(metadata.type.substr(0, 1).toUpperCase() + metadata.type.substr(1) + ' File');
+            size = sizeString(metadata.size);
+            $('#file-size').html(size.value + ' ' + size.unit);
+            $('#file-upload').html(metadata.lastupload);
+            var status = $('#file-status');
+            g_workingDir.getFileAsync(metadata.name).then(
+                function (file) {
+                    $('.menu-bar').css('top', height - 120);
+                    $('.upload').click({ 'filename': metadata.name }, uploadFile);
+                    $('.open').click({ 'filename': metadata.name }, openFile);
+                    $('.local-delete').click({ 'filename': metadata.name }, localDelete);
+                    file.getBasicPropertiesAsync().done(function (props) {
+                        if (props.size == metadata.size) {
+                            status.html('On the Local Drive');
+                        } else {
+                            status.html('To Be Upload');
+                        }
+                    });
+                },
+                function (error) {
+                    $('.menu-bar').css('top', height - 60);
+                    $('.menu-container')[0].remove();
+                    status.html('On the Cloud');
+                }
+            );
+        }
     }
 })
 

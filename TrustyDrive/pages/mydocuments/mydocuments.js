@@ -1,7 +1,7 @@
 ﻿WinJS.UI.Pages.define('/pages/mydocuments/mydocuments.html', {
     ready: function () {
         var debug = $('#debug');
-        var folder = WinJS.Navigation.state;
+        var folderName = WinJS.Navigation.state;
         var height = $('#content').innerHeight();
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
         var credentials = passwordVault.retrieveAll();
@@ -19,19 +19,11 @@
             setTimeout(function () {
                 connect(credentials, 0, passwordVault);
             }, 200);
+        } else if (folderName == g_configName) {
+            loadConfiguration();
         } else {
             displayFiles();
         }
-        /* Progress bar test
-        progressBar(0, 3, 'Connecting to providers...', 'Building a beautiful progress bar');
-        setTimeout(function () {
-        }, 3000);
-        setTimeout(function () {
-            progressBar(2, 3, 'Let\'s go...', function () {
-                $('.user-interface').hide();
-            });
-        }, 6000);
-        */
     }
 })
 
@@ -112,23 +104,42 @@ function displayFile(event) {
     WinJS.Navigation.navigate('/pages/file/file.html', event.data.filename);
 }
 
-function loadConfiguration() {
+function loadConfiguration(again) {
     var debug = $('#debug');
     debug.append('load configuration<br>');
-    g_workingDir.getFileAsync(g_configName).done(function (configFile) {
-        if (configFile != null) {
-            Windows.Storage.FileIO.readBufferAsync(configFile).done(function (buffer) {
-                var config, encoded;
-                var crypto = Windows.Security.Cryptography;
-                var cBuffer = crypto.CryptographicBuffer;
-                encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, buffer);
-                config = cBuffer.decodeFromBase64String(encoded);
-                encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
-                g_metadata = JSON.parse(encoded);
-                displayFolder({ 'data': { 'folder': 'home' }});
-            });
-        } else {
-            debug.append('Configuration file does not exist<br>');
+    g_workingDir.getFileAsync(g_configName).then(
+        function (configFile) {
+            Windows.Storage.FileIO.readBufferAsync(configFile).then(
+                function (buffer) {
+                    var config, encoded;
+                    var crypto = Windows.Security.Cryptography;
+                    var cBuffer = crypto.CryptographicBuffer;
+                    if (buffer.length == 0) {
+                        debug.append('Empty configuration<br>');
+                        WinJS.Navigation.navigate('/pages/settings/settings.html');
+                    } else {
+                        try {
+                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, buffer);
+                            config = cBuffer.decodeFromBase64String(encoded);
+                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
+                            //encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, buffer);
+                            g_metadata = JSON.parse(encoded);
+                            displayFolder({ 'data': { 'folder': 'home' } });
+                        } catch (ex) {
+                            debug.append('corrupted configuration<br>');
+                        }
+                    }
+                },
+                function (error) {
+                    debug.append('Can not read the configuration: ' + error + '<br>');
+                    if(again == undefined || again)
+                        loadConfiguration(false);
+                }
+            );
+        },
+        function (error) {
+            debug.append('no configuration file<br>');
+            WinJS.Navigation.navigate('/pages/settings/settings.html');
         }
-    });
+    );
 }

@@ -43,7 +43,7 @@ function uploadFile(event) {
 
 function uploadChunks(filename, readStream) {
     var debug = $('#debug');
-    var metadata, nbChunks, maxChunkSize = 10000, nbProviders = g_providers.length;
+    var metadata, nbChunks, nbProviders = g_providers.length;
     debug.append('Picked file: ' + filename + '<br>');
     debug.append('Size: ' + readStream.size + '<br>');
     if (g_metadata[filename] == undefined) {
@@ -58,7 +58,7 @@ function uploadChunks(filename, readStream) {
         throw "The file is too small. Required size: " + nbProviders * 3;
     }
     // Compute the number of chunks to encode the file
-    nbChunks = Math.ceil(readStream.size / maxChunkSize);
+    nbChunks = Math.ceil(readStream.size / g_maxChunkSize);
     if (nbChunks % nbProviders > 0) {
         nbChunks = (Math.trunc(nbChunks / nbProviders) + 1) * nbProviders;
     }
@@ -117,7 +117,11 @@ function createChunks(metadata, readStream, chunkSize, remainSize, nbCreatedChun
             createChunks(metadata, readStream, chunkSize, remainSize, nbCreatedChunks);
         } else {
             // Upload is complete
-            if (metadata.name != g_configName) {
+            if (metadata.name == g_configName) {
+                setTimeout(function () {
+                    WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', 'home');
+                }, 1000);
+            } else {
                 // Update the last upload date
                 metadata['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
                 if (d.getMinutes() > 9) {

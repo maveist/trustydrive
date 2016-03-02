@@ -67,25 +67,30 @@ function dropboxUserInfo(token, reconnect, func) {
     );
 }
 
-function dropboxDownload(metadata, chunkIdx, token) {
-    var debug = ('#debug');
+function dropboxDownload(metadata, chunkIdx, token, writer) {
+    var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = metadata['chunks'][chunkIdx];
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     //WARN: Delete the file if exists
-    g_workingDir.createFileAsync(chunkName, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (newFile) {
-        httpClient.sendRequestAsync(requestMessage).done(function (success) {
+    httpClient.sendRequestAsync(requestMessage).then(
+        function (success) {
             if (success.isSuccessStatusCode) {
                 success.content.readAsBufferAsync().done(function (buffer) {
-                    Windows.Storage.PathIO.writeBufferAsync(newFile.path, buffer).done(function () {
-                        downloadComplete(metadata);
-                    });
+                    reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
+                    g_chunks.push({ 'idx': chunkIdx, 'reader': reader, 'size': buffer.length });
+                    downloadComplete(metadata, writer);
                 });
+            } else {
+                debug.append('download error: ' + success.content + '<br>');
             }
-        });
-    });
+        },
+        function (error) {
+            debug.append('download error: ' + error + '<br>');
+        }
+    );
 }
 
 function dropboxUpload(chunkName, data, token) {
