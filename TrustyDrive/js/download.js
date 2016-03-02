@@ -1,12 +1,8 @@
 ﻿function downloadFile(event) {
     var metadata = g_metadata[event.data.filename];
-    var idx, chunks = metadata['chunks'];
     var debug = $('#debug');
     g_complete = 0;
-    chunks.forEach(function (c) {
-        debug.append('conf: ' + c + ' - p: ' + g_providers.length + '<br>');
-    });
-    progressBar(0, chunks.length + 1, 'Initialization', 'Downloading the File ' + metadata.name);
+    progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the File ' + metadata.name);
     g_workingDir.createFileAsync(metadata.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
         myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
             downloadChunks(metadata, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
@@ -18,7 +14,6 @@ function downloadChunks(metadata, chunkIdx, writer) {
     var i;
     g_chunks = [];
     for (i = 0; i < g_providers.length; i++) {
-        $('#debug').append('download ' + (chunkIdx + i) + '<br>');
         dropboxDownload(metadata, chunkIdx + i, g_providers[1].token, writer);
     }
 }
@@ -27,7 +22,6 @@ function downloadComplete(metadata, writer) {
     var debug = $('#debug');
     var i, nbRead = 0;
     g_complete++;
-    $('#debug').append('Complete download<br>');
     progressBar(g_complete, metadata['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
     if (g_complete % g_providers.length == 0) {
         g_chunks.sort(function (a, b) {
@@ -50,10 +44,30 @@ function downloadComplete(metadata, writer) {
             debug.append('Download ' + metadata.name + ' complete<br>');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
-                    writer.close();
-                    setTimeout(function () {
-                        WinJS.Navigation.navigate('/pages/file/file.html', metadata.name);
-                    }, 1000);
+                    var config, encoded, reader;
+                    var crypto = Windows.Security.Cryptography;
+                    var cBuffer = crypto.CryptographicBuffer;
+                    if (metadata.name == g_configName) {
+                        config = writer.detachStream();
+                        writer.close();
+                        debug.append('configuration is complete: ' + config.size + '<br>');
+                        config.seek(0);
+                        reader = new Windows.Storage.Streams.DataReader(config);
+                        reader.loadAsync(config.size).then(function () {
+                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(config.size));
+                            config = cBuffer.decodeFromBase64String(encoded);
+                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
+                            g_metadata = JSON.parse(encoded);
+                            setTimeout(function () {
+                                WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', 'home');
+                            }, 1000);
+                        });
+                    } else {
+                        writer.close();
+                        setTimeout(function () {
+                            WinJS.Navigation.navigate('/pages/file/file.html', metadata.name);
+                        }, 1000);
+                    }
                 });
             });
         }
@@ -61,5 +75,10 @@ function downloadComplete(metadata, writer) {
 }
 
 function downloadConfiguration() {
-    downloadFile({ 'data': { 'filename': g_configName } });
+    var metadata = g_metadata[g_configName];
+    var writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
+    var debug = $('#debug');
+    g_complete = 0;
+    progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
+    downloadChunks(metadata, g_complete, writer);
 }

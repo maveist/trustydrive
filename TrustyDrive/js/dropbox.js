@@ -69,6 +69,7 @@ function dropboxUserInfo(token, reconnect, func) {
 
 function dropboxDownload(metadata, chunkIdx, token, writer) {
     var reader, size;
+    var debug = $('debug');
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = metadata['chunks'][chunkIdx];
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + chunkName);
