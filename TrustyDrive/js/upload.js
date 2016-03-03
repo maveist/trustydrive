@@ -43,8 +43,8 @@ function uploadFile(event) {
 
 function uploadChunks(filename, readStream) {
     var debug = $('#debug');
-    var metadata, nbChunks, nbProviders = g_providers.length;
-    debug.append('Picked file: ' + filename + '<br>');
+    var metadata, nbChunks, reader, nbProviders = g_providers.length;
+    debug.append('File to Upload: ' + filename + '<br>');
     debug.append('Size: ' + readStream.size + '<br>');
     if (g_metadata[filename] == undefined) {
         // Initialize the file metadata
@@ -55,6 +55,7 @@ function uploadChunks(filename, readStream) {
     }
     // The minimal file size required, 3 bytes on every provider
     if (readStream.size < nbProviders * 3) {
+        readStream.close();
         throw "The file is too small. Required size: " + nbProviders * 3;
     }
     // Compute the number of chunks to encode the file
@@ -65,22 +66,21 @@ function uploadChunks(filename, readStream) {
     progressBar(0, nbChunks + 1, 'Initialization', 'Uploading the File ' + filename);
     metadata['size'] = readStream.size;
     mychunks = metadata['chunks'];
-    debug.append('nb of chunks: ' + mychunks.length + '<br>');
     if (mychunks.length > nbChunks) {
         mychunks.splice(nbChunks, mychunks.length - nbChunks);
-        //TODO: delete the existing chunks - dropboxDelete()
     } else {
         while (mychunks.length < nbChunks) {
             mychunks.push(filename.substr(0, 2) + mychunks.length);
         }
     }
-    createChunks(metadata, readStream.getInputStreamAt(0), Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
+    debug.append('Nb. of Chunks: ' + mychunks.length + '<br>');
+    reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
+    createChunks(metadata, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
 }
 
-function createChunks(metadata, readStream, chunkSize, remainSize, nbCreatedChunks) {
+function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) {
     var debug = $('#debug');
     var temp, firstChunkSize, secondChunkSize;
-    var reader = new Windows.Storage.Streams.DataReader(readStream);
     debug.append('chunksize: ' + chunkSize + ', remainsize: ' + remainSize + '<br>');
     if (remainSize > 0) {
         firstChunkSize = chunkSize + 1;
@@ -110,12 +110,16 @@ function createChunks(metadata, readStream, chunkSize, remainSize, nbCreatedChun
         debug.append('Creating ' + metadata['chunks'][nbCreatedChunks] + ' and ' + metadata['chunks'][nbCreatedChunks + 1] + '<br>');
         dropboxUpload(metadata['chunks'][nbCreatedChunks], chunk0.detachBuffer(), g_providers[1].token);
         dropboxUpload(metadata['chunks'][nbCreatedChunks + 1], chunk1.detachBuffer(), g_providers[1].token);
+        chunk0.close();
+        chunk1.close();
         nbCreatedChunks += 2;
         progressBar(nbCreatedChunks, metadata['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
         if (nbCreatedChunks < metadata['chunks'].length) {
             // Keep creating chunks
-            createChunks(metadata, readStream, chunkSize, remainSize, nbCreatedChunks);
+            createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks);
         } else {
+            debug.append('close the reader<br>');
+            //reader.close();
             // Upload is complete
             if (metadata.name == g_configName) {
                 setTimeout(function () {

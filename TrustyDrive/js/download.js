@@ -44,20 +44,20 @@ function downloadComplete(metadata, writer) {
             debug.append('Download ' + metadata.name + ' complete<br>');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
-                    var config, encoded, reader;
+                    var stream, config, reader;
                     var crypto = Windows.Security.Cryptography;
                     var cBuffer = crypto.CryptographicBuffer;
                     if (metadata.name == g_configName) {
-                        config = writer.detachStream();
-                        writer.close();
-                        debug.append('configuration is complete: ' + config.size + '<br>');
-                        config.seek(0);
-                        reader = new Windows.Storage.Streams.DataReader(config);
-                        reader.loadAsync(config.size).then(function () {
-                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(config.size));
-                            config = cBuffer.decodeFromBase64String(encoded);
-                            encoded = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, config);
-                            g_metadata = JSON.parse(encoded);
+                        stream = writer.detachStream();
+                        stream.seek(0);
+                        reader = new Windows.Storage.Streams.DataReader(stream);
+                        reader.loadAsync(stream.size).then(function () {
+                            config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(stream.size));
+                            config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, cBuffer.decodeFromBase64String(config));
+                            g_metadata = JSON.parse(config);
+                            writer.close();
+                            stream.close();
+                            reader.close();
                             setTimeout(function () {
                                 WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', 'home');
                             }, 1000);

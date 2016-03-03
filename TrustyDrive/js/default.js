@@ -1,7 +1,7 @@
-﻿//TODO: do not write the configuration file to the local drive
+﻿//TODO: manage folders
 //TODO: Load/download automatically the configuration
+//TODO: delete the existing chunks - dropboxDelete()
 //BUG: Sometimes 'access is denied' error while opening files
-//BUG: Upload large files
 
 // Global variables
 const g_maxChunkSize = 10000
