@@ -1,4 +1,5 @@
 ﻿//TODO: manage folders
+//TODO: sort files by alphabetic order or types
 //TODO: Load/download automatically the configuration
 //TODO: delete the existing chunks - dropboxDelete()
 //BUG: Sometimes 'access is denied' error while opening files

@@ -137,6 +137,7 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
                 idx = metadata.name.indexOf('.');
                 if (idx > -1) {
                     switch (metadata.name.substr(idx + 1)) {
+                        case '7z':
                         case 'tar':
                         case 'tar.gz':
                         case 'zip':
@@ -153,7 +154,9 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
                             break;
                         case 'bmp':
                         case 'gif':
+                        case 'ico':
                         case 'jpg':
+                        case 'nef':
                         case 'png':
                             filetype = 'picture';
                             break;
@@ -175,6 +178,10 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
                         case 'htm':
                         case 'php':
                             filetype = 'web';
+                            break;
+                        case 'dll':
+                        case 'exe':
+                            filetype = 'system';
                             break;
                     }
                 }

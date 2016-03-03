@@ -106,6 +106,8 @@
     <Content Include="images\Square44x44Logo.scale-200.png" />
     <Content Include="images\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="images\StoreLogo.png" />
+    <Content Include="images\style\system-big.png" />
+    <Content Include="images\style\system.png" />
     <Content Include="images\style\text-big.png" />
     <Content Include="images\style\text.png" />
     <Content Include="images\style\unknown-big.png" />

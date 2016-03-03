@@ -104,6 +104,14 @@
     background: #CEE3F6 url("../../images/style/script.png") no-repeat;
 }
 
+.system {
+    background: url("../../images/style/system.png") no-repeat;
+}
+
+.system:hover {
+    background: #CAA3F6 url("../../images/style/system.png") no-repeat;
+}
+
 .text {
     background: url("../../images/style/text.png") no-repeat;
 }
