@@ -11,6 +11,8 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         // Get parameters
         var metadata = WinJS.Navigation.state.md;
         var folder = WinJS.Navigation.state.folder;
+        // Status property
+        var status = $('#file-status');
         // Menu location
         var height = $('#content').innerHeight();
         if (metadata.name == g_configName) {
@@ -24,13 +26,46 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                 WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });
             $('.cloud-delete').click(function () {
-                cloudDelete(metadata, folder);
+                var index;
+                metadata['chunks'].forEach(function (c) {
+                    dropboxDelete(c);
+                });
+                delete g_files[metadata.name];
+                index = folder.files.indexOf(metadata);
+                if (index > -1) {
+                    folder.files.splice(index, 1);
+                }
+                WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });
             $('.download').click(function () {
                 downloadFile(metadata, folder);
             });
             $('.move').click(function () {
-                moveDialog(metadata, folder);
+                var html = '<div class="interface-question">';
+                $('.interface-body').empty();
+                $('.user-interface').show();
+                html += 'Move <b>' + metadata.name + '</b><br>';
+                html += 'Choose the target folder:<br>';
+                $('.interface-body').append(html);
+                $.each(g_folders, function (name, dest) {
+                    if (name != folder.name) {
+                        $('.interface-body').append('<div id="folder-' + name + '" class="interface-folder">' + name + '</div>');
+                        $('#folder-' + name).click(function () {
+                            var index = folder.files.indexOf(metadata);
+                            if (index > -1) {
+                                folder.files.splice(index, 1);
+                            }
+                            addToFolder(dest, metadata);
+                            WinJS.Navigation.navigate('/pages/folder/folder.html', dest);
+                        });
+                    }
+                });
+                html = '<br><br><div id="cancel-button" class="interface-button">CANCEL</div>';
+                html += '</div>';
+                $('.interface-body').append(html);
+                $('#cancel-button').click(function () {
+                    $('.user-interface').hide();
+                });
             });
             // Display the file metadata
             $('.upper-title').append(metadata.name);
@@ -39,16 +74,23 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
             size = sizeString(metadata.size);
             $('#file-size').html(size.value + ' ' + size.unit);
             $('#file-upload').html(metadata.lastupload);
-            var status = $('#file-status');
             g_workingDir.getFileAsync(metadata.name).then(
                 function (file) {
                     $('.menu-bar').css('top', height - 120);
                     $('.upload').click(function () {
                         uploadFile(metadata.name, folder);
                     });
-                    $('.open').click({ 'filename': metadata.name }, openFile);
+                    $('.open').click(function () {
+                        g_workingDir.getFileAsync(metadata.name).done(function (file) {
+                            Windows.System.Launcher.launchFileAsync(file).done();
+                        });
+                    });
                     $('.local-delete').click(function () {
-                        localDelete(metadata, folder);
+                        g_workingDir.getFileAsync(metadata.name).then(function (file) {
+                            file.deleteAsync().then(function () {
+                                WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
+                            });
+                        });
                     });
                     file.getBasicPropertiesAsync().done(function (props) {
                         if (props.size == metadata.size) {
@@ -67,33 +109,6 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         }
     }
 })
-
-function openFile(event) {
-    g_workingDir.getFileAsync(event.data.filename).done(function (file) {
-        Windows.System.Launcher.launchFileAsync(file).done();
-    });
-}
-
-function localDelete(metadata, folder) {
-    g_workingDir.getFileAsync(metadata.name).then(function (file) {
-        file.deleteAsync().then(function () {
-            WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
-        });
-    });
-}
-
-function cloudDelete(metadata, folder) {
-    var index;
-    metadata['chunks'].forEach(function (c) {
-        dropboxDelete(c);
-    });
-    delete g_files[metadata.name];
-    index = folder.files.indexOf(metadata);
-    if (index > -1) {
-        folder.files.splice(index, 1);
-    }
-    WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
-}
 
 function sizeString(size) {
     var res = {};
@@ -114,35 +129,4 @@ function sizeString(size) {
         res.unit = 'Bytes';
     }
     return res;
-}
-function moveDialog(file, src) {
-    $('.interface-body').empty();
-    $('.user-interface').show();
-    var html = '<div class="interface-question">';
-    html += 'Move <b>' + file.name + '</b><br>';
-    html += 'Choose the target folder:<br>';
-    $('.interface-body').append(html);
-    $.each(g_folders, function (name, dest) {
-        if (name != src.name) {
-            $('.interface-body').append('<div id="folder-' + name + '" class="interface-folder">' + name + '</div>');
-            $('#folder-' + name).click(function () {
-                move(file, src, dest);
-            });
-        }
-    });
-    html = '<br><br><div id="cancel-button" class="interface-button">CANCEL</div>';
-    html += '</div>';
-    $('.interface-body').append(html);
-    $('#cancel-button').click(function () {
-        $('.user-interface').hide();
-    });
-}
-
-function move(file, src, dest) {
-    var index = src.files.indexOf(file);
-    if (index > -1) {
-        src.files.splice(index, 1);
-    }
-    addToFolder(dest, file);
-    WinJS.Navigation.navigate('/pages/folder/folder.html', dest);
 }

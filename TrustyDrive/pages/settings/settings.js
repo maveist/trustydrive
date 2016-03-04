@@ -5,13 +5,27 @@
             localSettings.values['sortingFiles'] = 'alphabetic';
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             // Add click listeners
-            $('#picker-button').click(chooseDir);
+            $('#picker-button').click(function () {
+                var folderPicker = new Windows.Storage.Pickers.FolderPicker();
+                var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
+                folderPicker.suggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.desktop;
+                // Useless for the folder selection but required by the API
+                folderPicker.fileTypeFilter.replaceAll(['.txt', '.pdf', '.jpg']);
+                folderPicker.pickSingleFolderAsync().then(function (folder) {
+                    if (folder) {
+                        futureAccess.addOrReplace('PickedFolderToken', folder);
+                        setButtonLabel(folder.path);
+                    } else {
+                        // The picker was dismissed with no selected file
+                    }
+                });
+            });
             $('#upload-config').click(uploadConfiguration);
             $('#download-config').click(downloadConfiguration);
             $('.upper-back').click(function() {
-                displayFolder(g_folders['home']);
+                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
             });
-            $('#dropbox').click({ 'provider': 'dropbox' }, addProvider);
+            $('#dropbox').click(dropboxLogin);
             // Compute the available size
             g_providers.forEach(function (p) {
                 // Display size in MB
@@ -33,33 +47,6 @@
             $('#picker-button').text('...' + name.substr(-23));
         } else {
             $('#picker-button').text(name);
-        }
-    }
-
-    function chooseDir() {
-        var folderPicker = new Windows.Storage.Pickers.FolderPicker();
-        var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
-        folderPicker.suggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.desktop;
-        // Useless for the folder selection but required by the API
-        folderPicker.fileTypeFilter.replaceAll(['.txt', '.pdf', '.jpg']);
-        folderPicker.pickSingleFolderAsync().then(function (folder) {
-            if (folder) {
-                futureAccess.addOrReplace('PickedFolderToken', folder);
-                setButtonLabel(folder.path);
-            } else {
-                // The picker was dismissed with no selected file
-            }
-        });
-    }
-
-    function addProvider(event) {
-        var provider;
-        switch (event.data.provider) {
-            case 'box':
-                break;
-            case 'dropbox':
-                dropboxLogin();
-                break;
         }
     }
 })();

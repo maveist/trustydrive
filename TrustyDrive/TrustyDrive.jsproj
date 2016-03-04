@@ -122,7 +122,7 @@
     <Content Include="css\default.css" />
     <Content Include="js\download.js" />
     <Content Include="js\dropbox.js" />
-    <Content Include="js\folder.js" />
+    <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
     <Content Include="js\upload.js" />
     <Content Include="pages\file\file.css" />
