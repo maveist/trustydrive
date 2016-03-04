@@ -235,4 +235,42 @@
 .bar-legend {
     margin-left: 50px;
 }
+
+.interface-question {
+    width: 320px;
+    margin: auto;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.interface-button {
+    width: 80px;
+    height: 30px;
+    padding-top: 10px;
+    margin: 5px;
+    border: 1px solid #808080;
+    border-radius: 2px;
+    text-align: center;
+    color: #FFFFFF;
+    background-color: #A4A4A4;
+    display: inline-block;
+}
+
+.interface-button:hover {
+    background-color: #60A917;
+}
+
+.interface-folder {
+    width: 80px;
+    height: 30px;
+    padding-top: 10px;
+    margin: 5px;
+    border: 1px solid #000000;
+    text-align: center;
+    display: inline-block;
+}
+
+.interface-folder:hover {
+    background-color: #60A917;
+}
 /*** End of the Dialog Box ***/

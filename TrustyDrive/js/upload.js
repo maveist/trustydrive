@@ -1,4 +1,4 @@
-﻿function uploadNewFile() {
+﻿function uploadNewFile(folder) {
     var debug = $('#debug');
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;
@@ -20,7 +20,7 @@
             // Application now has read/write access to the picked file
             file.openReadAsync().done(
                 function (readStream) {
-                    uploadChunks(file.name, readStream);
+                    uploadChunks(file.name, folder, readStream);
                 },
                 function (error) {
                     debug.append('Failed to open read stream<br>');
@@ -33,25 +33,25 @@
     });
 }
 
-function uploadFile(event) {
-    g_workingDir.getFileAsync(event.data.filename).then(function (file) {
+function uploadFile(filename, folder) {
+    g_workingDir.getFileAsync(filename).then(function (file) {
         file.openReadAsync().done(function (readStream) {
-            uploadChunks(file.name, readStream);
+            uploadChunks(filename, folder, readStream);
         });
     });
 }
 
-function uploadChunks(filename, readStream) {
+function uploadChunks(filename, folder, readStream) {
     var debug = $('#debug');
     var metadata, nbChunks, reader, nbProviders = g_providers.length;
     debug.append('File to Upload: ' + filename + '<br>');
     debug.append('Size: ' + readStream.size + '<br>');
-    if (g_metadata[filename] == undefined) {
+    if (g_files[filename] == undefined) {
         // Initialize the file metadata
-        metadata = { 'name': filename, 'chunks': [] };
-        g_metadata[filename] = metadata;
+        metadata = createElement(filename, 'file');
+        addToFolder(folder, metadata);
     } else {
-        metadata = g_metadata[filename];
+        metadata = g_files[filename];
     }
     // The minimal file size required, 3 bytes on every provider
     if (readStream.size < nbProviders * 3) {
@@ -75,10 +75,10 @@ function uploadChunks(filename, readStream) {
     }
     debug.append('Nb. of Chunks: ' + mychunks.length + '<br>');
     reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
-    createChunks(metadata, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
+    createChunks(metadata, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
 }
 
-function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) {
+function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
     var debug = $('#debug');
     var temp, firstChunkSize, secondChunkSize;
     debug.append('chunksize: ' + chunkSize + ', remainsize: ' + remainSize + '<br>');
@@ -116,14 +116,13 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
         progressBar(nbCreatedChunks, metadata['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
         if (nbCreatedChunks < metadata['chunks'].length) {
             // Keep creating chunks
-            createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks);
+            createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks);
         } else {
-            debug.append('close the reader<br>');
-            //reader.close();
+            reader.close();
             // Upload is complete
             if (metadata.name == g_configName) {
                 setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', 'home');
+                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
                 }, 1000);
             } else {
                 // Update the last upload date
@@ -188,7 +187,7 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
                 // End of the file type definition
                 metadata['type'] = filetype;
                 setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/file/file.html', metadata.name);
+                    WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
                 }, 1000);
             }
         }
@@ -198,7 +197,7 @@ function createChunks(metadata, reader, chunkSize, remainSize, nbCreatedChunks) 
 // Configuration management
 function uploadConfiguration() {
     var debug = $('#debug');
-    var config = JSON.stringify(g_metadata);
+    var config = JSON.stringify(g_files);
     var crypto = Windows.Security.Cryptography;
     var cBuffer = crypto.CryptographicBuffer;
     // Convert to buffer
@@ -209,5 +208,5 @@ function uploadConfiguration() {
     // Save the configuration to the cloud
     var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
     writer.writeAsync(buffer);
-    uploadChunks(g_configName, writer);
+    uploadChunks(g_configName, undefined, writer);
 }

@@ -1,12 +1,16 @@
 ﻿(function () {
     WinJS.UI.Pages.define('/pages/settings/settings.html', {
         ready: function () {
+            var localSettings = Windows.Storage.ApplicationData.current.localSettings;
+            localSettings.values['sortingFiles'] = 'alphabetic';
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             // Add click listeners
             $('#picker-button').click(chooseDir);
             $('#upload-config').click(uploadConfiguration);
             $('#download-config').click(downloadConfiguration);
-            $('.upper-back').click({ 'folder': 'home' }, displayFolder);
+            $('.upper-back').click(function() {
+                displayFolder(g_folders['home']);
+            });
             $('#dropbox').click({ 'provider': 'dropbox' }, addProvider);
             // Compute the available size
             g_providers.forEach(function (p) {

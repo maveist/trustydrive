@@ -9,20 +9,29 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         var debug = $('#debug');
         var size;
         // Get parameters
-        var filename = WinJS.Navigation.state;
-        var metadata = g_metadata[filename];
+        var metadata = WinJS.Navigation.state.md;
+        var folder = WinJS.Navigation.state.folder;
         // Menu location
         var height = $('#content').innerHeight();
-        if (filename == g_configName) {
-            WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', g_configName);
+        if (metadata.name == g_configName) {
+            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
         } else {
             // Add click listeners
             $('.upper-settings').click(function () {
                 WinJS.Navigation.navigate('/pages/settings/settings.html');
             });
-            $('.upper-back').click({ 'folder': 'home' }, displayFolder);
-            $('.cloud-delete').click({ 'md': metadata }, cloudDelete);
-            $('.download').click({ 'filename': metadata.name }, downloadFile);
+            $('.upper-back').click(function () {
+                WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+            });
+            $('.cloud-delete').click(function () {
+                cloudDelete(metadata, folder);
+            });
+            $('.download').click(function () {
+                downloadFile(metadata, folder);
+            });
+            $('.move').click(function () {
+                moveDialog(metadata, folder);
+            });
             // Display the file metadata
             $('.upper-title').append(metadata.name);
             $('.file-icon').css('background', 'url(../../images/style/' + metadata.type + '-big.png) no-repeat');
@@ -34,9 +43,13 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
             g_workingDir.getFileAsync(metadata.name).then(
                 function (file) {
                     $('.menu-bar').css('top', height - 120);
-                    $('.upload').click({ 'filename': metadata.name }, uploadFile);
+                    $('.upload').click(function () {
+                        uploadFile(metadata.name, folder);
+                    });
                     $('.open').click({ 'filename': metadata.name }, openFile);
-                    $('.local-delete').click({ 'filename': metadata.name }, localDelete);
+                    $('.local-delete').click(function () {
+                        localDelete(metadata, folder);
+                    });
                     file.getBasicPropertiesAsync().done(function (props) {
                         if (props.size == metadata.size) {
                             status.html('On the Local Drive');
@@ -61,21 +74,25 @@ function openFile(event) {
     });
 }
 
-function localDelete(event) {
-    g_workingDir.getFileAsync(event.data.filename).then(function (file) {
+function localDelete(metadata, folder) {
+    g_workingDir.getFileAsync(metadata.name).then(function (file) {
         file.deleteAsync().then(function () {
-            WinJS.Navigation.navigate('/pages/file/file.html', event.data.filename);
+            WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
         });
     });
 }
 
-function cloudDelete(event) {
-    var metadata = event.data.md;
+function cloudDelete(metadata, folder) {
+    var index;
     metadata['chunks'].forEach(function (c) {
         dropboxDelete(c);
     });
-    delete g_metadata[metadata['name']];
-    WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html');
+    delete g_files[metadata.name];
+    index = folder.files.indexOf(metadata);
+    if (index > -1) {
+        folder.files.splice(index, 1);
+    }
+    WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
 }
 
 function sizeString(size) {
@@ -97,4 +114,35 @@ function sizeString(size) {
         res.unit = 'Bytes';
     }
     return res;
+}
+function moveDialog(file, src) {
+    $('.interface-body').empty();
+    $('.user-interface').show();
+    var html = '<div class="interface-question">';
+    html += 'Move <b>' + file.name + '</b><br>';
+    html += 'Choose the target folder:<br>';
+    $('.interface-body').append(html);
+    $.each(g_folders, function (name, dest) {
+        if (name != src.name) {
+            $('.interface-body').append('<div id="folder-' + name + '" class="interface-folder">' + name + '</div>');
+            $('#folder-' + name).click(function () {
+                move(file, src, dest);
+            });
+        }
+    });
+    html = '<br><br><div id="cancel-button" class="interface-button">CANCEL</div>';
+    html += '</div>';
+    $('.interface-body').append(html);
+    $('#cancel-button').click(function () {
+        $('.user-interface').hide();
+    });
+}
+
+function move(file, src, dest) {
+    var index = src.files.indexOf(file);
+    if (index > -1) {
+        src.files.splice(index, 1);
+    }
+    addToFolder(dest, file);
+    WinJS.Navigation.navigate('/pages/folder/folder.html', dest);
 }

@@ -67,7 +67,7 @@ function dropboxUserInfo(token, reconnect, func) {
     );
 }
 
-function dropboxDownload(metadata, chunkIdx, token, writer) {
+function dropboxDownload(metadata, folder, chunkIdx, token, writer) {
     var reader, size;
     var debug = $('debug');
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -82,7 +82,7 @@ function dropboxDownload(metadata, chunkIdx, token, writer) {
                 success.content.readAsBufferAsync().done(function (buffer) {
                     reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
                     g_chunks.push({ 'idx': chunkIdx, 'reader': reader, 'size': buffer.length });
-                    downloadComplete(metadata, writer);
+                    downloadComplete(metadata, folder, writer);
                 });
             } else {
                 debug.append('download error: ' + success.content + '<br>');

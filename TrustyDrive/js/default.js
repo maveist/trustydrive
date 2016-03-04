@@ -1,7 +1,9 @@
 ﻿//TODO: manage folders
+//BUG: put displayFolder in folder.ready(), duplicate listeners
 //TODO: sort files by alphabetic order or types
 //TODO: Load/download automatically the configuration
 //TODO: delete the existing chunks - dropboxDelete()
+//TODO: Replace toto(event) by click(function() { toto(params); });
 //BUG: Sometimes 'access is denied' error while opening files
 
 // Global variables
@@ -11,7 +13,8 @@ var g_chunks = [];
 var g_providers = [];
 var g_workingDir;
 var g_complete;
-var g_metadata = {};
+var g_files = {};
+var g_folders = {};
 
 (function () {
     "use strict";
@@ -35,7 +38,7 @@ var g_metadata = {};
                 if (futureAccess.containsItem('PickedFolderToken')) {
                     futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
                         g_workingDir = folder;
-                        WinJS.Navigation.navigate('/pages/mydocuments/mydocuments.html', { 'folder': 'home' });
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
                     });
                 }
             });
