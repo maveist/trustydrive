@@ -1,1 +1,55 @@
-﻿
+﻿.used-account {
+    width: 400px;
+    height: 60px;
+    padding-left: 100px;
+    padding-top: 30px;
+}
+
+.used-account:hover {
+    width: 398px;
+    height: 58px;
+    border: 1px solid #808080;
+}
+
+.remove-provider {
+    width: 80px;
+    height: 25px;
+    padding-top: 5px;
+    margin-right: 5px;
+    border: 1px dotted #808080;
+    float: right;
+    text-align: center;
+}
+
+.remove-provider:hover {
+    background: #E5E0E6;
+}
+
+.add-dropbox {
+    height: 30px;
+    width: 90px;
+    padding-top: 90px;
+    background: url(../../images/style/dropbox.png) no-repeat;
+    text-align: center;
+    float: left;
+}
+
+.add-drive {
+    height: 30px;
+    width: 90px;
+    margin-left: 10px;
+    padding-top: 90px;
+    background: url(../../images/style/drive.png) no-repeat;
+    text-align: center;
+    float: left;
+}
+
+.add-onedrive {
+    height: 30px;
+    width: 90px;
+    margin-left: 10px;
+    padding-top: 90px;
+    background: url(../../images/style/onedrive.png) no-repeat;
+    text-align: center;
+    float: left;
+}

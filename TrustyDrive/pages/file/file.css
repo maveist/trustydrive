@@ -1,6 +1,6 @@
 ﻿.file-info {
     width: 340px;
-    height: 130px;
+    height: 20%;
     margin: auto;
     margin-top: 30px;
 }
@@ -30,23 +30,24 @@
 
 .file-providers {
     width: 343px;
-    height: 300px;
+    height: 45%;
     margin: auto;
     margin-top: 20px;
     text-align: center;
+    overflow: auto;
+}
+
+.used-provider {
+    width: 243px;
+    height: 60px;
+    padding-left: 100px;
+    padding-top: 30px;
+    text-align: left;
 }
 
 .file-providers span {
     font-size: 18px;
     font-weight: bold;
-}
-
-.file-providers div {
-    width: 90px;
-    height: 90px;
-    margin-left: 12px;
-    margin-right: 12px;
-    float: left;
 }
 
 /*** File Action Icons ***/

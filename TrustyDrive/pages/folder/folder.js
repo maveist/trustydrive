@@ -5,11 +5,28 @@
         var height = $('#content').innerHeight();
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
         var credentials = passwordVault.retrieveAll();
-        var div, files = $('.file-list');
+        var body, div, files = $('.file-list');
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
         $('.menu-bar').css('top', height - 60);
         // Remove the menu-bar height and the upper-bar height and padding
         $('.file-list').innerHeight(height - 60 - 60 - 5);
+        // Default folder to display
+        if (typeof folder === 'string') {
+            $('.user-interface').show();
+            // Create a close button
+            div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+            div.click(function () {
+                $('.user-interface').hide();
+            });
+            // Configure body
+            body = $('.interface-body');
+            body.empty();
+            body.append(folder + '<br><br>');
+            body.append(div);
+            folder = g_folders['home'];
+        } else if (folder == undefined) {
+            folder = g_folders['home'];
+        }
         // Add click listeners
         $('.upper-settings').click(function () {
             WinJS.Navigation.navigate('/pages/settings/settings.html');
@@ -40,6 +57,7 @@
             });
         });
         if (g_files[g_configName] == undefined) {
+            initHomeFolder();
             // Connect to existing providers
             progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
             setTimeout(function () {
@@ -47,10 +65,6 @@
             }, 300);
         } else {
             // Display the folder content
-            if (folder == undefined) {
-                folder = g_folders['home'];
-            }
-            // Set the title
             $('.upper-title').html(folder.name);
             // Add click listeners
             if (folder.name != 'home') {
@@ -94,11 +108,16 @@ function byType(a, b) {
     if (a.type == b.type) {
         return a.name.localeCompare(b.name);
     } else {
-        return a.type.localeCompare(b.type);
+        if (a.type == undefined || b.type == undefined) {
+            return -1;
+        } else {
+            return a.type.localeCompare(b.type);
+        }
     }
 }
 
 function connect(credentials, idx, vault) {
+    var debug = $('#debug');
     if (idx < credentials.length) {
         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         switch (credentials[idx].resource) {
@@ -115,16 +134,18 @@ function connect(credentials, idx, vault) {
                 break;
         }
     } else {
+        // Connection to all providers are etablished
         if (g_providers.length < 2) {
             // Users must add providers, at least 2 providers is required
             WinJS.Navigation.navigate('/pages/settings/settings.html');
         } else {
             g_files = {};
             // Every provider is available, build the configuration metadata
-            g_files[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [] };
+            g_files[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [], 'providers': [] };
             g_providers.forEach(function (p) {
                 g_files[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + 'remy');
             });
+            //$('.user-interface').hide();
             downloadConfiguration();
         }
     }

@@ -1,10 +1,6 @@
-﻿//TODO: manage folders
-//BUG: put displayFolder in folder.ready(), duplicate listeners
-//TODO: sort files by alphabetic order or types
+﻿//TODO: delete the existing chunks - dropboxDelete()
+//TODO: create a folder to upload chunks
 //TODO: Load/download automatically the configuration
-//TODO: delete the existing chunks - dropboxDelete()
-//TODO: Replace toto(event) by click(function() { toto(params); });
-//BUG: Sometimes 'access is denied' error while opening files
 
 // Global variables
 const g_maxChunkSize = 10000

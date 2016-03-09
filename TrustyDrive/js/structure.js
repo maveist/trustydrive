@@ -8,7 +8,7 @@ function createElement(name, kind) {
     var element;
     if (kind == 'file') {
         if (g_files[name] == undefined) {
-            element = { 'name': name, 'kind': 'file', 'chunks': [] };
+            element = { 'name': name, 'kind': 'file', 'chunks': [], 'providers': [] };
             g_files[name] = element;
             return element;
         } else {
@@ -53,9 +53,8 @@ function addToFolder(parent, child) {
 function buildFolderStructure() {
     var debug = $('#debug');
     var path, current, child;
-    var home = initHomeFolder();
     $.each(g_files, function (name, file) {
-        current = home;
+        current = g_folders['home'];
         if (file['path'] == undefined || file.path == '/') {
             file['kind'] = 'file';
             addToFolder(g_folders['home'], file);

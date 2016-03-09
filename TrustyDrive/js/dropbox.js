@@ -1,20 +1,4 @@
-﻿// Dropbox connector to one dropbox account
-function createProvider(p) {
-    var i, found = false;
-    for (i = 0; i < g_providers.length; i++) {
-        if (g_providers[i].provider == p.provider && g_providers[i].user == p.user) {
-            found = true;
-        }
-    }
-    if (!found) {
-        $('#debug').append('Add provider: ' + p.user + '<br>');
-        g_providers.push(p);
-    }
-    g_providers.sort(function (a, b) {
-        return a.user.localeCompare(b.user);
-    });
-}
-
+﻿// Dropbox connector
 function dropboxLogin(func) {
     var webtools = Windows.Security.Authentication.Web;
     var webAuthenticationBroker = webtools.WebAuthenticationBroker;
@@ -33,6 +17,26 @@ function dropboxLogin(func) {
     );
 }
 
+function dropboxComputeProviders(metadata, chunkIdx, providerIdx, complete) {
+    var debug = $('#debug');
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + metadata['chunks'][chunkIdx]);
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
+    if (providerIdx == g_providers.length) {
+        complete();
+    } else {
+        requestMessage.headers.append('Authorization', 'Bearer ' + g_providers[providerIdx].token);
+        httpClient.sendRequestAsync(requestMessage).done(function (success) {
+            if (success.isSuccessStatusCode) {
+                metadata.providers.push(providerIdx);
+                dropboxComputeProviders(metadata, chunkIdx + 1, providerIdx + 1, complete);
+            } else {
+                dropboxComputeProviders(metadata, chunkIdx, providerIdx + 1, complete);
+            }
+        });
+    }
+}
+
 function dropboxUserInfo(token, reconnect, func) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/account/info');
@@ -42,17 +46,10 @@ function dropboxUserInfo(token, reconnect, func) {
         function (success) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
                 var data, cred, storage;
-                var credentials = Windows.Security.Credentials;
-                var passwordVault = new credentials.PasswordVault();
                 try {
                     data = $.parseJSON(jsonInfo);
                     storage = data['quota_info'];
-                    cred = new credentials.PasswordCredential('dropbox', data['email'], token)
-                    passwordVault.add(cred);
-                    createProvider({
-                        'provider': cred.resource, 'user': cred.userName, 'token': cred.password,
-                        'free': (storage['quota'] - storage['shared'] - storage['normal']), 'total': storage['quota']
-                    });
+                    createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
                     func();
                 } catch (ex) {
                     $('#debug').append('<br>error: ' + ex);
@@ -67,9 +64,9 @@ function dropboxUserInfo(token, reconnect, func) {
     );
 }
 
-function dropboxDownload(metadata, folder, chunkIdx, token, writer) {
+function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer) {
     var reader, size;
-    var debug = $('debug');
+    var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = metadata['chunks'][chunkIdx];
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + chunkName);
@@ -82,14 +79,22 @@ function dropboxDownload(metadata, folder, chunkIdx, token, writer) {
                 success.content.readAsBufferAsync().done(function (buffer) {
                     reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
                     g_chunks.push({ 'idx': chunkIdx, 'reader': reader, 'size': buffer.length });
-                    downloadComplete(metadata, folder, writer);
+                    downloadComplete(metadata, myProviders, folder, writer);
                 });
             } else {
-                debug.append('download error: ' + success.content + '<br>');
+                progressBar(g_complete, metadata['chunks'].length + 1, 'Error: Download Failure');
+                if (metadata.name == g_configName) {
+                    // Download the metadata failed
+                    setTimeout(function () {
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the <b>Configuration</b>.'
+                            + '<br>If you already use TrustyDrive to save your files, restart it. If not, ignore this message.');
+                    }, 2000);
+                } else {
+                    setTimeout(function () {
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the Document <b>' + metadata.name + '</b>');
+                    }, 2000);
+                }
             }
-        },
-        function (error) {
-            debug.append('download error: ' + error + '<br>');
         }
     );
 }
@@ -100,6 +105,7 @@ function dropboxUpload(chunkName, data, token) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, uri);
+    debug.append('upload the chunk ' + chunkName + '<br>');
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     httpClient.sendRequestAsync(requestMessage).done(
@@ -112,6 +118,6 @@ function dropboxUpload(chunkName, data, token) {
     );
 }
 
-function dropboxDelete(chunkName) {
+function dropboxDelete(chunkName, token) {
     $('#debug').append('Delete the chunk ' + chunkName + '<br>');
 }

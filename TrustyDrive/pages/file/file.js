@@ -74,6 +74,14 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
             size = sizeString(metadata.size);
             $('#file-size').html(size.value + ' ' + size.unit);
             $('#file-upload').html(metadata.lastupload);
+            // Display providers
+            metadata.providers.forEach(function (p) {
+                var div = $('<div class="used-provider">' + p.user + '</div>');
+                div.css('background', 'url(../../images/style/' + p.provider + '.png) no-repeat');
+                // Display currently used accounts
+                $('.file-providers').append(div);
+            });
+            // Configure properties and actions for a downloaded file
             g_workingDir.getFileAsync(metadata.name).then(
                 function (file) {
                     $('.menu-bar').css('top', height - 120);

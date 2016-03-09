@@ -121,7 +121,10 @@
     <Content Include="js\default.js" />
     <Content Include="css\default.css" />
     <Content Include="js\download.js" />
+    <Content Include="js\drive.js" />
+    <Content Include="js\onedrive.js" />
     <Content Include="js\dropbox.js" />
+    <Content Include="js\provider.js" />
     <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
     <Content Include="js\upload.js" />

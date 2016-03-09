@@ -43,7 +43,7 @@ function uploadFile(filename, folder) {
 
 function uploadChunks(filename, folder, readStream) {
     var debug = $('#debug');
-    var metadata, nbChunks, reader, nbProviders = g_providers.length;
+    var i, j, provider, metadata, nbChunks, reader, nbProviders = g_providers.length;
     debug.append('File to Upload: ' + filename + '<br>');
     debug.append('Size: ' + readStream.size + '<br>');
     if (g_files[filename] == undefined) {
@@ -53,6 +53,42 @@ function uploadChunks(filename, folder, readStream) {
     } else {
         metadata = g_files[filename];
     }
+    if (filename != g_configName) {
+        // Check the provider configuration, an old provider must be in the same place in the current provider list
+        if (metadata.providers.length != g_providers.length) {
+            // Delete every chunk of all providers from the file metadata
+            for (i = 0; i < metadata.providers.length; i++) {
+                provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
+                if (provider == undefined) {
+                    debug.append('Can not get the provider, delete chunks manually<br>');
+                } else {
+                    debug.append('Delete all chunks from ' + provider.provider + '/' + provider.user + '<br>');
+                    for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
+                        dropboxDelete(metadata.chunks[i + j], provider.token);
+                    }
+                }
+            }
+        } else {
+            // Check the providers of the file are the same that the current providers
+            for (i = 0; i < g_providers.length; i++) {
+                if (metadata.providers[i].user != g_providers[i].user || metadata.providers[i].provider != g_providers[i].provider) {
+                    provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
+                    if (provider == undefined) {
+                        debug.append('Can not get the provider, delete chunks manually<br>');
+                    } else {
+                        for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
+                            dropboxDelete(metadata.chunks[i + j], provider.token);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Set the providers of the file to the current providers
+    metadata['providers'] = [];
+    g_providers.forEach(function (p) {
+        metadata.providers.push({ 'provider': p.provider, 'user': p.user });
+    });
     // The minimal file size required, 3 bytes on every provider
     if (readStream.size < nbProviders * 3) {
         readStream.close();
@@ -70,6 +106,7 @@ function uploadChunks(filename, folder, readStream) {
         mychunks.splice(nbChunks, mychunks.length - nbChunks);
     } else {
         while (mychunks.length < nbChunks) {
+            // Generate chunk names
             mychunks.push(filename.substr(0, 2) + mychunks.length);
         }
     }
@@ -80,46 +117,44 @@ function uploadChunks(filename, folder, readStream) {
 
 function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
     var debug = $('#debug');
-    var temp, firstChunkSize, secondChunkSize;
-    debug.append('chunksize: ' + chunkSize + ', remainsize: ' + remainSize + '<br>');
-    if (remainSize > 0) {
-        firstChunkSize = chunkSize + 1;
-        remainSize--;
-    } else {
-        firstChunkSize = chunkSize;
-    }
-    if (remainSize > 0) {
-        secondChunkSize = chunkSize + 1;
-        remainSize--;
-    } else {
-        secondChunkSize = chunkSize;
-    }
-    temp = new Uint8Array(firstChunkSize + secondChunkSize);
+    var temp, tempSize = 0;
+    var chunks = [];
+    // One chunk per provider
+    g_providers.forEach(function (useless) {
+        if (remainSize > 0) {
+            chunks.push({ 'size': chunkSize + 1, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
+            tempSize += chunkSize + 1;
+            remainSize--;
+        } else {
+            chunks.push({ 'size': chunkSize, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
+            tempSize += chunkSize;
+        }
+    });
+    debug.append('chunksize: ' + chunkSize + '<br>');
+    temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
-        var i, chunkName, idx, d = new Date(), filetype = 'unknown';
+        var i, p, chunkName, idx, d = new Date(), filetype = 'unknown';
         var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
-        var chunk0 = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
-        var chunk1 = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
         reader.readBytes(temp);
         for (i = 0; i < temp.byteLength;) {
-            chunk0.writeByte(temp[i++]);
-            if (i < temp.byteLength) {
-                chunk1.writeByte(temp[i++]);
+            for (p = 0; p < g_providers.length; p++) {
+                if (i < temp.byteLength) {
+                    chunks[p].stream.writeByte(temp[i++]);
+                }
             }
         }
-        debug.append('Creating ' + metadata['chunks'][nbCreatedChunks] + ' and ' + metadata['chunks'][nbCreatedChunks + 1] + '<br>');
-        dropboxUpload(metadata['chunks'][nbCreatedChunks], chunk0.detachBuffer(), g_providers[1].token);
-        dropboxUpload(metadata['chunks'][nbCreatedChunks + 1], chunk1.detachBuffer(), g_providers[1].token);
-        chunk0.close();
-        chunk1.close();
-        nbCreatedChunks += 2;
+        for (p = 0; p < g_providers.length; p++) {
+            dropboxUpload(metadata['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
+            chunks[p].stream.close();
+        }
+        nbCreatedChunks += g_providers.length;
         progressBar(nbCreatedChunks, metadata['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
         if (nbCreatedChunks < metadata['chunks'].length) {
             // Keep creating chunks
             createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks);
         } else {
-            reader.close();
             // Upload is complete
+            reader.close();
             if (metadata.name == g_configName) {
                 setTimeout(function () {
                     WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
