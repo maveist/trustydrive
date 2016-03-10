@@ -26,14 +26,28 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                 WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });
             $('.cloud-delete').click(function () {
-                var index;
-                metadata['chunks'].forEach(function (c) {
-                    dropboxDelete(c);
+                var index = true;
+                var myProviders = [];
+                g_complete = 0;
+                progressBar(g_complete, metadata['chunks'].length + 1, 'Initialization', 'Delete the Cloud Version' + metadata.name);
+                metadata.providers.forEach(function (p) {
+                    var temp = getProvider(p.provider, p.user);
+                    if (temp == undefined) {
+                        index = false;
+                        $('#debug').append('Can not get the provider ' + p.provider + '/' + p.user + '<br>');
+                    } else {
+                        myProviders.push(temp);
+                    }
                 });
-                delete g_files[metadata.name];
-                index = folder.files.indexOf(metadata);
-                if (index > -1) {
-                    folder.files.splice(index, 1);
+                if (index) {
+                    for (index = 0 ; index < metadata.chunks.length; index++) {
+                        dropboxDelete(metadata.chunks[index], myProviders[index % myProviders.length].token);
+                    }
+                    delete g_files[metadata.name];
+                    index = folder.files.indexOf(metadata);
+                    if (index > -1) {
+                        folder.files.splice(index, 1);
+                    }
                 }
                 WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });

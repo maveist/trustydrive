@@ -1,0 +1,12 @@
+FAQ:
+
+1. Message d'erreur lors de la suppression d'un provider ?
+Les fichiers protégés par TrustyDrive sont découpés en plusieurs morceaux puis ces morceaux sont répartis sur un nombre précis de providers. Si un des morceaux est manquant,
+le fichier ne peut pas être reconstitué. Dans le but de supprimer un provider, il faut donc qu'aucun morceau ne soit hébergé sur ce provider ou alors que le fichier soit
+déjà téléchargé sur le disque local.
+
+2. Je viens d'ajouter un provider, comment faire pour que les fichiers existants soient présents sur le nouveau provider ?
+
+3. Mes fichiers existants sur mes providers n'apparaissent pas dans TrustyDrive ?
+
+

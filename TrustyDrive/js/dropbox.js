@@ -118,6 +118,22 @@ function dropboxUpload(chunkName, data, token) {
     );
 }
 
-function dropboxDelete(chunkName, token) {
+function dropboxDelete(chunkName, token, metadata) {
     $('#debug').append('Delete the chunk ' + chunkName + '<br>');
+    var reader, size;
+    var debug = $('#debug');
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + chunkName);
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        if (response.isSuccessStatusCode) {
+            debug.append('Delete operation complete<br>');
+        } else {
+            debug.append('Delete error: ' + response + '<br>');
+        }
+        if (metadata != undefined) {
+            progressBar(++g_complete, metadata['chunks'].length + 1, 'Number of Deleted Chunks: ' + g_complete);
+        }
+    });
 }

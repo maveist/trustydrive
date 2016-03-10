@@ -43,14 +43,16 @@
             html += '<div id="create-button" class="interface-button">CREATE</div><div id="cancel-button" class="interface-button">CANCEL</div>';
             html += '</div>';
             $('.interface-body').append(html);
-            $('#create-button').click(function () {
-                var fname = $('#fname').val();
-                if (fname.length > 0 && g_folders[fname] == undefined) {
-                    // Create the new folder
-                    var newfolder = createElement(fname, 'folder');
-                    addToFolder(folder, newfolder);
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', newfolder);
+            // Set focus and magic key
+            var fname = $('#fname');
+            fname.focus();
+            fname.keypress(function (e) {
+                if (e.which == 13) {
+                    createDir(fname.val(), folder);
                 }
+            });
+            $('#create-button').click(function () {
+                createDir(fname.val(), folder);
             });
             $('#cancel-button').click(function () {
                 $('.user-interface').hide();
@@ -151,8 +153,19 @@ function connect(credentials, idx, vault) {
     }
 }
 
+function createDir(fname, folder) {
+    if (fname.length > 0 && g_folders[fname] == undefined) {
+        // Create the new folder
+        var newfolder = createElement(fname, 'folder');
+        addToFolder(folder, newfolder);
+        WinJS.Navigation.navigate('/pages/folder/folder.html', newfolder);
+    } else {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Folder <b>' + fname + '</b> already exists!');
+    }
+}
+
 function progressBar(current, max, legend, title) {
-    var bar, barLegend, body;
+    var bar, barLegend, body, step;
     if (current == 0) {
         $('.user-interface').show();
         // Add the progress bar
@@ -166,7 +179,7 @@ function progressBar(current, max, legend, title) {
         barLegend = $('.bar-legend');
     }
     while (current >= bar.children().length) {
-        var step = $('<div class="progress-step"></div>').width(300 / max);
+        step = $('<div class="progress-step"></div>').width(300 / max);
         bar.append(step);
         barLegend.html(legend);
     }

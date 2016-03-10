@@ -1,9 +1,8 @@
-﻿//TODO: delete the existing chunks - dropboxDelete()
-//TODO: create a folder to upload chunks
+﻿//TODO: create a folder to upload chunks
 //TODO: Load/download automatically the configuration
 
 // Global variables
-const g_maxChunkSize = 10000
+const g_maxChunkSize = 10000;
 const g_configName = 'config1983stuff';
 var g_chunks = [];
 var g_providers = [];
@@ -29,7 +28,6 @@ var g_folders = {};
             }
             var start = WinJS.UI.processAll().then(function () {
                 // Get access to the working directory
-
                 var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
                 if (futureAccess.containsItem('PickedFolderToken')) {
                     futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
