@@ -9,4 +9,13 @@ déjà téléchargé sur le disque local.
 
 3. Mes fichiers existants sur mes providers n'apparaissent pas dans TrustyDrive ?
 
+4. Que signifie le status de mon fichier ?
+/*** About File Status
+    On the Cloud: the file does not exist on the working directory (local storage)
+    On the Local Drive: The file belongs to the working directory
+    To Be Uploaded: The file belongs to the working directory and the file size is different of the cloud size
+***/
+
+5. Pourquoi le dossier que je viens de supprimer est toujours présent ?
+Les dossiers restent présents jusqu'au prochain redémarrage de l'application. Lors du redémarrage, tous les dossiers vides sont supprimés.
 

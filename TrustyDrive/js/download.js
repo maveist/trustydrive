@@ -81,7 +81,7 @@ function downloadComplete(metadata, myProviders, folder, writer) {
                             stream.close();
                             reader.close();
                             setTimeout(function () {
-                                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
+                                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                             }, 1000);
                         });
                     } else {

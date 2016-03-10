@@ -23,7 +23,7 @@
             $('#file-view').text(localSettings.values['sortingFiles'].substr(0, 1).toUpperCase() + localSettings.values['sortingFiles'].substr(1));
             $('#file-view').click(viewFiles);
             $('.upper-back').click(function () {
-                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
+                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
             });
             // Display information about providers
             if (g_providers.length < 2) {

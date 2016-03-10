@@ -23,9 +23,9 @@
             body.empty();
             body.append(folder + '<br><br>');
             body.append(div);
-            folder = g_folders['home'];
+            folder = g_folders[g_homeFolderName];
         } else if (folder == undefined) {
-            folder = g_folders['home'];
+            folder = g_folders[g_homeFolderName];
         }
         // Add click listeners
         $('.upper-settings').click(function () {
@@ -33,6 +33,32 @@
         });
         $('.upload').click(function () {
             uploadNewFile(folder);
+        });
+        $('.local-delete').click(function () {
+            deleteFolder(folder);
+        });
+        $('.rename').click(function () {
+            var title = $('.upper-title');
+            title.empty();
+            var input = $('<input id="fname" type="text" value="' + folder.name + '">');
+            title.append(input);
+            input.keypress(function (e) {
+                if (e.which == 13) {
+                    renameFolder(folder, $('#fname').val());
+                }
+            });
+            input.focus();
+            input[0].setSelectionRange(0, folder.name.length);
+            var confirm = $('<button class="rename-button">Done</button>');
+            var cancel = $('<button class="rename-button">Cancel</button>');
+            confirm.click(function () {
+                renameFolder(folder, $('#fname').val());
+            });
+            title.append(confirm);
+            cancel.click(function () {
+                WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+            });
+            title.append(cancel);
         });
         $('.create-dir').click(function () {
             $('.interface-body').empty();
@@ -69,7 +95,7 @@
             // Display the folder content
             $('.upper-title').html(folder.name);
             // Add click listeners
-            if (folder.name != 'home') {
+            if (folder.name != g_homeFolderName) {
                 $('.upper-back').click(function () {
                     WinJS.Navigation.navigate('/pages/folder/folder.html', folder.father);
                 });
@@ -162,6 +188,58 @@ function createDir(fname, folder) {
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'Folder <b>' + fname + '</b> already exists!');
     }
+}
+
+function renameFolder(folder, newName) {
+    var debug = $('#debug');
+    var current = [], future = [];
+    if (newName.length == 0 || g_folders[newName] != undefined) {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The folder <b>'+ newName + '</b> already exists!');
+    } else {
+        delete g_folders[folder.name];
+        g_folders[newName] = folder;
+        if (folder.name == g_homeFolderName) {
+            // Remember the new home name
+            Windows.Storage.ApplicationData.current.localSettings.values['home'] = newName;
+            folder.name = newName;
+        } else {
+            // Modify the path of files
+            folder.name = newName;
+            current.push(folder);
+            while (current.length > 0) {
+                current.forEach(function (c) {
+                    future = future.concat(c.folders);
+                    c.files.forEach(function (f) {
+                        setPath(c, f);
+                    });
+                });
+                current = future.slice(0);
+                future = [];
+            }
+        }
+    }
+    WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+}
+
+function deleteFolder(folder) {
+    var current = [], future = [], allFiles = [], nbChunks = 0;
+    current.push(folder);
+    while (current.length > 0) {
+        current.forEach(function (c) {
+            c.files.forEach(function(f) {
+                allFiles.push({ 'file': f, 'folder': c });
+                nbChunks += f.chunks.length;
+            });
+            future = future.concat(c.folders);
+        });
+        current = future.slice(0);
+        future = [];
+    }
+    g_complete = 0;
+    progressBar(g_complete, nbChunks + 1, 'Initialization', 'Delete the Content of the Folder ' + folder.name);
+    allFiles.forEach(function (af) {
+        cloudDelete(af.file, af.folder, nbChunks);
+    });
 }
 
 function progressBar(current, max, legend, title) {

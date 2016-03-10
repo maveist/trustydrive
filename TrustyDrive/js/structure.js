@@ -1,6 +1,6 @@
 ﻿function initHomeFolder() {
-    var home = { 'name': 'home', 'kind': 'folder', 'files': [], 'folders': [] };
-    g_folders = { 'home': home };
+    var home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
+    g_folders[g_homeFolderName] = home;
     return home;
 }
 
@@ -39,25 +39,30 @@ function addToFolder(parent, child) {
             child['father'] = parent;
         } else {
             parent['files'].push(child);
-            // Compute the path of the parent folder
-            while (parent.name != 'home') {
-                path = parent.name + '/' + path;
-                parent = parent.father;
-            }
-            path = '/' + path;
-            child['path'] = path;
+            setPath(parent, child);
         }
     }
+}
+
+function setPath(folder, file) {
+    var path = '';
+    // Set the path of the file from the folder
+    while (folder.name != g_homeFolderName) {
+        path = folder.name + '/' + path;
+        folder = folder.father;
+    }
+    path = '/' + path;
+    file['path'] = path;
 }
 
 function buildFolderStructure() {
     var debug = $('#debug');
     var path, current, child;
     $.each(g_files, function (name, file) {
-        current = g_folders['home'];
+        current = g_folders[g_homeFolderName];
         if (file['path'] == undefined || file.path == '/') {
             file['kind'] = 'file';
-            addToFolder(g_folders['home'], file);
+            addToFolder(g_folders[g_homeFolderName], file);
         } else {
             path = file.path.split('/');
             $.each(path, function (useless, folderName) {

@@ -1,9 +1,10 @@
 ﻿//TODO: create a folder to upload chunks
-//TODO: Load/download automatically the configuration
+//TODO: Load/download automatically the configuration and expert mode
 
 // Global variables
 const g_maxChunkSize = 10000;
 const g_configName = 'config1983stuff';
+var g_homeFolderName = 'home';
 var g_chunks = [];
 var g_providers = [];
 var g_workingDir;
@@ -28,11 +29,15 @@ var g_folders = {};
             }
             var start = WinJS.UI.processAll().then(function () {
                 // Get access to the working directory
+                var localSettings = Windows.Storage.ApplicationData.current.localSettings;
+                if (localSettings.values['home'] != undefined) {
+                    g_homeFolderName = localSettings.values['home'];
+                }
                 var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
                 if (futureAccess.containsItem('PickedFolderToken')) {
                     futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
                         g_workingDir = folder;
-                        WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                     });
                 }
             });

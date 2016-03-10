@@ -157,7 +157,7 @@ function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreated
             reader.close();
             if (metadata.name == g_configName) {
                 setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
+                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                 }, 1000);
             } else {
                 // Update the last upload date

@@ -118,7 +118,7 @@ function dropboxUpload(chunkName, data, token) {
     );
 }
 
-function dropboxDelete(chunkName, token, metadata) {
+function dropboxDelete(chunkName, token, nbDelete, folder) {
     $('#debug').append('Delete the chunk ' + chunkName + '<br>');
     var reader, size;
     var debug = $('#debug');
@@ -129,11 +129,9 @@ function dropboxDelete(chunkName, token, metadata) {
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
             debug.append('Delete operation complete<br>');
+            deleteComplete(nbDelete, folder);
         } else {
             debug.append('Delete error: ' + response + '<br>');
-        }
-        if (metadata != undefined) {
-            progressBar(++g_complete, metadata['chunks'].length + 1, 'Number of Deleted Chunks: ' + g_complete);
         }
     });
 }

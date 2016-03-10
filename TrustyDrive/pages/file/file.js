@@ -1,10 +1,4 @@
-﻿/*** About File Status
-    On the Cloud: the file does not exist on the working directory (local storage)
-    On the Local Drive: The file belongs to the working directory
-    To Be Uploaded: The file belongs to the working directory and the file size is different of the cloud size
-***/
-
-WinJS.UI.Pages.define('/pages/file/file.html', {
+﻿WinJS.UI.Pages.define('/pages/file/file.html', {
     ready: function () {
         var debug = $('#debug');
         var size;
@@ -16,7 +10,7 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         // Menu location
         var height = $('#content').innerHeight();
         if (metadata.name == g_configName) {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders['home']);
+            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
         } else {
             // Add click listeners
             $('.upper-settings').click(function () {
@@ -26,30 +20,9 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                 WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });
             $('.cloud-delete').click(function () {
-                var index = true;
-                var myProviders = [];
                 g_complete = 0;
-                progressBar(g_complete, metadata['chunks'].length + 1, 'Initialization', 'Delete the Cloud Version' + metadata.name);
-                metadata.providers.forEach(function (p) {
-                    var temp = getProvider(p.provider, p.user);
-                    if (temp == undefined) {
-                        index = false;
-                        $('#debug').append('Can not get the provider ' + p.provider + '/' + p.user + '<br>');
-                    } else {
-                        myProviders.push(temp);
-                    }
-                });
-                if (index) {
-                    for (index = 0 ; index < metadata.chunks.length; index++) {
-                        dropboxDelete(metadata.chunks[index], myProviders[index % myProviders.length].token);
-                    }
-                    delete g_files[metadata.name];
-                    index = folder.files.indexOf(metadata);
-                    if (index > -1) {
-                        folder.files.splice(index, 1);
-                    }
-                }
-                WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+                progressBar(g_complete, metadata.chunks.length + 1, 'Initialization', 'Delete the Cloud Version of ' + metadata.name);
+                cloudDelete(metadata, folder, metadata.chunks.length);
             });
             $('.download').click(function () {
                 downloadFile(metadata, folder);
@@ -151,4 +124,38 @@ function sizeString(size) {
         res.unit = 'Bytes';
     }
     return res;
+}
+
+function cloudDelete(metadata, folder, nbDelete) {
+    var index = true;
+    var myProviders = [];
+    g_complete = 0;
+    metadata.providers.forEach(function (p) {
+        var temp = getProvider(p.provider, p.user);
+        if (temp == undefined) {
+            index = false;
+            $('#debug').append('Can not get the provider ' + p.provider + '/' + p.user + '<br>');
+        } else {
+            myProviders.push(temp);
+        }
+    });
+    if (index) {
+        for (index = 0 ; index < metadata.chunks.length; index++) {
+            dropboxDelete(metadata.chunks[index], myProviders[index % myProviders.length].token, nbDelete, folder);
+        }
+        delete g_files[metadata.name];
+        index = folder.files.indexOf(metadata);
+        if (index > -1) {
+            folder.files.splice(index, 1);
+        }
+    }
+}
+
+function deleteComplete(nbDelete, folder) {
+    g_complete++;
+    if (g_complete == nbDelete) {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+    } else {
+        progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
+    }
 }
