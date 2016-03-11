@@ -33,10 +33,10 @@
 function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
     var found = false, current = g_files[filenames[index]];
     var debug = $('#debug');
-    if (index + 1 == filenames.length) {
+    if (index + 1 >= filenames.length) {
         after();
     } else {
-        if (current.name == g_configName) {
+        if (current == undefined || current.name == g_configName) {
             filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
         } else {
             current.providers.forEach(function (p) {
@@ -97,9 +97,11 @@ function deleteProvider(provider) {
                 });
                 // Delete the chunk related to the configuration
                 dropboxDelete(chunkName, provider.token);
-                g_files[g_configName]['chunks'].splice(g_files[g_configName]['chunks'].indexOf(chunkName), 1);
-                // Upload the configuration
-                uploadConfiguration();
+                if (g_files[g_configName] != undefined) {
+                    g_files[g_configName]['chunks'].splice(g_files[g_configName]['chunks'].indexOf(chunkName), 1);
+                    // Upload the configuration
+                    uploadConfiguration();
+                }
             }
         });
     } else {

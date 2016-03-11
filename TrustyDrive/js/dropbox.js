@@ -9,7 +9,17 @@ function dropboxLogin(func) {
     webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(
         function (success) {
             var data = success.responseData;
-            dropboxUserInfo(data.substring(data.indexOf('=') + 1, data.indexOf('&')), false, func);
+            var token = data.substring(data.indexOf('=') + 1, data.indexOf('&'));
+            dropboxExists('trustydrive', token,
+                function () {
+                    dropboxUserInfo(token, false, func);
+                },
+                function () {
+                    createCloudFolder(token, function () {
+                        dropboxUserInfo(token, false, func);
+                    });
+                }
+            );
         },
         function (error) {
             $('#debug').append(error + '<br>');
@@ -17,24 +27,36 @@ function dropboxLogin(func) {
     );
 }
 
-function dropboxComputeProviders(metadata, chunkIdx, providerIdx, complete) {
+function dropboxExists(path, token, exist, notexist) {
     var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + metadata['chunks'][chunkIdx]);
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + path);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
-    if (providerIdx == g_providers.length) {
-        complete();
-    } else {
-        requestMessage.headers.append('Authorization', 'Bearer ' + g_providers[providerIdx].token);
-        httpClient.sendRequestAsync(requestMessage).done(function (success) {
-            if (success.isSuccessStatusCode) {
-                metadata.providers.push(providerIdx);
-                dropboxComputeProviders(metadata, chunkIdx + 1, providerIdx + 1, complete);
-            } else {
-                dropboxComputeProviders(metadata, chunkIdx, providerIdx + 1, complete);
-            }
-        });
-    }
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    httpClient.sendRequestAsync(requestMessage).done(function (success) {
+        if (success.isSuccessStatusCode) {
+            exist();
+        } else {
+            notexist();
+        }
+    });
+}
+
+function createCloudFolder(token, func) {
+    $('#debug').append('Create the trustydrive folder<br>');
+    var reader, size;
+    var debug = $('#debug');
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/create_folder?root=auto&path=%2F' + g_cloudFolder);
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        if (response.isSuccessStatusCode) {
+            func();
+        } else {
+            WinJS.Navigation.navigate('/pages/folder/folder.html', 'Can not create the trustydrive folder!. Please restart the application');
+        }
+    });
 }
 
 function dropboxUserInfo(token, reconnect, func) {
@@ -69,7 +91,7 @@ function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer)
     var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = metadata['chunks'][chunkIdx];
-    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + chunkName);
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/'+ g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     //WARN: Delete the file if exists
@@ -103,7 +125,7 @@ function dropboxUpload(chunkName, data, token) {
     var debug = $('#debug');
     var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + chunkName);
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, uri);
     debug.append('upload the chunk ' + chunkName + '<br>');
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
@@ -123,7 +145,7 @@ function dropboxDelete(chunkName, token, nbDelete, folder) {
     var reader, size;
     var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + chunkName);
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {

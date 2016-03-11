@@ -1,9 +1,13 @@
-﻿//TODO: create a folder to upload chunks
-//TODO: Load/download automatically the configuration and expert mode
+﻿//Bug: delete 160 chunks hangs on 159 deleted chunks (To be confirmed)
+//Bug: remove a provider, all files are not detected (toto.txt is missing)
+//TODO: missing chunks cause issues because the chunk can not be deleted
+//TODO: Upload automatically the configuration
 
 // Global variables
 const g_maxChunkSize = 10000;
 const g_configName = 'config1983stuff';
+// Do not forget the / at the end of the folder name
+const g_cloudFolder = 'trustydrive/';
 var g_homeFolderName = 'home';
 var g_chunks = [];
 var g_providers = [];
