@@ -33,7 +33,7 @@
 function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
     var found = false, current = g_files[filenames[index]];
     var debug = $('#debug');
-    if (index + 1 >= filenames.length) {
+    if (index >= filenames.length) {
         after();
     } else {
         if (current == undefined || current.name == g_configName) {
