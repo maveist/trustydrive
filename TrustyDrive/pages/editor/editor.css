@@ -1,0 +1,50 @@
+﻿.editor-list {
+    width: 460px;
+    height: 88%;
+    margin: auto;
+    margin-top: 20px;
+    overflow: auto;
+}
+
+.editor-item {
+    width: 100%;
+    border-bottom: 1px solid #808080;
+}
+
+.item-title {
+    height: 25px;
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-right: 15px;
+    background: #5F5F5F;
+    color: #FFFFFF;
+    clear: both;
+}
+
+.item-title button {
+    width: 60px;
+    float: right;
+}
+
+.chunk-list {
+    display: none;
+}
+
+.chunk-item {
+    width: 100%;
+    height: 25px;
+    border-bottom: 1px dotted #808080;
+}
+
+.chunk-item div {
+    height: 25px;
+    float: left;
+}
+
+.chunk-provider {
+    width: 210px;
+}
+
+.chunk-name {
+    width: 160px;
+}

@@ -1,7 +1,9 @@
-﻿//Bug: delete 160 chunks hangs on 159 deleted chunks (To be confirmed)
-//Bug: remove a provider, all files are not detected (toto.txt is missing)
-//TODO: missing chunks cause issues because the chunk can not be deleted
+﻿//TODO: Missing chunks cause issues because the chunk can not be deleted => configuration editor
 //TODO: Upload automatically the configuration
+//TODO: Login window
+//TODO: Refactoring: rename 'metadata' to 'file'
+//TODO: recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
+//TODO: Generate random names for chunks
 
 // Global variables
 const g_maxChunkSize = 10000;

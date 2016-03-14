@@ -19,6 +19,9 @@
                 });
             });
             $('#upload-config').click(uploadConfiguration);
+            $('#editor-config').click(function () {
+                WinJS.Navigation.navigate('/pages/editor/editor.html');
+            });
             $('#file-view').text(localSettings.values['sortingFiles'].substr(0, 1).toUpperCase() + localSettings.values['sortingFiles'].substr(1));
             $('#file-view').click(viewFiles);
             $('.upper-back').click(function () {

@@ -24,6 +24,35 @@
                 progressBar(g_complete, metadata.chunks.length + 1, 'Initialization', 'Delete the Cloud Version of ' + metadata.name);
                 cloudDelete(metadata, folder, metadata.chunks.length);
             });
+            $('.rename').click(function () {
+                var index;
+                var title = $('.upper-title');
+                var input = $('<input id="fname" type="text" value="' + metadata.name + '">');
+                title.empty();
+                title.append(input);
+                input.keypress(function (e) {
+                    if (e.which == 13) {
+                        renameFile(metadata, $('#fname').val(), folder);
+                    }
+                });
+                input.focus();
+                index = metadata.name.indexOf('.');
+                if (index > -1) {
+                    input[0].setSelectionRange(0, index);
+                } else {
+                    input[0].setSelectionRange(0, metadata.name.length);
+                }
+                var confirm = $('<button>Done</button>');
+                var cancel = $('<button>Cancel</button>');
+                confirm.click(function () {
+                    renameFile(metadata, $('#fname').val(), folder);
+                });
+                title.append(confirm);
+                cancel.click(function () {
+                    WinJS.Navigation.navigate('/pages/file/file.html', {'md' : metadata, 'folder': folder });
+                });
+                title.append(cancel);
+            });
             $('.download').click(function () {
                 downloadFile(metadata, folder);
             });
@@ -35,9 +64,11 @@
                 html += 'Choose the target folder:<br>';
                 $('.interface-body').append(html);
                 $.each(g_folders, function (name, dest) {
+                    var idString;
                     if (name != folder.name) {
-                        $('.interface-body').append('<div id="folder-' + name + '" class="interface-folder">' + name + '</div>');
-                        $('#folder-' + name).click(function () {
+                        idString = replaceAnnoyingChars(name);
+                        $('.interface-body').append('<div id="folder-' + idString + '" class="interface-folder">' + name + '</div>');
+                        $('#folder-' + idString).click(function () {
                             var index = folder.files.indexOf(metadata);
                             if (index > -1) {
                                 folder.files.splice(index, 1);
@@ -105,6 +136,10 @@
     }
 })
 
+function replaceAnnoyingChars(annoying) {
+    return annoying.replace(' ', '_');
+}
+
 function sizeString(size) {
     var res = {};
     if (size > 999999999999) {
@@ -124,6 +159,18 @@ function sizeString(size) {
         res.unit = 'Bytes';
     }
     return res;
+}
+
+function renameFile(metadata, newName, folder) {
+    var debug = $('#debug');
+    if (newName.length > 0 && g_files[newName] == undefined) {
+        delete g_files[metadata.name];
+        metadata.name = newName;
+        g_files[newName] = metadata;
+        WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
+    } else {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
+    }
 }
 
 function cloudDelete(metadata, folder, nbDelete) {

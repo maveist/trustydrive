@@ -128,6 +128,9 @@
     <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
     <Content Include="js\upload.js" />
+    <Content Include="pages\editor\editor.css" />
+    <Content Include="pages\editor\editor.html" />
+    <Content Include="pages\editor\editor.js" />
     <Content Include="pages\file\file.css" />
     <Content Include="pages\file\file.html" />
     <Content Include="pages\file\file.js" />

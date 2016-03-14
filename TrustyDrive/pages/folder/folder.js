@@ -49,8 +49,8 @@
             });
             input.focus();
             input[0].setSelectionRange(0, folder.name.length);
-            var confirm = $('<button class="rename-button">Done</button>');
-            var cancel = $('<button class="rename-button">Cancel</button>');
+            var confirm = $('<button>Done</button>');
+            var cancel = $('<button>Cancel</button>');
             confirm.click(function () {
                 renameFolder(folder, $('#fname').val());
             });

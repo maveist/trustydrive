@@ -27,17 +27,27 @@ function dropboxLogin(func) {
     );
 }
 
-function dropboxExists(path, token, exist, notexist) {
+function dropboxExists(path, token, exist, notexist, args) {
     var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + path);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
+    debug.append('looking for ' + 'https://api.dropboxapi.com/1/metadata/auto/' + path + '<br>');
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     httpClient.sendRequestAsync(requestMessage).done(function (success) {
         if (success.isSuccessStatusCode) {
-            exist();
+            success.content.readAsStringAsync().done(function (info) {
+                if (info.indexOf('is_deleted') == -1) {
+                    args['exists'] = true;
+                    exist(args);
+                } else {
+                    args['exists'] = false;
+                    notexist(args);
+                }
+            });
         } else {
-            notexist();
+            args['exists'] = false;
+            notexist(args);
         }
     });
 }
@@ -91,7 +101,7 @@ function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer)
     var debug = $('#debug');
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = metadata['chunks'][chunkIdx];
-    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/'+ g_cloudFolder + chunkName);
+    var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     //WARN: Delete the file if exists
