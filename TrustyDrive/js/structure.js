@@ -56,7 +56,6 @@ function setPath(folder, file) {
 }
 
 function buildFolderStructure() {
-    var debug = $('#debug');
     var path, current, child;
     $.each(g_files, function (name, file) {
         current = g_folders[g_homeFolderName];

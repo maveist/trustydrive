@@ -1,6 +1,5 @@
 ﻿WinJS.UI.Pages.define('/pages/folder/folder.html', {
     ready: function () {
-        var debug = $('#debug');
         var folder = WinJS.Navigation.state;
         var height = $('#content').innerHeight();
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
@@ -145,7 +144,6 @@ function byType(a, b) {
 }
 
 function connect(credentials, idx, vault) {
-    var debug = $('#debug');
     if (idx < credentials.length) {
         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         switch (credentials[idx].resource) {
@@ -191,7 +189,6 @@ function createDir(fname, folder) {
 }
 
 function renameFolder(folder, newName) {
-    var debug = $('#debug');
     var current = [], future = [];
     if (newName.length == 0 || g_folders[newName] != undefined) {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'The folder <b>'+ newName + '</b> already exists!');

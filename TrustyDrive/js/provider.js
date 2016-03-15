@@ -1,5 +1,26 @@
-﻿function createProvider(provider, email, token, freeStorage, totalStorage) {
-    var debug = $('#debug');
+﻿function log(message) {
+    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
+    var dateString, d = new Date();
+    dateString = '[' + d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
+    if (d.getMinutes() > 9) {
+        dateString += d.getHours() + ':' + d.getMinutes() + '] ';
+    } else {
+        dateString += d.getHours() + ':0' + d.getMinutes() + '] ';
+    }
+    Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
+        function (file) {
+            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
+        },
+        function (error) {
+            Windows.Storage.ApplicationData.current.localFolder.createFileAsync('logs.txt').then(function (file) {
+                Windows.Storage.FileIO.appendTextAsync(file, dateString + '##### NEW FILE ######\n');
+                Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
+            });
+        }
+    );
+}
+
+function createProvider(provider, email, token, freeStorage, totalStorage) {
     var credentials = Windows.Security.Credentials;
     var passwordVault = new credentials.PasswordVault();
     var i, found = false;
@@ -11,7 +32,7 @@
     if (!found) {
         cred = new credentials.PasswordCredential(provider, email, token)
         passwordVault.add(cred);
-        debug.append('Add the provider: ' + provider + '/' + email + '<br>');
+        log('Add the provider: ' + provider + '/' + email);
         g_providers.push({
             'provider': cred.resource, 'user': cred.userName, 'token': cred.password,
             'free': freeStorage, 'total': totalStorage
@@ -24,7 +45,7 @@
             g_providers.forEach(function (p) {
                 g_files[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + 'remy');
             });
-            debug.append('Spread the metadata to all providers<br>');
+            log('Spread the metadata to all providers');
             uploadConfiguration();
         }
     }
@@ -32,7 +53,6 @@
 
 function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
     var found = false, current = g_files[filenames[index]];
-    var debug = $('#debug');
     if (index >= filenames.length) {
         after();
     } else {
@@ -62,13 +82,12 @@ function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
 }
 
 function deleteProvider(provider) {
-    var debug = $('#debug');
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
     var chunkName = provider.user.replace('@', 'at') + 'is' + 'remy';
     var index = g_providers.indexOf(provider);
     var myprovider, message, errorFiles = [];
-    debug.append('Try to Delete the provider ' + provider.provider + '/' + provider.user + '<br>');
+    log('Try to Delete the provider ' + provider.provider + '/' + provider.user);
     if (index > -1) {
         myprovider = g_providers[index];
         // Check all files using this provider are downloaded
@@ -85,7 +104,7 @@ function deleteProvider(provider) {
                 });
                 WinJS.Navigation.navigate('/pages/folder/folder.html', message);
             } else {
-                debug.append('delete ' + provider.provider + '/' + provider.user + '<br>');
+                log('Delete ' + provider.provider + '/' + provider.user);
                 // Remove the provider from the current provider list
                 g_providers.splice(index, 1);
                 // Remove credential for the provider
@@ -105,7 +124,7 @@ function deleteProvider(provider) {
             }
         });
     } else {
-        $('#debug').append('Can not delete ' + provider.provider + '/' + provider.user + '<br>');
+        log('Can not delete ' + provider.provider + '/' + provider.user);
     }
 }
 

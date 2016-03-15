@@ -1,5 +1,4 @@
 ﻿function uploadNewFile(folder) {
-    var debug = $('#debug');
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;
     var filePicker = new Windows.Storage.Pickers.FileOpenPicker();
@@ -23,12 +22,12 @@
                     uploadChunks(file.name, folder, readStream);
                 },
                 function (error) {
-                    debug.append('Failed to open read stream<br>');
+                    log('Failed to open read stream');
                 }
             );
         } else {
             // The picker was dismissed with no selected file
-            debug.append('No picked file<br>');
+            log('No picked file');
         }
     });
 }
@@ -42,10 +41,9 @@ function uploadFile(filename, folder) {
 }
 
 function uploadChunks(filename, folder, readStream) {
-    var debug = $('#debug');
     var i, j, provider, metadata, nbChunks, reader, nbProviders = g_providers.length;
-    debug.append('File to Upload: ' + filename + '<br>');
-    debug.append('Size: ' + readStream.size + '<br>');
+    log('File to Upload: ' + filename);
+    log('Size: ' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
         metadata = createElement(filename, 'file');
@@ -60,9 +58,9 @@ function uploadChunks(filename, folder, readStream) {
             for (i = 0; i < metadata.providers.length; i++) {
                 provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
                 if (provider == undefined) {
-                    debug.append('Can not get the provider, delete chunks manually<br>');
+                    log('Can not get the provider, delete chunks manually');
                 } else {
-                    debug.append('Delete all chunks from ' + provider.provider + '/' + provider.user + '<br>');
+                    log('Delete all chunks from ' + provider.provider + '/' + provider.user);
                     for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
                         dropboxDelete(metadata.chunks[i + j], provider.token);
                     }
@@ -74,7 +72,7 @@ function uploadChunks(filename, folder, readStream) {
                 if (metadata.providers[i].user != g_providers[i].user || metadata.providers[i].provider != g_providers[i].provider) {
                     provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
                     if (provider == undefined) {
-                        debug.append('Can not get the provider, delete chunks manually<br>');
+                        log('Can not get the provider, delete chunks manually');
                     } else {
                         for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
                             dropboxDelete(metadata.chunks[i + j], provider.token);
@@ -110,13 +108,12 @@ function uploadChunks(filename, folder, readStream) {
             mychunks.push(filename.substr(0, 2) + mychunks.length);
         }
     }
-    debug.append('Nb. of Chunks: ' + mychunks.length + '<br>');
+    log('Nb. of Chunks: ' + mychunks.length);
     reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
     createChunks(metadata, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
 }
 
 function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
-    var debug = $('#debug');
     var temp, tempSize = 0;
     var chunks = [];
     // One chunk per provider
@@ -130,7 +127,7 @@ function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreated
             tempSize += chunkSize;
         }
     });
-    debug.append('chunksize: ' + chunkSize + '<br>');
+    log('Chunksize: ' + chunkSize);
     temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
         var i, p, chunkName, idx, d = new Date(), filetype = 'unknown';
@@ -231,7 +228,6 @@ function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreated
 
 // Configuration management
 function uploadConfiguration() {
-    var debug = $('#debug');
     var config = JSON.stringify(g_files);
     var crypto = Windows.Security.Cryptography;
     var cBuffer = crypto.CryptographicBuffer;

@@ -1,7 +1,9 @@
 ﻿WinJS.UI.Pages.define('/pages/editor/editor.html', {
     ready: function () {
-        var debug = $('#debug');
         var index = 0;
+        $('.upper-back').click(function () {
+            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+        });
         // Get parameters
         $.each(g_files, function (useless, metadata) {
             var account, chunkName;
@@ -80,7 +82,6 @@ function sizeString(size) {
 }
 
 function renameFile(metadata, newName, folder) {
-    var debug = $('#debug');
     if (newName.length > 0 && g_files[newName] == undefined) {
         delete g_files[metadata.name];
         metadata.name = newName;
@@ -99,7 +100,7 @@ function cloudDelete(metadata, folder, nbDelete) {
         var temp = getProvider(p.provider, p.user);
         if (temp == undefined) {
             index = false;
-            $('#debug').append('Can not get the provider ' + p.provider + '/' + p.user + '<br>');
+            log('Can not get the provider ' + p.provider + '/' + p.user);
         } else {
             myProviders.push(temp);
         }

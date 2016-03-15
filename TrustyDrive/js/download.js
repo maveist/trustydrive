@@ -1,5 +1,4 @@
 ﻿function downloadFile(metadata, folder) {
-    var i, debug = $('#debug');
     g_complete = 0;
     progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the File ' + metadata.name);
     g_workingDir.createFileAsync(metadata.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
@@ -9,7 +8,7 @@
             metadata.providers.forEach(function (p) {
                 var fullp = getProvider(p.provider, p.user);
                 if (fullp == undefined) {
-                    debug.append('Can not download the file: missing the provider ' + p.provider + '/' + p.user + '<br>');
+                    log('Can not download the file: missing the provider ' + p.provider + '/' + p.user);
                     error = true;
                 } else {
                     myProviders.push(fullp);
@@ -33,7 +32,6 @@ function downloadChunks(metadata, myProviders, folder, chunkIdx, writer) {
 }
 
 function downloadComplete(metadata, myProviders, folder, writer) {
-    var debug = $('#debug');
     var i, nbRead = 0;
     g_complete++;
     progressBar(g_complete, metadata['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
@@ -55,7 +53,7 @@ function downloadComplete(metadata, myProviders, folder, writer) {
         if (g_complete < metadata['chunks'].length) {
             downloadChunks(metadata, myProviders, folder, g_complete, writer);
         } else {
-            debug.append('Download ' + metadata.name + ' complete<br>');
+            log('Download ' + metadata.name + ' complete');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
                     var stream, config, reader;
@@ -99,7 +97,6 @@ function downloadComplete(metadata, myProviders, folder, writer) {
 function downloadConfiguration() {
     var metadata = g_files[g_configName];
     var writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
-    var debug = $('#debug');
     g_complete = 0;
     progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
     downloadChunks(metadata, g_providers, undefined, g_complete, writer);

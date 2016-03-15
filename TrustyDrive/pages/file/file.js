@@ -1,6 +1,5 @@
 ﻿WinJS.UI.Pages.define('/pages/file/file.html', {
     ready: function () {
-        var debug = $('#debug');
         var size;
         // Get parameters
         var metadata = WinJS.Navigation.state.md;
@@ -162,7 +161,6 @@ function sizeString(size) {
 }
 
 function renameFile(metadata, newName, folder) {
-    var debug = $('#debug');
     if (newName.length > 0 && g_files[newName] == undefined) {
         delete g_files[metadata.name];
         metadata.name = newName;
@@ -181,7 +179,7 @@ function cloudDelete(metadata, folder, nbDelete) {
         var temp = getProvider(p.provider, p.user);
         if (temp == undefined) {
             index = false;
-            $('#debug').append('Can not get the provider ' + p.provider + '/' + p.user + '<br>');
+            log('Can not get the provider ' + p.provider + '/' + p.user);
         } else {
             myProviders.push(temp);
         }

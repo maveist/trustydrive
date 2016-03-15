@@ -1,4 +1,5 @@
-﻿//TODO: Missing chunks cause issues because the chunk can not be deleted => configuration editor
+﻿//TODO: Confirmation lors de la suppression d'un fichier ou d'un répertoire
+//TODO: Tester l'initialisation du working directory
 //TODO: Upload automatically the configuration
 //TODO: Login window
 //TODO: Refactoring: rename 'metadata' to 'file'
@@ -45,6 +46,8 @@ var g_folders = {};
                         g_workingDir = folder;
                         WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                     });
+                } else {
+                    WinJS.Navigation.navigate('/pages/settings/settings.html', g_folders[g_homeFolderName]);
                 }
             });
             args.setPromise(start);

@@ -12,7 +12,9 @@
                 folderPicker.pickSingleFolderAsync().then(function (folder) {
                     if (folder) {
                         futureAccess.addOrReplace('PickedFolderToken', folder);
+                        g_workingDir = folder;
                         setButtonLabel(folder.path);
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                     } else {
                         // The picker was dismissed with no selected file
                     }
@@ -41,7 +43,7 @@
                     deleteProvider(p);
                 });
                 // Display size in MB
-                $('#debug').append('user: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1) + '<br>');
+                log('User: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1));
                 // Display currently used accounts
                 $('.my-accounts').append(div);
             });
