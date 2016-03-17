@@ -3,9 +3,14 @@
     var dateString, d = new Date();
     dateString = '[' + d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
     if (d.getMinutes() > 9) {
-        dateString += d.getHours() + ':' + d.getMinutes() + '] ';
+        dateString += d.getHours() + ':' + d.getMinutes() + ':';
     } else {
-        dateString += d.getHours() + ':0' + d.getMinutes() + '] ';
+        dateString += d.getHours() + ':0' + d.getMinutes() + ':';
+    }
+    if (d.getSeconds() > 9) {
+        dateString += d.getSeconds() + '] ';
+    } else {
+        dateString += '0' + d.getSeconds() + '] ';
     }
     Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
         function (file) {
@@ -20,34 +25,37 @@
     );
 }
 
+// Add a provider to the provider list (g_providers)
 function createProvider(provider, email, token, freeStorage, totalStorage) {
     var credentials = Windows.Security.Credentials;
     var passwordVault = new credentials.PasswordVault();
-    var i, found = false;
+    var i, found = undefined;
+    // Check if the provider exists
     for (i = 0; i < g_providers.length; i++) {
         if (g_providers[i].provider == provider && g_providers[i].user == email) {
-            found = true;
+            found = g_providers[i];
         }
     }
-    if (!found) {
+    if (found == undefined) {
+        // Add the provider
         cred = new credentials.PasswordCredential(provider, email, token)
         passwordVault.add(cred);
         log('Add the provider: ' + provider + '/' + email);
-        g_providers.push({
+        provider = {
             'provider': cred.resource, 'user': cred.userName, 'token': cred.password,
             'free': freeStorage, 'total': totalStorage
-        });
+        };
+        g_providers.push(provider);
         g_providers.sort(function (a, b) {
             return a.user.localeCompare(b.user);
         });
-        if (g_files[g_configName] != undefined) {
-            g_files[g_configName]['chunks'] = [];
-            g_providers.forEach(function (p) {
-                g_files[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + 'remy');
-            });
-            log('Spread the metadata to all providers');
-            uploadConfiguration();
-        }
+        g_files[g_configName].chunks = [];
+        g_providers.forEach(function (p) {
+            g_files[g_configName].chunks.push(configurationChunk(p));
+        });
+        return provider;
+    } else {
+        return found;
     }
 }
 

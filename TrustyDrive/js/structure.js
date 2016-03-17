@@ -1,10 +1,4 @@
-﻿function initHomeFolder() {
-    var home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
-    g_folders[g_homeFolderName] = home;
-    return home;
-}
-
-function createElement(name, kind) {
+﻿function createElement(name, kind) {
     var element;
     if (kind == 'file') {
         if (g_files[name] == undefined) {

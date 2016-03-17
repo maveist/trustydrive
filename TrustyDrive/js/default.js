@@ -1,11 +1,10 @@
-﻿//TODO gérer les noms longs dans toutes les fenêtres (configuration editor: gérer la taille des noms)
-//TODO Gestion d'un fichier de configuration existant lors d'ajout de provider
-//TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
-//TODO Upload automatically the configuration
-//TODO Login window
-//TODO Refactoring: rename 'metadata' to 'file'
-//TODO recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
+﻿//TODO Refactoring: rename 'metadata' to 'file'
 //TODO Generate random names for chunks
+//TODO Upload automatically the configuration
+//TODO gérer les noms longs dans toutes les fenêtres (configuration editor: gérer la taille des noms)
+//TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
+//TODO Login window
+//TODO recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
 
 // Global variables
 const g_maxChunkSize = 10000;

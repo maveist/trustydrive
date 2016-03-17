@@ -15,8 +15,19 @@
             });
         }
         $('.add-dropbox').click(function () {
-            dropboxLogin(function () {
-                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            // Display a waiting wheel
+            dropboxLogin(function (provider) {
+                if (g_providers.length > 1) {
+                    dropboxExists(configurationChunk(provider), provider.token, function (args) {
+                        if (args.exists) {
+                            downloadConfiguration();
+                        } else {
+                            uploadConfiguration();
+                        }
+                    });
+                } else {
+                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                }
             });
         });
         $('.add-drive').click(driveLogin);

@@ -7,40 +7,43 @@
         // Get parameters
         $.each(g_files, function (useless, metadata) {
             var account, chunkName;
-            if (metadata.name != g_configName) {
-                $('.editor-list').append('<div class="editor-item"><div class="item-title">' + metadata.name +
-                    '<button id="show-' + index + '" class="edit-button">Details</button>' +
-                    '</div><div id="chunks-' + index + '" class="chunk-list"></div></div>');
-                $('#show-' + index).click(function () {
-                    var i, list, provider, idx = $(this).attr('id').indexOf('-');
-                    idx = $(this).attr('id').substr(idx);
-                    list = $('#chunks'+idx);
-                    if (list.children().length > 0) {
-                        $(this).text('Details');
-                        list.fadeOut('fast', function () {
-                            list.empty();
-                        });
-                    } else {
-                        $(this).text('Hide');
-                        for (i = 0; i < metadata.chunks.length; i++) {
-                            chunkName = metadata.chunks[i];
+            $('.editor-list').append('<div class="editor-item"><div class="item-title">' + metadata.name +
+                '<button id="show-' + index + '" class="edit-button">Details</button>' +
+                '</div><div id="chunks-' + index + '" class="chunk-list"></div></div>');
+            $('#show-' + index).click(function () {
+                var i, list, provider, idx = $(this).attr('id').indexOf('-');
+                idx = $(this).attr('id').substr(idx);
+                list = $('#chunks' + idx);
+                if (list.children().length > 0) {
+                    $(this).text('Details');
+                    list.fadeOut('fast', function () {
+                        list.empty();
+                    });
+                } else {
+                    $(this).text('Hide');
+                    log('editor nb chunks: ' + metadata.chunks.length);
+                    for (i = 0; i < metadata.chunks.length; i++) {
+                        chunkName = metadata.chunks[i];
+                        if (metadata.name == g_configName) {
+                            provider = g_providers[i % g_providers.length];
+                        } else {
                             provider = metadata.providers[i % metadata.providers.length];
                             provider = getProvider(provider.provider, provider.user);
-                            account = provider.provider + '/' + provider.user;
-                            if (account.length < 28) {
-                                list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                     account + '</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
-                            } else {
-                                list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                     account.substr(0, 23) + '...</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
-                            }
-                            dropboxExists('trustydrive/' + chunkName, provider.token, chunkStatus, { 'id': chunkName });
                         }
-                        list.fadeIn('fast');
+                        account = provider.provider + '/' + provider.user;
+                        if (account.length < 28) {
+                            list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
+                                 account + '</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
+                        } else {
+                            list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
+                                 account.substr(0, 23) + '...</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
+                        }
+                        dropboxExists(chunkName, provider.token, chunkStatus, { 'id': chunkName });
                     }
-                });
-                index++;
-            }
+                    list.fadeIn('fast');
+                }
+            });
+            index++;
         });
     }
 })
@@ -48,9 +51,11 @@
 function chunkStatus(args) {
     var status = $('#' + args.id);
     if (args.exists) {
+        log('editor FOUND: ' + status);
         status.html('<b>SUCCESS</b>');
         status.css('color', 'green');
     } else {
+        log('editor NOT FOUND');
         status.html('<b>ERROR</b>');
         status.css('color', 'red');
     }

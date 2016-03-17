@@ -10,6 +10,15 @@
         //});
         var body, div, files = $('.file-list');
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
+        // Check if the configuration exists
+        if (g_files[g_configName] == undefined) {
+            // Create the home folder
+            var home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
+            g_folders[g_homeFolderName] = home;
+            // Create the configuration metadata
+            g_files = {};
+            g_files[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [], 'providers': [] };
+        }
         $('.menu-bar').css('top', height - 60);
         // Remove the menu-bar height and the upper-bar height and padding
         $('.file-list').innerHeight(height - 60 - 60 - 5);
@@ -91,8 +100,7 @@
         if (g_workingFolder == undefined) {
             // Set the working folder
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
-        } else if (g_files[g_configName] == undefined) {
-            initHomeFolder();
+        } else if (g_files[g_configName].chunks.length == 0 && credentials.length > 0) {
             // Connect to existing providers
             progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
             setTimeout(function () {
@@ -154,8 +162,13 @@ function byType(a, b) {
     }
 }
 
+function configurationChunk(provider) {
+    return provider.user.replace('@', 'at') + 'isremy';
+}
+
 function connect(credentials, idx, vault) {
     if (idx < credentials.length) {
+        log('Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         switch (credentials[idx].resource) {
             case 'box':
@@ -176,12 +189,6 @@ function connect(credentials, idx, vault) {
             // Users must add providers, at least 2 providers is required
             WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
-            g_files = {};
-            // Every provider is available, build the configuration metadata
-            g_files[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [], 'providers': [] };
-            g_providers.forEach(function (p) {
-                g_files[g_configName]['chunks'].push(p.user.replace('@', 'at') + 'is' + 'remy');
-            });
             //$('.user-interface').hide();
             downloadConfiguration();
         }

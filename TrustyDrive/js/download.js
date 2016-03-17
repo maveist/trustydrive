@@ -56,7 +56,7 @@ function downloadComplete(metadata, myProviders, folder, writer) {
             log('Download ' + metadata.name + ' complete');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
-                    var stream, config, reader;
+                    var stream, config, reader, error = '';
                     var crypto = Windows.Security.Cryptography;
                     var cBuffer = crypto.CryptographicBuffer;
                     if (metadata.name == g_configName) {
@@ -64,22 +64,37 @@ function downloadComplete(metadata, myProviders, folder, writer) {
                         stream.seek(0);
                         reader = new Windows.Storage.Streams.DataReader(stream);
                         reader.loadAsync(stream.size).then(function () {
-                            config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(stream.size));
-                            config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, cBuffer.decodeFromBase64String(config));
-                            g_files = JSON.parse(config, function (k, v) {
-                                if (k == g_configName) {
-                                    // Do not modify the metadata of the configuration
-                                    return g_files[g_configName];
-                                } else {
-                                    return v;
-                                }
-                            });
-                            buildFolderStructure();
+                            try {
+                                config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(stream.size));
+                                config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, cBuffer.decodeFromBase64String(config));
+                                g_files = JSON.parse(config, function (k, v) {
+                                    if (k == g_configName) {
+                                        // Do not modify the metadata of the configuration
+                                        return g_files[g_configName];
+                                    } else {
+                                        return v;
+                                    }
+                                });
+                                buildFolderStructure();
+                            } catch (ex) {
+                                log('error when parsing configuration: ' + ex);
+                                error = 'The configuration file is malformed. Please check your cloud accounts configuration in Settings'
+                                    + ', maybe some providers are missing!'
+                                    + '<br>To reset your configuration (<b>all files stored in TrustyDrive will be lost</b>),'
+                                    + ' delete the trustydrive folder on the following accounts:<br>';
+                                g_providers.forEach(function (p) {
+                                    error += p.provider + ' - ' + p.user + '<br>';
+                                });
+                            }
                             writer.close();
                             stream.close();
                             reader.close();
                             setTimeout(function () {
-                                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                                if (error.length == 0) {
+                                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                                } else {
+                                    WinJS.Navigation.navigate('/pages/folder/folder.html', error);
+                                }
                             }, 1000);
                         });
                     } else {
