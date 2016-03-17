@@ -4,6 +4,10 @@
         var height = $('#content').innerHeight();
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
         var credentials = passwordVault.retrieveAll();
+        //TESTING Delete all credentials
+        //credentials.forEach(function (c) {
+        //    passwordVault.remove(c);
+        //});
         var body, div, files = $('.file-list');
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
         $('.menu-bar').css('top', height - 60);
@@ -83,13 +87,20 @@
                 $('.user-interface').hide();
             });
         });
-        if (g_files[g_configName] == undefined) {
+        // Select information to display
+        if (g_workingFolder == undefined) {
+            // Set the working folder
+            WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
+        } else if (g_files[g_configName] == undefined) {
             initHomeFolder();
             // Connect to existing providers
             progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
             setTimeout(function () {
                 connect(credentials, 0, passwordVault);
             }, 300);
+        } else if (g_providers.length < 2) {
+            // Add a new cloud provider
+            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
             // Display the folder content
             $('.upper-title').html(folder.name);
@@ -163,7 +174,7 @@ function connect(credentials, idx, vault) {
         // Connection to all providers are etablished
         if (g_providers.length < 2) {
             // Users must add providers, at least 2 providers is required
-            WinJS.Navigation.navigate('/pages/settings/settings.html');
+            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
             g_files = {};
             // Every provider is available, build the configuration metadata
@@ -254,7 +265,7 @@ function progressBar(current, max, legend, title) {
         barLegend = $('.bar-legend');
     }
     while (current >= bar.children().length) {
-        step = $('<div class="progress-step"></div>').width(300 / max);
+        step = $('<div class="progress-step"></div>').width(bar.width() / max);
         bar.append(step);
         barLegend.html(legend);
     }

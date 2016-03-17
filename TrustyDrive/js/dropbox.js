@@ -6,31 +6,30 @@ function dropboxLogin(func) {
     uri += 'response_type=token&';
     uri += 'client_id=qsg6s8c70g3newe&';
     uri += 'redirect_uri=' + webAuthenticationBroker.getCurrentApplicationCallbackUri();
-    webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(
-        function (success) {
-            var data = success.responseData;
+    webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(function (response) {
+        if (response.responseStatus == webtools.WebAuthenticationStatus.success) {
+            var data = response.responseData;
             var token = data.substring(data.indexOf('=') + 1, data.indexOf('&'));
-            dropboxExists('trustydrive', token,
-                function () {
+            dropboxExists('trustydrive', token, function (args) {
+                if (args.exists) {
                     dropboxUserInfo(token, false, func);
-                },
-                function () {
+                } else {
                     createCloudFolder(token, function () {
                         dropboxUserInfo(token, false, func);
                     });
                 }
-            );
-        },
-        function (error) {
-            log(error);
+            });
         }
-    );
+    });
 }
 
-function dropboxExists(path, token, exist, notexist, args) {
+function dropboxExists(path, token, exist, args) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + path);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
+    if (args == undefined) {
+        args = { 'path': path };
+    }
     log('Looking for ' + 'https://api.dropboxapi.com/1/metadata/auto/' + path);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     httpClient.sendRequestAsync(requestMessage).done(function (success) {
@@ -38,15 +37,14 @@ function dropboxExists(path, token, exist, notexist, args) {
             success.content.readAsStringAsync().done(function (info) {
                 if (info.indexOf('is_deleted') == -1) {
                     args['exists'] = true;
-                    exist(args);
                 } else {
                     args['exists'] = false;
-                    notexist(args);
                 }
+                exist(args);
             });
         } else {
             args['exists'] = false;
-            notexist(args);
+            exist(args);
         }
     });
 }

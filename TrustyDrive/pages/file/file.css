@@ -33,21 +33,20 @@
     height: 45%;
     margin: auto;
     margin-top: 20px;
-    text-align: center;
     overflow: auto;
+}
+
+.file-providers .title {
+    margin-left: 70px;
+    font-size: 18px;
+    font-weight: bold;
 }
 
 .used-provider {
     width: 243px;
-    height: 60px;
-    padding-left: 100px;
-    padding-top: 30px;
-    text-align: left;
-}
-
-.file-providers span {
-    font-size: 18px;
-    font-weight: bold;
+    height: 45px;
+    padding-left: 70px;
+    padding-top: 15px;
 }
 
 /*** File Action Icons ***/
@@ -55,32 +54,16 @@
     background: url("../../images/style/download.png") no-repeat;
 }
 
-.download:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/download.png") no-repeat;
-}
-
 .open {
     background: url("../../images/style/open.png") no-repeat;
-}
-
-.open:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/open.png") no-repeat;
 }
 
 .move {
     background: url("../../images/style/move.png") no-repeat;
 }
 
-.move:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/move.png") no-repeat;
-}
-
 .cloud-delete {
     background: url("../../images/style/cloud-delete.png") no-repeat;
-}
-
-.cloud-delete:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/cloud-delete.png") no-repeat;
 }
 
 /*** End of File Action Icons ***/

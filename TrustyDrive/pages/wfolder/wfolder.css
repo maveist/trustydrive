@@ -1,0 +1,21 @@
+﻿.main-wfolder {
+    width: 90%;
+    margin: auto;
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+.working-folder {
+    width: 200px;
+    height: 75px;
+    padding-top: 25px;
+    /*margin: auto;*/
+    margin-left: 60px;
+    margin-top: 20px;
+    border: 1px solid #000000;
+    background: #5F5F5F;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FFFFFF;
+    text-align: center;
+}

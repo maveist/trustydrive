@@ -94,24 +94,24 @@
             // Display providers
             metadata.providers.forEach(function (p) {
                 var div = $('<div class="used-provider">' + p.user + '</div>');
-                div.css('background', 'url(../../images/style/' + p.provider + '.png) no-repeat');
+                div.css('background', 'url(../../images/style/' + p.provider + '-small.png) no-repeat');
                 // Display currently used accounts
                 $('.file-providers').append(div);
             });
             // Configure properties and actions for a downloaded file
-            g_workingDir.getFileAsync(metadata.name).then(
+            g_workingFolder.getFileAsync(metadata.name).then(
                 function (file) {
                     $('.menu-bar').css('top', height - 120);
                     $('.upload').click(function () {
                         uploadFile(metadata.name, folder);
                     });
                     $('.open').click(function () {
-                        g_workingDir.getFileAsync(metadata.name).done(function (file) {
+                        g_workingFolder.getFileAsync(metadata.name).done(function (file) {
                             Windows.System.Launcher.launchFileAsync(file).done();
                         });
                     });
                     $('.local-delete').click(function () {
-                        g_workingDir.getFileAsync(metadata.name).then(function (file) {
+                        g_workingFolder.getFileAsync(metadata.name).then(function (file) {
                             file.deleteAsync().then(function () {
                                 WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
                             });

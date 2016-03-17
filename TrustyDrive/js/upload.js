@@ -33,7 +33,7 @@
 }
 
 function uploadFile(filename, folder) {
-    g_workingDir.getFileAsync(filename).then(function (file) {
+    g_workingFolder.getFileAsync(filename).then(function (file) {
         file.openReadAsync().done(function (readStream) {
             uploadChunks(filename, folder, readStream);
         });

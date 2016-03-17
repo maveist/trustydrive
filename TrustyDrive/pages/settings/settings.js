@@ -12,7 +12,7 @@
                 folderPicker.pickSingleFolderAsync().then(function (folder) {
                     if (folder) {
                         futureAccess.addOrReplace('PickedFolderToken', folder);
-                        g_workingDir = folder;
+                        g_workingFolder = folder;
                         setButtonLabel(folder.path);
                         WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                     } else {
@@ -24,12 +24,19 @@
             $('#editor-config').click(function () {
                 WinJS.Navigation.navigate('/pages/editor/editor.html');
             });
-            $('#file-view').text(localSettings.values['sortingFiles'].substr(0, 1).toUpperCase() + localSettings.values['sortingFiles'].substr(1));
+            if (localSettings.values['sortingFiles'] == undefined) {
+                $('#file-view').text('Alphabetic');
+            } else {
+                $('#file-view').text(localSettings.values['sortingFiles'].substr(0, 1).toUpperCase() + localSettings.values['sortingFiles'].substr(1));
+            }
             $('#file-view').click(viewFiles);
             $('.upper-back').click(function () {
                 WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
             });
             // Display information about providers
+            $('.new-provider').click(function () {
+                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+            });
             if (g_providers.length < 2) {
                 $('.my-accounts').append('<b>Please add at least two accounts from a storage service</b>');
                 $('.my-accounts > b').css('color', 'red');
@@ -47,13 +54,6 @@
                 // Display currently used accounts
                 $('.my-accounts').append(div);
             });
-            $('.add-dropbox').click(function () {
-                dropboxLogin(function () {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
-                });
-            });
-            $('.add-drive').click(driveLogin);
-            $('.add-onedrive').click(oneDriveLogin);
             // Display the current working directory path
             if (futureAccess.containsItem('PickedFolderToken')) {
                 futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {

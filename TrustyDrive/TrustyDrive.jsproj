@@ -85,6 +85,7 @@
     <Content Include="images\style\create-dir.png" />
     <Content Include="images\style\download.png" />
     <Content Include="images\style\drive.png" />
+    <Content Include="images\style\dropbox-small.png" />
     <Content Include="images\style\dropbox.png" />
     <Content Include="images\style\folder-big.png" />
     <Content Include="images\style\folder.png" />
@@ -131,6 +132,12 @@
     <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
     <Content Include="js\upload.js" />
+    <Content Include="pages\wfolder\wfolder.css" />
+    <Content Include="pages\wfolder\wfolder.html" />
+    <Content Include="pages\wfolder\wfolder.js" />
+    <Content Include="pages\addprovider\addprovider.css" />
+    <Content Include="pages\addprovider\addprovider.html" />
+    <Content Include="pages\addprovider\addprovider.js" />
     <Content Include="pages\editor\editor.css" />
     <Content Include="pages\editor\editor.html" />
     <Content Include="pages\editor\editor.js" />

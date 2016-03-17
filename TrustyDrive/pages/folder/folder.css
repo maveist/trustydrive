@@ -1,12 +1,12 @@
 ﻿.file-list {
     width: 95%;
-    padding: 5px;
+    padding: 2%;
     margin: auto;
     overflow: auto;
 }
 
 .file {
-    width: 300px;
+    width: 270px;
     height: 40px;
     margin-bottom: 10px;
     margin-left: 10px;
@@ -38,20 +38,12 @@
     float: left;
 }
 
-.upper-back:hover {
-    background: rgba(255, 255, 255, 0.2) url('../../images/style/back.png') no-repeat;
-}
-
 .upper-settings {
     width: 50px;
     height: 50px;
     margin-right: 20px;
     background: url('../../images/style/settings.png') no-repeat;
     float: right;
-}
-
-.upper-settings:hover {
-    background: rgba(255, 255, 255, 0.2) url('../../images/style/settings.png') no-repeat;
 }
 /*** End of the Upper Bar ***/
 
@@ -60,88 +52,44 @@
     background: url("../../images/style/archive.png") no-repeat;
 }
 
-.archive:hover {
-    background: #A9F5A9 url("../../images/style/archive.png") no-repeat;
-}
-
 .folder {
     background: url("../../images/style/folder.png") no-repeat;
-}
-
-.folder:hover {
-    background: #F2F5A9 url("../../images/style/folder.png") no-repeat;
 }
 
 .music {
     background: url("../../images/style/music.png") no-repeat;
 }
 
-.music:hover {
-    background: #E3CEF6 url("../../images/style/music.png") no-repeat;
-}
-
 .pdf {
     background: url("../../images/style/pdf.png") no-repeat;
-}
-
-.pdf:hover {
-    background: #F5A9A9 url("../../images/style/pdf.png") no-repeat;
 }
 
 .picture {
     background: url("../../images/style/picture.png") no-repeat;
 }
 
-.picture:hover {
-    background: #F6CEE3 url("../../images/style/picture.png") no-repeat;
-}
-
 .script {
     background: url("../../images/style/script.png") no-repeat;
-}
-
-.script:hover {
-    background: #CEE3F6 url("../../images/style/script.png") no-repeat;
 }
 
 .system {
     background: url("../../images/style/system.png") no-repeat;
 }
 
-.system:hover {
-    background: #CAA3F6 url("../../images/style/system.png") no-repeat;
-}
-
 .text {
     background: url("../../images/style/text.png") no-repeat;
-}
-
-.text:hover {
-    background: #F5DA81 url("../../images/style/text.png") no-repeat;
 }
 
 .unknown {
     background: url("../../images/style/unknown.png") no-repeat;
 }
 
-.unknown:hover {
-    background: #A4A4A4 url("../../images/style/unknown.png") no-repeat;
-}
-
 .video {
     background: url("../../images/style/video.png") no-repeat;
 }
 
-.video:hover {
-    background: #CEE3F6 url("../../images/style/video.png") no-repeat;  
-}
-
 .web {
     background: url("../../images/style/web.png") no-repeat;
-}
-
-.web:hover {
-    background: #CEF6EC url("../../images/style/web.png") no-repeat;
 }
 /*** End of File Icons ***/
 
@@ -166,33 +114,18 @@
     background: url('../../images/style/upload.png') no-repeat;
 }
 
-.upload:hover {
-    background: rgba(0, 0, 0, 0.2) url('../../images/style/upload.png') no-repeat;
-}
-
 .create-dir {
     background: url("../../images/style/create-dir.png") no-repeat;
-}
-
-.create-dir:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/create-dir.png") no-repeat;
 }
 
 .rename {
     background: url("../../images/style/rename.png") no-repeat;
 }
 
-.rename:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/rename.png") no-repeat;
-}
-
 .local-delete {
     background: url("../../images/style/local-delete.png") no-repeat;
 }
 
-.local-delete:hover {
-    background: rgba(0, 0, 0, 0.2) url("../../images/style/local-delete.png") no-repeat;
-}
 /*** End of the Menu bar ***/
 
 /*** The Dialog Box to Interact with Users ***/
@@ -207,17 +140,17 @@
 }
 
 .interface-body {
-    width: 400px;
-    height: 600px;
+    width: 90%;
+    height: 60%;
     margin: auto;
     margin-top: 100px;
     background: #FFFFFF;
 }
 
 .progress-bar {
-    width: 300px;
+    width: 80%;
     height: 5px;
-    margin-left: 50px;
+    margin: auto;
     background: #BDBDBD;
 }
 
@@ -256,10 +189,6 @@
     display: inline-block;
 }
 
-.interface-button:hover {
-    background-color: #60A917;
-}
-
 .interface-folder {
     width: 80px;
     height: 30px;
@@ -268,9 +197,5 @@
     border: 1px solid #000000;
     text-align: center;
     display: inline-block;
-}
-
-.interface-folder:hover {
-    background-color: #60A917;
 }
 /*** End of the Dialog Box ***/

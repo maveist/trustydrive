@@ -1,46 +1,24 @@
-﻿WinJS.UI.Pages.define('/pages/editor/editor.html', {
+﻿WinJS.UI.Pages.define('/pages/wfolder/wfolder.html', {
     ready: function () {
         var index = 0;
         $('.upper-back').click(function () {
             WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
         });
-        // Get parameters
-        $.each(g_files, function (useless, metadata) {
-            var account, chunkName;
-            if (metadata.name != g_configName) {
-                $('.editor-list').append('<div class="editor-item"><div class="item-title">' + metadata.name +
-                    '<button id="show-' + index + '" class="edit-button">Details</button>' +
-                    '</div><div id="chunks-' + index + '" class="chunk-list"></div></div>');
-                $('#show-' + index).click(function () {
-                    var i, list, provider, idx = $(this).attr('id').indexOf('-');
-                    idx = $(this).attr('id').substr(idx);
-                    list = $('#chunks'+idx);
-                    if (list.children().length > 0) {
-                        $(this).text('Details');
-                        list.fadeOut('fast', function () {
-                            list.empty();
-                        });
-                    } else {
-                        $(this).text('Hide');
-                        for (i = 0; i < metadata.chunks.length; i++) {
-                            chunkName = metadata.chunks[i];
-                            provider = metadata.providers[i % metadata.providers.length];
-                            provider = getProvider(provider.provider, provider.user);
-                            account = provider.provider + '/' + provider.user;
-                            if (account.length < 28) {
-                                list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                     account + '</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
-                            } else {
-                                list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                     account.substr(0, 23) + '...</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
-                            }
-                            dropboxExists('trustydrive/' + chunkName, provider.token, chunkStatus, { 'id': chunkName });
-                        }
-                        list.fadeIn('fast');
-                    }
-                });
-                index++;
-            }
+        $('.working-folder').click(function () {
+            var folderPicker = new Windows.Storage.Pickers.FolderPicker();
+            var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
+            folderPicker.suggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.downloads;
+            // Useless for the folder selection but required by the API
+            folderPicker.fileTypeFilter.replaceAll(['.txt', '.pdf', '.jpg']);
+            folderPicker.pickSingleFolderAsync().then(function (folder) {
+                if (folder) {
+                    futureAccess.addOrReplace('PickedFolderToken', folder);
+                    g_workingFolder = folder;
+                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                } else {
+                    // The picker was dismissed with no selected file
+                }
+            });
         });
     }
 })

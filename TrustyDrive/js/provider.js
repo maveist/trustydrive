@@ -65,7 +65,7 @@ function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
                 }
             });
             if (found) {
-                g_workingDir.getFileAsync(current.name).then(
+                g_workingFolder.getFileAsync(current.name).then(
                     function (file) {
                         filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
                     },

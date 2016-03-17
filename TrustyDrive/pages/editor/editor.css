@@ -1,5 +1,5 @@
 ﻿.editor-list {
-    width: 460px;
+    width: 100%;
     height: 88%;
     margin: auto;
     margin-top: 20px;
@@ -42,9 +42,9 @@
 }
 
 .chunk-provider {
-    width: 210px;
+    width: 50%;
 }
 
 .chunk-name {
-    width: 160px;
+    width: 30%;
 }

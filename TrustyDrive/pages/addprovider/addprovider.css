@@ -1,0 +1,47 @@
+﻿.main-add-provider {
+    width: 85%;
+    height: 85%;
+    margin: auto;
+    margin-top: 30px;
+    overflow: auto;
+}
+
+.main-add-provider span {
+    font-size: 20px;
+}
+
+.add-provider-logo {
+    margin-top: 30px;
+}
+
+.add-logos {
+    height: 200px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.add-dropbox {
+    height: 30px;
+    width: 80px;
+    padding-top: 80px;
+    background: url(../../images/style/dropbox.png) no-repeat;
+    float: left;
+}
+
+.add-drive {
+    height: 30px;
+    width: 80px;
+    margin-left: 10px;
+    padding-top: 80px;
+    background: url(../../images/style/drive.png) no-repeat;
+    float: left;
+}
+
+.add-onedrive {
+    height: 30px;
+    width: 80px;
+    margin-left: 10px;
+    padding-top: 80px;
+    background: url(../../images/style/onedrive.png) no-repeat;
+    float: left;
+}
