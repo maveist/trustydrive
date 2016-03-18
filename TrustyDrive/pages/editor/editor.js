@@ -6,11 +6,13 @@
         });
         // Get parameters
         $.each(g_files, function (useless, file) {
-            var account, chunkName;
-            $('.editor-list').append('<div class="editor-item"><div class="item-title">' + file.name +
+            var account, chunkName, listWidth;
+            listWidth = $('.editor-list').width();
+            $('.editor-list').append('<div class="editor-item"><div class="item-title">' + longName(file.name, 40) +
                 '<button id="show-' + index + '" class="edit-button">Details</button>' +
                 '</div><div id="chunks-' + index + '" class="chunk-list"></div></div>');
             $('#show-' + index).click(function () {
+                var providerDiv, chunkDiv;
                 var i, list, provider, idx = $(this).attr('id').indexOf('-');
                 idx = $(this).attr('id').substr(idx);
                 list = $('#chunks' + idx);
@@ -21,7 +23,6 @@
                     });
                 } else {
                     $(this).text('Hide');
-                    log('editor nb chunks: ' + file.chunks.length);
                     for (i = 0; i < file.chunks.length; i++) {
                         chunkName = file.chunks[i];
                         if (file.name == g_configName) {
@@ -30,14 +31,26 @@
                             provider = file.providers[i % file.providers.length];
                             provider = getProvider(provider.provider, provider.user);
                         }
-                        account = provider.provider + '/' + provider.user;
-                        if (account.length < 28) {
-                            list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                 account + '</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
+                        account = provider.provider + '/' + provider.user
+                        chunkDiv = $('<div title="' + chunkName + '" class="chunk-name"></div>');
+                        providerDiv = $('<div class="chunk-provider"></div>');
+                        // Remove the chunk status - 90px including the rigth margin
+                        listWidth -= 90;
+                        if (listWidth < 200) {
+                            chunkDiv.css('width', listWidth / 2);
+                            // 10 pixels / character
+                            chunkDiv.html(longName(chunkName, listWidth / 20));
+                            providerDiv.css('width', listWidth / 2);
+                            providerDiv.html(longName(account, listWidth / 20));
                         } else {
-                            list.append('<div class="chunk-item"><div class="chunk-name">' + chunkName + '</div><div class="chunk-provider">' +
-                                 account.substr(0, 23) + '...</div><div id="' + chunkName + '" class="chunk-status">??</div></div>');
+                            chunkDiv.css('width', listWidth * 0.4);
+                            chunkDiv.html(longName(chunkName, listWidth * 0.4 / 10));
+                            providerDiv.css('width', listWidth * 0.6);
+                            providerDiv.html(longName(account, listWidth * 0.6 / 10));
                         }
+                        listWidth += 90;
+                        list.append($('<div class="chunk-item"></div>').append(chunkDiv).append(providerDiv)
+                            .append('<div id="' + chunkName + '" class="chunk-status">??</div>'));
                         dropboxExists(chunkName, provider.token, chunkStatus, { 'id': chunkName });
                     }
                     list.fadeIn('fast');

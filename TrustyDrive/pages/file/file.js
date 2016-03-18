@@ -85,7 +85,7 @@
                 });
             });
             // Display the file metadata
-            $('.upper-title').append(file.name);
+            $('.upper-title').append(longName(file.name));
             $('.file-icon').css('background', 'url(../../images/style/' + file.type + '-big.png) no-repeat');
             $('#file-type').html(file.type.substr(0, 1).toUpperCase() + file.type.substr(1) + ' File');
             size = sizeString(file.size);

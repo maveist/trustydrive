@@ -111,7 +111,7 @@
             WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
             // Display the folder content
-            $('.upper-title').html(folder.name);
+            $('.upper-title').html(longName(folder.name));
             // Add click listeners
             if (folder.name != g_homeFolderName) {
                 $('.upper-back').click(function () {
@@ -121,7 +121,7 @@
             folder.folders.sort(alphabetic);
             $.each(folder.folders, function (useless, props) {
                 if (props.name != g_configName) {
-                    div = $('<div id="' + props.name + '" class="file folder">' + props.name + '</div>');
+                    div = $('<div id="' + props.name + '" class="file folder">' + longName(props.name) + '</div>');
                     div.click(function () {
                         WinJS.Navigation.navigate('/pages/folder/folder.html', props);
                     });
@@ -135,7 +135,7 @@
             }
             $.each(folder.files, function (useless, props) {
                 if (props.name != g_configName) {
-                    div = $('<div id="' + props.name + '" class="file ' + props.type + '">' + props.name + '</div>');
+                    div = $('<div id="' + props.name + '" class="file ' + props.type + '">' + longName(props.name) + '</div>');
                     div.click(function () {
                         WinJS.Navigation.navigate('/pages/file/file.html', { 'file': props, 'folder': folder });
                     });
