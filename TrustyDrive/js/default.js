@@ -1,8 +1,7 @@
-﻿//TODO Refactoring: rename 'metadata' to 'file'
+﻿//TODO gérer les noms longs dans toutes les fenêtres (configuration editor: gérer la taille des noms)
 //TODO Generate random names for chunks
-//TODO Upload automatically the configuration
-//TODO gérer les noms longs dans toutes les fenêtres (configuration editor: gérer la taille des noms)
 //TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
+//BUG Delete large files do not complete all time (counter of deleted chunk and paralellism ?)
 //TODO Login window
 //TODO recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
 

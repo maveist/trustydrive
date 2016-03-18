@@ -218,9 +218,7 @@ function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChun
                 }
                 // End of the file type definition
                 file['type'] = filetype;
-                setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
-                }, 1000);
+                setTimeout(uploadConfiguration, 1000);
             }
         }
     });

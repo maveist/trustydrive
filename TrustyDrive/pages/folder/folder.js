@@ -207,9 +207,9 @@ function createDir(fname, folder) {
 }
 
 function renameFolder(folder, newName) {
-    var current = [], future = [];
+    var current = [], future = [], modify = false;
     if (newName.length == 0 || g_folders[newName] != undefined) {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The folder <b>'+ newName + '</b> already exists!');
+        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The folder <b>' + newName + '</b> already exists!');
     } else {
         delete g_folders[folder.name];
         g_folders[newName] = folder;
@@ -225,6 +225,7 @@ function renameFolder(folder, newName) {
                 current.forEach(function (c) {
                     future = future.concat(c.folders);
                     c.files.forEach(function (f) {
+                        modify = true;
                         setPath(c, f);
                     });
                 });
@@ -233,7 +234,11 @@ function renameFolder(folder, newName) {
             }
         }
     }
-    WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+    if (modify) {
+        uploadConfiguration();
+    } else {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+    }
 }
 
 function deleteFolder(folder) {
@@ -241,7 +246,7 @@ function deleteFolder(folder) {
     current.push(folder);
     while (current.length > 0) {
         current.forEach(function (c) {
-            c.files.forEach(function(f) {
+            c.files.forEach(function (f) {
                 allFiles.push({ 'file': f, 'folder': c });
                 nbChunks += f.chunks.length;
             });

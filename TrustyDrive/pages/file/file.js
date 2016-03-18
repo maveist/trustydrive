@@ -73,7 +73,7 @@
                                 folder.files.splice(index, 1);
                             }
                             addToFolder(dest, file);
-                            WinJS.Navigation.navigate('/pages/folder/folder.html', dest);
+                            uploadConfiguration();
                         });
                     }
                 });
@@ -165,7 +165,7 @@ function renameFile(file, newName, folder) {
         delete g_files[file.name];
         file.name = newName;
         g_files[newName] = file;
-        WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+        uploadConfiguration();
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
     }
@@ -199,7 +199,7 @@ function cloudDelete(file, folder, nbDelete) {
 function deleteComplete(nbDelete, folder) {
     g_complete++;
     if (g_complete == nbDelete) {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+        uploadConfiguration();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
     }
