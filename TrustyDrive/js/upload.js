@@ -41,41 +41,41 @@ function uploadFile(filename, folder) {
 }
 
 function uploadChunks(filename, folder, readStream) {
-    var i, j, provider, metadata, nbChunks, reader, nbProviders = g_providers.length;
+    var i, j, provider, file, nbChunks, reader, nbProviders = g_providers.length;
     log('File to Upload: ' + filename);
     log('Size: ' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
-        metadata = createElement(filename, 'file');
-        addToFolder(folder, metadata);
+        file = createElement(filename, 'file');
+        addToFolder(folder, file);
     } else {
-        metadata = g_files[filename];
+        file = g_files[filename];
     }
     if (filename != g_configName) {
         // Check the provider configuration, an old provider must be in the same place in the current provider list
-        if (metadata.providers.length != g_providers.length) {
+        if (file.providers.length != g_providers.length) {
             // Delete every chunk of all providers from the file metadata
-            for (i = 0; i < metadata.providers.length; i++) {
-                provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
+            for (i = 0; i < file.providers.length; i++) {
+                provider = getProvider(file.providers[i].provider, file.providers[i].user);
                 if (provider == undefined) {
                     log('Can not get the provider, delete chunks manually');
                 } else {
                     log('Delete all chunks from ' + provider.provider + '/' + provider.user);
-                    for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
-                        dropboxDelete(metadata.chunks[i + j], provider.token);
+                    for (j = 0; j < file.chunks.length; j += file.providers.length) {
+                        dropboxDelete(file.chunks[i + j], provider.token);
                     }
                 }
             }
         } else {
             // Check the providers of the file are the same that the current providers
             for (i = 0; i < g_providers.length; i++) {
-                if (metadata.providers[i].user != g_providers[i].user || metadata.providers[i].provider != g_providers[i].provider) {
-                    provider = getProvider(metadata.providers[i].provider, metadata.providers[i].user);
+                if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
+                    provider = getProvider(file.providers[i].provider, file.providers[i].user);
                     if (provider == undefined) {
                         log('Can not get the provider, delete chunks manually');
                     } else {
-                        for (j = 0; j < metadata.chunks.length; j += metadata.providers.length) {
-                            dropboxDelete(metadata.chunks[i + j], provider.token);
+                        for (j = 0; j < file.chunks.length; j += file.providers.length) {
+                            dropboxDelete(file.chunks[i + j], provider.token);
                         }
                     }
                 }
@@ -83,9 +83,9 @@ function uploadChunks(filename, folder, readStream) {
         }
     }
     // Set the providers of the file to the current providers
-    metadata['providers'] = [];
+    file['providers'] = [];
     g_providers.forEach(function (p) {
-        metadata.providers.push({ 'provider': p.provider, 'user': p.user });
+        file.providers.push({ 'provider': p.provider, 'user': p.user });
     });
     // The minimal file size required, 3 bytes on every provider
     if (readStream.size < nbProviders * 3) {
@@ -98,8 +98,8 @@ function uploadChunks(filename, folder, readStream) {
         nbChunks = (Math.trunc(nbChunks / nbProviders) + 1) * nbProviders;
     }
     progressBar(0, nbChunks + 1, 'Initialization', 'Uploading the File ' + filename);
-    metadata['size'] = readStream.size;
-    mychunks = metadata['chunks'];
+    file['size'] = readStream.size;
+    mychunks = file['chunks'];
     if (mychunks.length > nbChunks) {
         mychunks.splice(nbChunks, mychunks.length - nbChunks);
     } else {
@@ -110,10 +110,10 @@ function uploadChunks(filename, folder, readStream) {
     }
     log('Nb. of Chunks: ' + mychunks.length);
     reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
-    createChunks(metadata, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
+    createChunks(file, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
 }
 
-function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
+function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
     var temp, tempSize = 0;
     var chunks = [];
     // One chunk per provider
@@ -141,33 +141,33 @@ function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreated
             }
         }
         for (p = 0; p < g_providers.length; p++) {
-            dropboxUpload(metadata['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
+            dropboxUpload(file['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
             chunks[p].stream.close();
         }
         nbCreatedChunks += g_providers.length;
-        progressBar(nbCreatedChunks, metadata['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
-        if (nbCreatedChunks < metadata['chunks'].length) {
+        progressBar(nbCreatedChunks, file['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
+        if (nbCreatedChunks < file['chunks'].length) {
             // Keep creating chunks
-            createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreatedChunks);
+            createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks);
         } else {
             // Upload is complete
             reader.close();
-            if (metadata.name == g_configName) {
+            if (file.name == g_configName) {
                 setTimeout(function () {
                     WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                 }, 1000);
             } else {
                 // Update the last upload date
-                metadata['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
+                file['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
                 if (d.getMinutes() > 9) {
-                    metadata['lastupload'] += d.getHours() + ':' + d.getMinutes();
+                    file['lastupload'] += d.getHours() + ':' + d.getMinutes();
                 } else {
-                    metadata['lastupload'] += d.getHours() + ':0' + d.getMinutes();
+                    file['lastupload'] += d.getHours() + ':0' + d.getMinutes();
                 }
                 // Compute the file type
-                idx = metadata.name.indexOf('.');
+                idx = file.name.indexOf('.');
                 if (idx > -1) {
-                    switch (metadata.name.substr(idx + 1)) {
+                    switch (file.name.substr(idx + 1)) {
                         case '7z':
                         case 'tar':
                         case 'tar.gz':
@@ -217,9 +217,9 @@ function createChunks(metadata, folder, reader, chunkSize, remainSize, nbCreated
                     }
                 }
                 // End of the file type definition
-                metadata['type'] = filetype;
+                file['type'] = filetype;
                 setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
+                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
                 }, 1000);
             }
         }

@@ -1,11 +1,11 @@
-﻿function downloadFile(metadata, folder) {
+﻿function downloadFile(file, folder) {
     g_complete = 0;
-    progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the File ' + metadata.name);
-    g_workingFolder.createFileAsync(metadata.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
+    progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the File ' + file.name);
+    g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
         myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
             var error = false;
             var myProviders = [];
-            metadata.providers.forEach(function (p) {
+            file.providers.forEach(function (p) {
                 var fullp = getProvider(p.provider, p.user);
                 if (fullp == undefined) {
                     log('Can not download the file: missing the provider ' + p.provider + '/' + p.user);
@@ -17,24 +17,24 @@
             if (error) {
                 output.close();
             } else {
-                downloadChunks(metadata, myProviders, folder, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
+                downloadChunks(file, myProviders, folder, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
             }
         });
     });
 }
 
-function downloadChunks(metadata, myProviders, folder, chunkIdx, writer) {
+function downloadChunks(file, myProviders, folder, chunkIdx, writer) {
     var i;
     g_chunks = [];
     for (i = 0; i < myProviders.length; i++) {
-        dropboxDownload(metadata, myProviders, folder, chunkIdx + i, myProviders[i].token, writer);
+        dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i].token, writer);
     }
 }
 
-function downloadComplete(metadata, myProviders, folder, writer) {
+function downloadComplete(file, myProviders, folder, writer) {
     var i, nbRead = 0;
     g_complete++;
-    progressBar(g_complete, metadata['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
+    progressBar(g_complete, file['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
     if (g_complete % myProviders.length == 0) {
         g_chunks.sort(function (a, b) {
             return a.idx - b.idx;
@@ -50,16 +50,16 @@ function downloadComplete(metadata, myProviders, folder, writer) {
         for (i = 0 ; i < myProviders.length; i++) {
             g_chunks[i].reader.close();
         }
-        if (g_complete < metadata['chunks'].length) {
-            downloadChunks(metadata, myProviders, folder, g_complete, writer);
+        if (g_complete < file['chunks'].length) {
+            downloadChunks(file, myProviders, folder, g_complete, writer);
         } else {
-            log('Download ' + metadata.name + ' complete');
+            log('Download ' + file.name + ' complete');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
                     var stream, config, reader, error = '';
                     var crypto = Windows.Security.Cryptography;
                     var cBuffer = crypto.CryptographicBuffer;
-                    if (metadata.name == g_configName) {
+                    if (file.name == g_configName) {
                         stream = writer.detachStream();
                         stream.seek(0);
                         reader = new Windows.Storage.Streams.DataReader(stream);
@@ -100,7 +100,7 @@ function downloadComplete(metadata, myProviders, folder, writer) {
                     } else {
                         writer.close();
                         setTimeout(function () {
-                            WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
+                            WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
                         }, 1000);
                     }
                 });
@@ -110,9 +110,9 @@ function downloadComplete(metadata, myProviders, folder, writer) {
 }
 
 function downloadConfiguration() {
-    var metadata = g_files[g_configName];
+    var file = g_files[g_configName];
     var writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
     g_complete = 0;
-    progressBar(0, metadata['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
-    downloadChunks(metadata, g_providers, undefined, g_complete, writer);
+    progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
+    downloadChunks(file, g_providers, undefined, g_complete, writer);
 }

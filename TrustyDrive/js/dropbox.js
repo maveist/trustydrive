@@ -98,10 +98,10 @@ function dropboxUserInfo(token, reconnect, func) {
     );
 }
 
-function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer) {
+function dropboxDownload(file, myProviders, folder, chunkIdx, token, writer) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
-    var chunkName = metadata['chunks'][chunkIdx];
+    var chunkName = file['chunks'][chunkIdx];
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + g_cloudFolder + chunkName);
     log('downloading ' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
@@ -113,11 +113,11 @@ function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer)
                 success.content.readAsBufferAsync().done(function (buffer) {
                     reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
                     g_chunks.push({ 'idx': chunkIdx, 'reader': reader, 'size': buffer.length });
-                    downloadComplete(metadata, myProviders, folder, writer);
+                    downloadComplete(file, myProviders, folder, writer);
                 });
             } else {
-                progressBar(g_complete, metadata['chunks'].length + 1, 'Error: Download Failure');
-                if (metadata.name == g_configName) {
+                progressBar(g_complete, file['chunks'].length + 1, 'Error: Download Failure');
+                if (file.name == g_configName) {
                     // Download the metadata failed
                     setTimeout(function () {
                         WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the <b>Configuration</b>.'
@@ -125,7 +125,7 @@ function dropboxDownload(metadata, myProviders, folder, chunkIdx, token, writer)
                     }, 2000);
                 } else {
                     setTimeout(function () {
-                        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the Document <b>' + metadata.name + '</b>');
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the Document <b>' + file.name + '</b>');
                     }, 2000);
                 }
             }

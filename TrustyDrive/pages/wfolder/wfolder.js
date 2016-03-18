@@ -59,22 +59,22 @@ function sizeString(size) {
     return res;
 }
 
-function renameFile(metadata, newName, folder) {
+function renameFile(file, newName, folder) {
     if (newName.length > 0 && g_files[newName] == undefined) {
-        delete g_files[metadata.name];
-        metadata.name = newName;
-        g_files[newName] = metadata;
-        WinJS.Navigation.navigate('/pages/file/file.html', { 'md': metadata, 'folder': folder });
+        delete g_files[file.name];
+        file.name = newName;
+        g_files[newName] = file;
+        WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
     }
 }
 
-function cloudDelete(metadata, folder, nbDelete) {
+function cloudDelete(file, folder, nbDelete) {
     var index = true;
     var myProviders = [];
     g_complete = 0;
-    metadata.providers.forEach(function (p) {
+    file.providers.forEach(function (p) {
         var temp = getProvider(p.provider, p.user);
         if (temp == undefined) {
             index = false;
@@ -84,11 +84,11 @@ function cloudDelete(metadata, folder, nbDelete) {
         }
     });
     if (index) {
-        for (index = 0 ; index < metadata.chunks.length; index++) {
-            dropboxDelete(metadata.chunks[index], myProviders[index % myProviders.length].token, nbDelete, folder);
+        for (index = 0 ; index < file.chunks.length; index++) {
+            dropboxDelete(file.chunks[index], myProviders[index % myProviders.length].token, nbDelete, folder);
         }
-        delete g_files[metadata.name];
-        index = folder.files.indexOf(metadata);
+        delete g_files[file.name];
+        index = folder.files.indexOf(file);
         if (index > -1) {
             folder.files.splice(index, 1);
         }

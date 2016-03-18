@@ -137,7 +137,7 @@
                 if (props.name != g_configName) {
                     div = $('<div id="' + props.name + '" class="file ' + props.type + '">' + props.name + '</div>');
                     div.click(function () {
-                        WinJS.Navigation.navigate('/pages/file/file.html', { 'md': props, 'folder': folder });
+                        WinJS.Navigation.navigate('/pages/file/file.html', { 'file': props, 'folder': folder });
                     });
                     files.append(div);
                 }
