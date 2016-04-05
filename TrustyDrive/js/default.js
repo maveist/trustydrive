@@ -1,14 +1,13 @@
-﻿//TODO Generate random names for chunks
-//TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
-//BUG TO_BE_CONFIRMED Delete large files do not complete all time (counter of deleted chunk and paralellism ?)
-//TODO Network disconnections
+﻿//TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
+//TODO Generate random names for chunks
+//TODO Recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
 //TODO Login window
-//TODO recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
+//TODO Network disconnections
 
 // Global variables
 const g_maxChunkSize = 10000;
 const g_configName = 'config1983stuff';
-// Do not forget the / at the end of the folder name
+// Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
 var g_homeFolderName = 'Home';
 var g_chunks = [];

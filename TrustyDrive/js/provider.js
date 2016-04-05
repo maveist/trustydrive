@@ -14,7 +14,7 @@
     }
     Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
         function (file) {
-            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
+            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n').then();
         },
         function (error) {
             Windows.Storage.ApplicationData.current.localFolder.createFileAsync('logs.txt').then(function (file) {

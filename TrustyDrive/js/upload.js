@@ -42,8 +42,7 @@ function uploadFile(filename, folder) {
 
 function uploadChunks(filename, folder, readStream) {
     var i, j, provider, file, nbChunks, reader, nbProviders = g_providers.length;
-    log('File to Upload: ' + filename);
-    log('Size: ' + readStream.size);
+    log('File to Upload: ' + filename + ', size=' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
         file = createElement(filename, 'file');
@@ -108,9 +107,12 @@ function uploadChunks(filename, folder, readStream) {
             mychunks.push(filename.substr(0, 2) + mychunks.length);
         }
     }
-    log('Nb. of Chunks: ' + mychunks.length);
+    log('Nb. of Chunks: ' + mychunks.length + ', chunksize=' + Math.floor(readStream.size / mychunks.length));
     reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
-    createChunks(file, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
+    // Delay the chunk creation to display the progress bar
+    setTimeout(function () {
+        createChunks(file, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);
+    }, 100);
 }
 
 function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
@@ -127,7 +129,6 @@ function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChun
             tempSize += chunkSize;
         }
     });
-    log('Chunksize: ' + chunkSize);
     temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
         var i, p, chunkName, idx, d = new Date(), filetype = 'unknown';
@@ -147,8 +148,10 @@ function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChun
         nbCreatedChunks += g_providers.length;
         progressBar(nbCreatedChunks, file['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
         if (nbCreatedChunks < file['chunks'].length) {
-            // Keep creating chunks
-            createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks);
+            // Keep creating chunks, delay the chunk creation to update the progress bar
+            setTimeout(function () {
+                createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks);
+            }, 100);
         } else {
             // Upload is complete
             reader.close();

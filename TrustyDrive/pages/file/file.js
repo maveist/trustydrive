@@ -185,14 +185,21 @@ function cloudDelete(file, folder, nbDelete) {
         }
     });
     if (index) {
-        for (index = 0 ; index < file.chunks.length; index++) {
-            dropboxDelete(file.chunks[index], myProviders[index % myProviders.length].token, nbDelete, folder);
-        }
+        deleteChunks(file, myProviders, 0, folder);
         delete g_files[file.name];
         index = folder.files.indexOf(file);
         if (index > -1) {
             folder.files.splice(index, 1);
         }
+    }
+}
+
+function deleteChunks(file, providers, chunkIdx, folder) {
+    if (chunkIdx < file.chunks.length) {
+        setTimeout(function () {
+            dropboxDelete(file.chunks[chunkIdx], providers[chunkIdx % providers.length], file.chunks.length, folder);
+        }, 500);
+        deleteChunks(file, providers, chunkIdx + 1, folder);
     }
 }
 

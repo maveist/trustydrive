@@ -271,7 +271,11 @@ function progressBar(current, max, legend, title) {
         barLegend = $('<div class="bar-legend">' + legend + '</div>');
         body = $('.interface-body');
         body.empty();
-        body.append('<div class="bar-title">' + title + '</div>').append(bar).append(barLegend);
+        if (title == undefined) {
+            body.append('<div class="bar-title">Executing...</div>').append(bar).append(barLegend);
+        } else {
+            body.append('<div class="bar-title">' + title + '</div>').append(bar).append(barLegend);
+        }
     } else {
         bar = $('.progress-bar');
         barLegend = $('.bar-legend');

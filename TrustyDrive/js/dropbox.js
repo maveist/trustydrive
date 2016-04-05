@@ -37,7 +37,6 @@ function dropboxExists(path, token, func, args) {
     if (args == undefined) {
         args = { 'path': path };
     }
-    log('Looking for ' + 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder + path);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     httpClient.sendRequestAsync(requestMessage).done(function (success) {
         if (success.isSuccessStatusCode) {
@@ -61,7 +60,6 @@ function createCloudFolder(token, func) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/create_folder?root=auto&path=%2F' + g_cloudFolder);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
-    log('Create the trustydrive folder');
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
@@ -103,7 +101,6 @@ function dropboxDownload(file, myProviders, folder, chunkIdx, token, writer) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var chunkName = file['chunks'][chunkIdx];
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files/auto/' + g_cloudFolder + chunkName);
-    log('downloading ' + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     //WARN: Delete the file if exists
@@ -138,31 +135,37 @@ function dropboxUpload(chunkName, data, token) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://content.dropboxapi.com/1/files_put/auto/' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, uri);
-    log('Upload the chunk ' + chunkName);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
-    httpClient.sendRequestAsync(requestMessage).done(
-        function (success) {
-        },
-        function (error) {
-            log('Error:' + error);
+    httpClient.sendRequestAsync(requestMessage).done(function (response) {
+        if (!response.isSuccessStatusCode) {
+            log('ERROR uploading again: ' + chunkName);
+            setTimeout(function () {
+                dropboxUpload(chunkName, data, token);
+            }, 1000);
         }
-    );
+    });
 }
 
-function dropboxDelete(chunkName, token, nbDelete, folder) {
+function dropboxDelete(chunkName, provider, nbDelete, folder) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
-    log('Delete the chunk ' + chunkName);
-    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    log('Delete the chunk ' + chunkName + ' from ' + provider.user);
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
-            log('Delete operation complete');
             deleteComplete(nbDelete, folder);
         } else {
-            log('Delete error: ' + response);
+            log('ERROR can not delete the chunk ' + chunkName + ' from ' + provider.user + ': ' + response.statusCode);
+            if (response.statusCode == 404) {
+                deleteComplete(nbDelete, folder);
+            } else {
+                setTimeout(function () {
+                    dropboxDelete(chunkName, provider, nbDelete, folder);
+                }, 500);
+            }
         }
     });
 }
