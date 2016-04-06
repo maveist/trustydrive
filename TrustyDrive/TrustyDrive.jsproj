@@ -139,9 +139,9 @@
     <Content Include="pages\addprovider\addprovider.css" />
     <Content Include="pages\addprovider\addprovider.html" />
     <Content Include="pages\addprovider\addprovider.js" />
-    <Content Include="pages\editor\editor.css" />
-    <Content Include="pages\editor\editor.html" />
-    <Content Include="pages\editor\editor.js" />
+    <Content Include="pages\metadata\metadata.css" />
+    <Content Include="pages\metadata\metadata.html" />
+    <Content Include="pages\metadata\metadata.js" />
     <Content Include="pages\file\file.css" />
     <Content Include="pages\file\file.html" />
     <Content Include="pages\file\file.js" />

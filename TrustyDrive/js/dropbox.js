@@ -152,7 +152,6 @@ function dropboxDelete(chunkName, provider, nbDelete, folder) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + g_cloudFolder + chunkName);
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, uri);
-    log('Delete the chunk ' + chunkName + ' from ' + provider.user);
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
@@ -167,5 +166,35 @@ function dropboxDelete(chunkName, provider, nbDelete, folder) {
                 }, 500);
             }
         }
+    });
+}
+
+function dropboxSync(chunks) {
+    var orphans = [];
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder);
+    g_complete = 0;
+    $.each(g_providers, function (index, p) {
+        var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
+        requestMessage.headers.append('Authorization', 'Bearer ' + p.token);
+        httpClient.sendRequestAsync(requestMessage).then(function (response) {
+            response.content.readAsStringAsync().then(function (jsonInfo) {
+                data = $.parseJSON(jsonInfo);
+                if (data['contents'] != undefined) {
+                    data.contents.forEach(function (c) {
+                        var chunkName = c['path'].substring(c['path'].lastIndexOf("/") + 1, c['path'].length);
+                        if (chunks.indexOf(chunkName) == -1) {
+                            orphans.push({ 'name': chunkName, 'provider': p });
+                        }
+                    });
+                    g_complete++;
+                    if (g_complete == g_providers.length) {
+                        deleteOrphansDialog(orphans);
+                    }
+                } else {
+                    log('No contents');
+                }
+            });
+        });
     });
 }

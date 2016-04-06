@@ -22,8 +22,8 @@
                     }
                 });
             });
-            $('#editor-config').click(function () {
-                WinJS.Navigation.navigate('/pages/editor/editor.html');
+            $('#metadata-editor').click(function () {
+                WinJS.Navigation.navigate('/pages/metadata/metadata.html');
             });
             if (localSettings.values['sortingFiles'] == undefined) {
                 $('#file-view').text('Alphabetic');

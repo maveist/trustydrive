@@ -1,12 +1,13 @@
-﻿WinJS.UI.Pages.define('/pages/editor/editor.html', {
+﻿WinJS.UI.Pages.define('/pages/metadata/metadata.html', {
     ready: function () {
-        var index = 0;
+        var allChunks = [], index = 0;
         $('.upper-back').click(function () {
             WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
         });
-        // Get parameters
+        // List all files
         $.each(g_files, function (useless, file) {
             var account, chunkName, listWidth;
+            allChunks = allChunks.concat(file.chunks);
             listWidth = $('.editor-list').width();
             $('.editor-list').append('<div class="editor-item"><div class="item-title">' + longName(file.name, 40) +
                 '<button id="show-' + index + '" class="edit-button">Details</button>' +
@@ -57,6 +58,10 @@
                 }
             });
             index++;
+        });//$.each(g_files
+        // Check consistency button
+        $('#orphaned-files').click(function () {
+            dropboxSync(allChunks);
         });
     }
 })
@@ -69,5 +74,40 @@ function chunkStatus(args) {
     } else {
         status.html('<b>ERROR</b>');
         status.css('color', 'red');
+    }
+}
+
+function deleteOrphansDialog(orphans) {
+    var html = '<div class="interface-question">';
+    if (orphans.length > 0) {
+        html += '<b>' + orphans.length + ' unused chunks</b> have been detected. Would you like to delete them?<br><div class="orphan-list">';
+        orphans.forEach(function (o) {
+            html += o.name + ' on ' + o.provider.provider + '/' + o.provider.user + '<br>';
+        });
+        html += '</div><div id="delete-button" class="interface-button">DELETE</div>' +
+            '<div id="cancel-button" class="interface-button">CANCEL</div>';
+        html += '</div>';
+        $('.interface-body').empty();
+        $('.user-interface').show();
+        $('.interface-body').append(html);
+        $('#delete-button').click(function () {
+            g_complete = 0;
+            progressBar(g_complete, orphans.length + 1, 'Initialization', 'Delete Unused Chunks');
+            orphans.forEach(function (o) {
+                dropboxDelete(o.name, o.provider, orphans.length, g_folders[g_homeFolderName]);
+            });
+        });
+        $('#cancel-button').click(function () {
+            $('.user-interface').hide();
+        });
+    } else {
+        html += 'Checking consistency complete with success. No chunk to delete!';
+        html += '<br><br><div id="close-button" class="interface-button">CLOSE</div></div>';
+        $('.interface-body').empty();
+        $('.user-interface').show();
+        $('.interface-body').append(html);
+        $('#close-button').click(function () {
+            $('.user-interface').hide();
+        });
     }
 }
