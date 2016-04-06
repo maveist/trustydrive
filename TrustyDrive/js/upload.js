@@ -201,7 +201,12 @@ function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChun
                         case 'bat':
                             filetype = 'script';
                             break;
+                        case 'odp':
+                        case 'ods':
+                        case 'odt':
+                        case 'ppt':
                         case 'txt':
+                        case 'xls':
                             filetype = 'text';
                             break;
                         case 'avi':

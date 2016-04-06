@@ -1,4 +1,5 @@
 ﻿function downloadFile(file, folder) {
+    log('Download the file ' + file.name + ' inside ' + folder.name);
     g_complete = 0;
     progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the File ' + file.name);
     g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {

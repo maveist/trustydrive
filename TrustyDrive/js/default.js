@@ -1,8 +1,9 @@
-﻿//TODO Confirmation lors de la suppression d'un fichier ou d'un répertoire
-//TODO Generate random names for chunks
+﻿//TODO Afficher un numéro de version
 //TODO Recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
+//TODO Generate random names for chunks
 //TODO Login window
 //TODO Network disconnections
+//NOTE If no file in the folder, do I delete the folder ?
 
 // Global variables
 const g_maxChunkSize = 10000;

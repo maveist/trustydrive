@@ -19,9 +19,25 @@
                 WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
             });
             $('.cloud-delete').click(function () {
-                g_complete = 0;
-                progressBar(g_complete, file.chunks.length + 1, 'Initialization', 'Delete the Cloud Version of ' + file.name);
-                cloudDelete(file, folder, file.chunks.length);
+                var html = '<div class="interface-question">';
+                html += 'Do you really permanently delete <b>' + file.name + '</b> from the cloud?<br>';
+                html += 'This action can not be undone!<br>';
+                html += '<br><br><div id="delete-button" class="interface-button">DELETE</div>' +
+                    '<div id="cancel-button" class="interface-button">CANCEL</div>';
+                html += '</div>';
+                $('.interface-body').empty();
+                $('.user-interface').show();
+                $('.interface-body').append(html);
+                $('#delete-button').click(function () {
+                    // Count the number of deleted chunks
+                    g_complete = 0;
+                    // Display the progress bar
+                    progressBar(g_complete, file.chunks.length + 1, 'Initialization', 'Delete the Cloud Version of ' + file.name);
+                    cloudDelete(file, file.chunks.length, folder);
+                });
+                $('#cancel-button').click(function () {
+                    $('.user-interface').hide();
+                });
             });
             $('.rename').click(function () {
                 var index;
@@ -69,6 +85,7 @@
                         $('.interface-body').append('<div id="folder-' + idString + '" class="interface-folder">' + name + '</div>');
                         $('#folder-' + idString).click(function () {
                             var index = folder.files.indexOf(file);
+                            log('Move the file ' + file.name + ' from ' + folder.name + ' to ' + dest.name);
                             if (index > -1) {
                                 folder.files.splice(index, 1);
                             }
@@ -162,6 +179,7 @@ function sizeString(size) {
 
 function renameFile(file, newName, folder) {
     if (newName.length > 0 && g_files[newName] == undefined) {
+        log('Rename the file ' + file.name + ' inside ' + folder.name);
         delete g_files[file.name];
         file.name = newName;
         g_files[newName] = file;
@@ -171,10 +189,11 @@ function renameFile(file, newName, folder) {
     }
 }
 
-function cloudDelete(file, folder, nbDelete) {
+// nbDelete = # of chunks of the file or # of chunks in the folder
+function cloudDelete(file, nbDelete, folder) {
     var index = true;
     var myProviders = [];
-    g_complete = 0;
+    // Compute the providers used by the file
     file.providers.forEach(function (p) {
         var temp = getProvider(p.provider, p.user);
         if (temp == undefined) {
@@ -185,27 +204,32 @@ function cloudDelete(file, folder, nbDelete) {
         }
     });
     if (index) {
-        deleteChunks(file, myProviders, 0, folder);
+        log('Delete the file ' + file.name + ' inside ' + folder.name);
+        // Delete every chunks
+        deleteChunks(file, myProviders, 0, nbDelete, folder);
         delete g_files[file.name];
         index = folder.files.indexOf(file);
         if (index > -1) {
             folder.files.splice(index, 1);
         }
+    } else {
+        //TODO Display an error and reload this file page
     }
 }
 
-function deleteChunks(file, providers, chunkIdx, folder) {
+function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
     if (chunkIdx < file.chunks.length) {
         setTimeout(function () {
-            dropboxDelete(file.chunks[chunkIdx], providers[chunkIdx % providers.length], file.chunks.length, folder);
+            dropboxDelete(file.chunks[chunkIdx], providers[chunkIdx % providers.length], nbDelete, folder);
         }, 500);
-        deleteChunks(file, providers, chunkIdx + 1, folder);
+        deleteChunks(file, providers, chunkIdx + 1, nbDelete, folder);
     }
 }
 
 function deleteComplete(nbDelete, folder) {
     g_complete++;
     if (g_complete == nbDelete) {
+        //NOTE If no file in the folder, do I delete the folder ?
         uploadConfiguration();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);

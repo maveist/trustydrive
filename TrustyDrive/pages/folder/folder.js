@@ -47,7 +47,21 @@
             uploadNewFile(folder);
         });
         $('.local-delete').click(function () {
-            deleteFolder(folder);
+            var html = '<div class="interface-question">';
+            html += 'This action permanently deletes the <b>' + folder.files.length + ' files</b> of the <b>' + folder.name + '</b> folder.<br>';
+            html += 'This action can not be undone! Do you really want to delete this folder?<br>';
+            html += '<br><br><div id="delete-button" class="interface-button">DELETE</div>' +
+                '<div id="cancel-button" class="interface-button">CANCEL</div>';
+            html += '</div>';
+            $('.interface-body').empty();
+            $('.user-interface').show();
+            $('.interface-body').append(html);
+            $('#delete-button').click(function () {
+                deleteFolder(folder);
+            });
+            $('#cancel-button').click(function () {
+                $('.user-interface').hide();
+            });
         });
         $('.rename').click(function () {
             var title = $('.upper-title');
@@ -258,7 +272,7 @@ function deleteFolder(folder) {
     g_complete = 0;
     progressBar(g_complete, nbChunks + 1, 'Initialization', 'Delete the Content of the Folder ' + folder.name);
     allFiles.forEach(function (af) {
-        cloudDelete(af.file, af.folder, nbChunks);
+        cloudDelete(af.file, nbChunks, af.folder);
     });
 }
 
@@ -284,10 +298,5 @@ function progressBar(current, max, legend, title) {
         step = $('<div class="progress-step"></div>').width(bar.width() / max);
         bar.append(step);
         barLegend.html(legend);
-    }
-    if (current == max - 1) {
-        if (typeof title === 'function') {
-            setTimeout(title, 1000);
-        }
     }
 }
