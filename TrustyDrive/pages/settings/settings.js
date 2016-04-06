@@ -3,6 +3,8 @@
         ready: function () {
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             var localSettings = Windows.Storage.ApplicationData.current.localSettings;
+            // Display the TrustyDrive current version
+            $('#td-version').html('You are running TrustyDrive v' + g_td_version + '<br>');
             // Add click listeners
             $('#picker-button').click(function () {
                 var folderPicker = new Windows.Storage.Pickers.FolderPicker();
@@ -20,7 +22,6 @@
                     }
                 });
             });
-            $('#upload-config').click(uploadConfiguration);
             $('#editor-config').click(function () {
                 WinJS.Navigation.navigate('/pages/editor/editor.html');
             });

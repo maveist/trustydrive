@@ -1,11 +1,11 @@
-﻿//TODO Afficher un numéro de version
-//TODO Recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
+﻿//TODO Recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
 //TODO Generate random names for chunks
 //TODO Login window
 //TODO Network disconnections
 //NOTE If no file in the folder, do I delete the folder ?
 
 // Global variables
+const g_td_version = '0.1.0';
 const g_maxChunkSize = 10000;
 const g_configName = 'config1983stuff';
 // Do not forget the '/' at the end of the folder name
