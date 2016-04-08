@@ -1,5 +1,4 @@
-﻿//TODO Recherche de chunks présents dans le cloud mais non utilisés dans des fichiers (libération d'espace de stockage)
-//TODO Generate random names for chunks
+﻿//TODO Generate random names for chunks
 //TODO Login window
 //TODO Network disconnections
 //NOTE If no file in the folder, do I delete the folder ?

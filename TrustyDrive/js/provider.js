@@ -25,6 +25,25 @@
     );
 }
 
+// Compute the chunk name for one piece of metadata
+function configurationChunkName(provider) {
+    var crypto = Windows.Security.Cryptography;
+    var algo = crypto.Core.HashAlgorithmNames.sha1;
+    var hasher = crypto.Core.HashAlgorithmProvider.openAlgorithm(algo).createHash();
+    var chunkName = provider.user + g_files[g_configName].user + provider.provider;
+    hasher.append(crypto.CryptographicBuffer.convertStringToBinary(chunkName, crypto.BinaryStringEncoding.utf8));
+    return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
+}
+
+// Return an array with all existing chunk names
+function allChunkNames() {
+    var allChunks = [];
+    $.each(g_files, function (useless, file) {
+        allChunks = allChunks.concat(file.chunks);
+    });
+    return allChunks;
+}
+
 // Add a provider to the provider list (g_providers)
 function createProvider(provider, email, token, freeStorage, totalStorage) {
     var credentials = Windows.Security.Credentials;
@@ -51,7 +70,7 @@ function createProvider(provider, email, token, freeStorage, totalStorage) {
         });
         g_files[g_configName].chunks = [];
         g_providers.forEach(function (p) {
-            g_files[g_configName].chunks.push(configurationChunk(p));
+            g_files[g_configName].chunks.push(configurationChunkName(p));
         });
         return provider;
     } else {
@@ -92,7 +111,7 @@ function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
 function deleteProvider(provider) {
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
-    var chunkName = provider.user.replace('@', 'at') + 'is' + 'remy';
+    var chunkName = configurationChunkName(provider);
     var index = g_providers.indexOf(provider);
     var myprovider, message, errorFiles = [];
     log('Try to Delete the provider ' + provider.provider + '/' + provider.user);
@@ -144,13 +163,4 @@ function getProvider(provider, user) {
         }
     });
     return result;
-}
-
-function sha1(message) {
-    var crypto = Windows.Security.Cryptography;
-    var algo = crypto.Core.HashAlgorithmProvider.openAlgorithm(crypto.Core.HashAlgorithmNames.sha1).createHash();
-    var cBuffer = crypto.CryptographicBuffer;
-    message = cBuffer.convertStringToBinary(message, crypto.BinaryStringEncoding.utf8);
-    algo.append(message);
-    return cBuffer.encodeToHexString(algo.getValueAndReset());
 }

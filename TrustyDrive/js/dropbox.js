@@ -7,8 +7,7 @@ function dropboxLogin(func) {
         $('.user-interface').show();
         body = $('.interface-body');
         body.empty();
-        body.append('Connecting to dropbox<br>'
-            + '<center><img src="../../images/style/waiting.gif"></center>');
+        body.append('Connecting to dropbox<br><center><img src="../../images/style/waiting.gif"></center>');
     }
     uri += 'response_type=token&';
     uri += 'client_id=qsg6s8c70g3newe&';
@@ -17,11 +16,12 @@ function dropboxLogin(func) {
         if (response.responseStatus == webtools.WebAuthenticationStatus.success) {
             var data = response.responseData;
             var token = data.substring(data.indexOf('=') + 1, data.indexOf('&'));
+            // Check that the 'trustydrive' folder exists
             dropboxExists('', token, function (args) {
                 if (args.exists) {
                     dropboxUserInfo(token, false, func);
                 } else {
-                    createCloudFolder(token, function () {
+                    dropboxCreateFolder(token, function () {
                         dropboxUserInfo(token, false, func);
                     });
                 }
@@ -55,7 +55,7 @@ function dropboxExists(path, token, func, args) {
     });
 }
 
-function createCloudFolder(token, func) {
+function dropboxCreateFolder(token, func) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/fileops/create_folder?root=auto&path=%2F' + g_cloudFolder);
@@ -82,7 +82,16 @@ function dropboxUserInfo(token, reconnect, func) {
                 try {
                     data = $.parseJSON(jsonInfo);
                     storage = data['quota_info'];
-                    func(createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']));
+                    // Check that the 'trustydrive' folder exists
+                    dropboxExists('', token, function (args) {
+                        if (args.exists) {
+                            func(createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']));
+                        } else {
+                            dropboxCreateFolder(token, function () {
+                                func(createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']));
+                            });
+                        }
+                    });
                 } catch (ex) {
                     log('error: ' + ex);
                 }
@@ -104,6 +113,7 @@ function dropboxDownload(file, myProviders, folder, chunkIdx, token, writer) {
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
     requestMessage.headers.append('Authorization', 'Bearer ' + token);
     //WARN: Delete the file if exists
+    log('download the chunk ' + file.chunks[chunkIdx]);
     httpClient.sendRequestAsync(requestMessage).then(
         function (success) {
             if (success.isSuccessStatusCode) {

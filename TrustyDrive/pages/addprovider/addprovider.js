@@ -18,7 +18,7 @@
             // Display a waiting wheel
             dropboxLogin(function (provider) {
                 if (g_providers.length > 1) {
-                    dropboxExists(configurationChunk(provider), provider.token, function (args) {
+                    dropboxExists(configurationChunkName(provider), provider.token, function (args) {
                         if (args.exists) {
                             downloadConfiguration();
                         } else {

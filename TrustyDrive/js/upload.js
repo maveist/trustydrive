@@ -41,7 +41,7 @@ function uploadFile(filename, folder) {
 }
 
 function uploadChunks(filename, folder, readStream) {
-    var i, j, provider, file, nbChunks, reader, nbProviders = g_providers.length;
+    var i, j, provider, file, nbChunks, chunkName, existingChunks, reader, nbProviders = g_providers.length;
     log('File to Upload: ' + filename + ', size=' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
@@ -102,9 +102,19 @@ function uploadChunks(filename, folder, readStream) {
     if (mychunks.length > nbChunks) {
         mychunks.splice(nbChunks, mychunks.length - nbChunks);
     } else {
+        existingChunks = [];
+        $.each(g_files, function (useless, file) {
+            existingChunks = existingChunks.concat(file.chunks);
+        });
         while (mychunks.length < nbChunks) {
-            // Generate chunk names
-            mychunks.push(filename.substr(0, 2) + mychunks.length);
+            // Generate chunk names that look like a SHA1, i.e., 40 random hexa chars
+            do {
+                chunkName = '';
+                for (j = 0; j < 40; j++) {
+                    chunkName += Math.floor(Math.random() * 16).toString(16);
+                }
+            } while (existingChunks.indexOf(chunkName) > -1);
+            mychunks.push(chunkName);
         }
     }
     log('Nb. of Chunks: ' + mychunks.length + ', chunksize=' + Math.floor(readStream.size / mychunks.length));

@@ -70,6 +70,7 @@
             title.append(input);
             input.keypress(function (e) {
                 if (e.which == 13) {
+                    // Press enter
                     renameFolder(folder, $('#fname').val());
                 }
             });
@@ -174,10 +175,6 @@ function byType(a, b) {
             return a.type.localeCompare(b.type);
         }
     }
-}
-
-function configurationChunk(provider) {
-    return provider.user.replace('@', 'at') + 'isremy';
 }
 
 function connect(credentials, idx, vault) {

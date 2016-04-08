@@ -19,3 +19,19 @@ déjà téléchargé sur le disque local.
 5. Pourquoi le dossier que je viens de supprimer est toujours présent ?
 Les dossiers restent présents jusqu'au prochain redémarrage de l'application. Lors du redémarrage, tous les dossiers vides sont supprimés.
 
+6. L'importance de la taille maximale d'un morceau de fichiers
+La taille maximale d'un morceau a un impact important sur la performance de l'application et la sécurité des fichiers.
+i. La performance
+La taille maximale d'un morceau définit le nombre de morceaux nécessaires pour encoder un fichier. Plus il y a de morceaux, plus les opérations sur le fichier (upload et download)
+sont longues.
+
+ii. La sécurité
+Plus la taille maximale d'un morceau est petite, plus il va y avoir de morceaux sur chaque fournisseur. Si un attaquant accède à tous les stockages, il y a plus de combinaisons à tester
+pour reconstruire les fichiers. De plus, la taille des morceaux hébergés par les fournisseurs va tendre vers la taille maximale. Il y a donc plus de chances pour que des morceaux appartenant
+à des fichiers différents possèdent une taille identique. Il devient alors plus difficile pour un attaquant de reconstituer les fichiers.
+Par exemple, deux fichiers, un fichier A de 3 Mo et un fichier B de 9 Mo, doivent être stockés chez 3 fournisseurs. Avec une taille maximale de 1 Mo, on obtient 12 morceaux (3x1 Mo, 9x1 Mo) de 1 Mo à répartir.
+Un attaquant ayant accès à tous les fournisseurs ne peut pas différencier quels sont les morceaux de A et quels sont les morceaux de B. Dans ce cas précis, l'attaquant ne sait même pas combien de fichiers sont
+stockés (12 morceaux de même taille => de 1 à 4 fichiers).
+Pour une taille maximale de 2 Mo, on obtient 3x1 Mo pour A et 6x1,5 Mo pour B. Si un attaquant récupère les 9 morceaux, il sait qu'il y a probablement 2 fichiers (peut-être 3 fichiers si les morceaux de B 
+appartiennent à des fichiers différents). De plus, il est capable d'identifier les morceaux appartenant à A (ils ont une taille de 1 Mo) et les morceaux appartenant à B (ils ont une taille de 1,5 Mo).
+Pour une taille de 0,5 Mo, on obtient 24 morceaux de taille identique. Le nombre de combinaisons pour l'attaquant augmentent (entre 1 à 8 fichiers).
