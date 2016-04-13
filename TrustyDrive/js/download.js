@@ -57,7 +57,7 @@ function downloadComplete(file, myProviders, folder, writer) {
             log('Download ' + file.name + ' complete');
             writer.storeAsync().done(function () {
                 writer.flushAsync().done(function () {
-                    var stream, config, reader, error = '';
+                    var stream, config, reader, error = '', pwd;
                     var crypto = Windows.Security.Cryptography;
                     var cBuffer = crypto.CryptographicBuffer;
                     if (file.name == g_configName) {
@@ -71,12 +71,19 @@ function downloadComplete(file, myProviders, folder, writer) {
                                 g_files = JSON.parse(config, function (k, v) {
                                     if (k == g_configName) {
                                         // Do not modify the metadata of the configuration
+                                        pwd = v.password;
                                         return g_files[g_configName];
                                     } else {
                                         return v;
                                     }
                                 });
-                                buildFolderStructure();
+                                if (pwd == g_files[g_configName].password) {
+                                    buildFolderStructure();
+                                } else {
+                                    // Delete the metadata
+                                    g_files = { [g_configName]: g_files[g_configName] };
+                                    error = 'Wrong login or password!';
+                                }
                             } catch (ex) {
                                 log('error when parsing configuration: ' + ex);
                                 error = 'The configuration file is malformed. Please check your cloud accounts configuration in Settings'
@@ -94,7 +101,7 @@ function downloadComplete(file, myProviders, folder, writer) {
                                 if (error.length == 0) {
                                     WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                                 } else {
-                                    WinJS.Navigation.navigate('/pages/folder/folder.html', error);
+                                    WinJS.Navigation.navigate('/pages/login/login.html', error);
                                 }
                             }, 1000);
                         });

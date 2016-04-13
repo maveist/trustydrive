@@ -1,6 +1,5 @@
-﻿//TODO Generate random names for chunks
-//TODO Login window
-//TODO Network disconnections
+﻿//TODO Sort CSS by alphabetic order
+//TODO Customize settings panel
 //NOTE If no file in the folder, do I delete the folder ?
 
 // Global variables
@@ -48,12 +47,17 @@ var g_folders = {};
             }
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             if (futureAccess.containsItem('PickedFolderToken')) {
-                futureAccess.getFolderAsync('PickedFolderToken').done(function (folder) {
+                futureAccess.getFolderAsync('PickedFolderToken').then(function (folder) {
                     g_workingFolder = folder;
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                    // Go to login.html then connect to providers
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
+                }, function (error) {
+                    // Go to login.html to load the CSS style and then jump to wfolder.html
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
                 });
             } else {
-                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                // Go to login.html to load the CSS style and then jump to wfolder.html
+                WinJS.Navigation.navigate('/pages/login/login.html', '');
             }
         }
     }

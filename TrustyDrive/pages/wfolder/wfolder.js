@@ -2,7 +2,7 @@
     ready: function () {
         var index = 0;
         $('.upper-back').click(function () {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
         $('.working-folder').click(function () {
             var folderPicker = new Windows.Storage.Pickers.FolderPicker();
@@ -14,7 +14,7 @@
                 if (folder) {
                     futureAccess.addOrReplace('PickedFolderToken', folder);
                     g_workingFolder = folder;
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
                 } else {
                     // The picker was dismissed with no selected file
                 }

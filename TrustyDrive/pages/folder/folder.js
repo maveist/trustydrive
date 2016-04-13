@@ -2,23 +2,9 @@
     ready: function () {
         var folder = WinJS.Navigation.state;
         var height = $('#content').innerHeight();
-        var passwordVault = new Windows.Security.Credentials.PasswordVault();
-        var credentials = passwordVault.retrieveAll();
-        //TESTING Delete all credentials
-        //credentials.forEach(function (c) {
-        //    passwordVault.remove(c);
-        //});
-        var body, div, files = $('.file-list');
+        var home, body, div, files = $('.file-list');
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
-        // Check if the configuration exists
-        if (g_files[g_configName] == undefined) {
-            // Create the home folder
-            var home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
-            g_folders[g_homeFolderName] = home;
-            // Create the configuration metadata
-            g_files = {};
-            g_files[g_configName] = { 'name': g_configName, 'user': 'remy', 'password': 'toto', 'chunks': [], 'providers': [] };
-        }
+        // Position of the menu bar
         $('.menu-bar').css('top', height - 60);
         // Remove the menu-bar height and the upper-bar height and padding
         $('.file-list').innerHeight(height - 60 - 60 - 5);
@@ -111,53 +97,38 @@
                 $('.user-interface').hide();
             });
         });
-        // Select information to display
-        if (g_workingFolder == undefined) {
-            // Set the working folder
-            WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
-        } else if (g_files[g_configName].chunks.length == 0 && credentials.length > 0) {
-            // Connect to existing providers
-            progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
-            setTimeout(function () {
-                connect(credentials, 0, passwordVault);
-            }, 300);
-        } else if (g_providers.length < 2) {
-            // Add a new cloud provider
-            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-        } else {
-            // Display the folder content
-            $('.upper-title').html(longName(folder.name));
-            // Add click listeners
-            if (folder.name != g_homeFolderName) {
-                $('.upper-back').click(function () {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', folder.father);
-                });
-            }
-            folder.folders.sort(alphabetic);
-            $.each(folder.folders, function (useless, props) {
-                if (props.name != g_configName) {
-                    div = $('<div id="' + props.name + '" class="file folder">' + longName(props.name) + '</div>');
-                    div.click(function () {
-                        WinJS.Navigation.navigate('/pages/folder/folder.html', props);
-                    });
-                    files.append(div);
-                }
-            });
-            if (sorting == 'type') {
-                folder.files.sort(byType);
-            } else {
-                folder.files.sort(alphabetic);
-            }
-            $.each(folder.files, function (useless, props) {
-                if (props.name != g_configName) {
-                    div = $('<div id="' + props.name + '" class="file ' + props.type + '">' + longName(props.name) + '</div>');
-                    div.click(function () {
-                        WinJS.Navigation.navigate('/pages/file/file.html', { 'file': props, 'folder': folder });
-                    });
-                    files.append(div);
-                }
+        // Display the folder content
+        $('.upper-title').html(longName(folder.name));
+        // Add click listeners
+        if (folder.name != g_homeFolderName) {
+            $('.upper-back').click(function () {
+                WinJS.Navigation.navigate('/pages/folder/folder.html', folder.father);
             });
         }
+        folder.folders.sort(alphabetic);
+        $.each(folder.folders, function (useless, file) {
+            if (file.name != g_configName) {
+                div = $('<div id="' + file.name + '" class="file folder">' + longName(file.name) + '</div>');
+                div.click(function () {
+                    WinJS.Navigation.navigate('/pages/folder/folder.html', file);
+                });
+                files.append(div);
+            }
+        });
+        if (sorting == 'type') {
+            folder.files.sort(byType);
+        } else {
+            folder.files.sort(alphabetic);
+        }
+        $.each(folder.files, function (useless, file) {
+            if (file.name != g_configName) {
+                div = $('<div id="' + file.name + '" class="file ' + file.type + '">' + longName(file.name) + '</div>');
+                div.click(function () {
+                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+                });
+                files.append(div);
+            }
+        });
     }
 })
 
@@ -173,35 +144,6 @@ function byType(a, b) {
             return -1;
         } else {
             return a.type.localeCompare(b.type);
-        }
-    }
-}
-
-function connect(credentials, idx, vault) {
-    if (idx < credentials.length) {
-        log('Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
-        progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
-        switch (credentials[idx].resource) {
-            case 'box':
-                break;
-            case 'dropbox':
-                dropboxUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
-                    connect(credentials, idx + 1, vault);
-                });
-                break;
-            case 'googledrive':
-                break;
-            case 'onedrive':
-                break;
-        }
-    } else {
-        // Connection to all providers are etablished
-        if (g_providers.length < 2) {
-            // Users must add providers, at least 2 providers is required
-            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-        } else {
-            //$('.user-interface').hide();
-            downloadConfiguration();
         }
     }
 }
@@ -271,29 +213,4 @@ function deleteFolder(folder) {
     allFiles.forEach(function (af) {
         cloudDelete(af.file, nbChunks, af.folder);
     });
-}
-
-function progressBar(current, max, legend, title) {
-    var bar, barLegend, body, step;
-    if (current == 0) {
-        $('.user-interface').show();
-        // Add the progress bar
-        bar = $('<div class="progress-bar"></div>');
-        barLegend = $('<div class="bar-legend">' + legend + '</div>');
-        body = $('.interface-body');
-        body.empty();
-        if (title == undefined) {
-            body.append('<div class="bar-title">Executing...</div>').append(bar).append(barLegend);
-        } else {
-            body.append('<div class="bar-title">' + title + '</div>').append(bar).append(barLegend);
-        }
-    } else {
-        bar = $('.progress-bar');
-        barLegend = $('.bar-legend');
-    }
-    while (current >= bar.children().length) {
-        step = $('<div class="progress-step"></div>').width(bar.width() / max);
-        bar.append(step);
-        barLegend.html(legend);
-    }
 }

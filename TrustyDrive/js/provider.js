@@ -68,10 +68,8 @@ function createProvider(provider, email, token, freeStorage, totalStorage) {
         g_providers.sort(function (a, b) {
             return a.user.localeCompare(b.user);
         });
-        g_files[g_configName].chunks = [];
-        g_providers.forEach(function (p) {
-            g_files[g_configName].chunks.push(configurationChunkName(p));
-        });
+        // Add one chunk to notify the update of the provider list
+        g_files[g_configName].chunks.push(provider.user);
         return provider;
     } else {
         return found;

@@ -85,10 +85,12 @@ function dropboxUserInfo(token, reconnect, func) {
                     // Check that the 'trustydrive' folder exists
                     dropboxExists('', token, function (args) {
                         if (args.exists) {
-                            func(createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']));
+                            createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
+                            func();
                         } else {
                             dropboxCreateFolder(token, function () {
-                                func(createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']));
+                                createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
+                                func();
                             });
                         }
                     });
@@ -127,8 +129,8 @@ function dropboxDownload(file, myProviders, folder, chunkIdx, token, writer) {
                 if (file.name == g_configName) {
                     // Download the metadata failed
                     setTimeout(function () {
-                        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Download Error: Can Not Retrieve the <b>Configuration</b>.'
-                            + '<br>If you already use TrustyDrive to save your files, restart it. If not, ignore this message.');
+                        WinJS.Navigation.navigate('/pages/login/login.html', 'Download Error: Can Not Retrieve your metadata.'
+                            + '<br>Please check your login and your network connection.');
                     }, 2000);
                 } else {
                     setTimeout(function () {

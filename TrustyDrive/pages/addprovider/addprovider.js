@@ -2,7 +2,7 @@
     ready: function () {
         // Add click listeners
         $('.upper-back').click(function () {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
         $('.upper-settings').click(function () {
             WinJS.Navigation.navigate('/pages/settings/settings.html');

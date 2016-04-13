@@ -133,6 +133,12 @@
     <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
     <Content Include="js\upload.js" />
+    <Content Include="pages\changepwd\changepwd.css" />
+    <Content Include="pages\changepwd\changepwd.html" />
+    <Content Include="pages\changepwd\changepwd.js" />
+    <Content Include="pages\login\login.css" />
+    <Content Include="pages\login\login.html" />
+    <Content Include="pages\login\login.js" />
     <Content Include="pages\wfolder\wfolder.css" />
     <Content Include="pages\wfolder\wfolder.html" />
     <Content Include="pages\wfolder\wfolder.js" />

@@ -255,5 +255,8 @@ function uploadConfiguration() {
     // Save the configuration to the cloud
     var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
     writer.writeAsync(buffer);
+    g_files[g_configName].chunks.forEach(function (c) {
+        log('config chunk: ' + c);
+    });
     uploadChunks(g_configName, undefined, writer);
 }

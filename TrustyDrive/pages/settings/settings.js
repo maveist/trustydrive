@@ -22,6 +22,9 @@
                     }
                 });
             });
+            $('#change-pwd').click(function () {
+                WinJS.Navigation.navigate('/pages/changepwd/changepwd.html');
+            });
             $('#metadata-editor').click(function () {
                 WinJS.Navigation.navigate('/pages/metadata/metadata.html');
             });
