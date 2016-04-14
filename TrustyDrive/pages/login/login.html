@@ -1,0 +1,76 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link href="login.css" rel="stylesheet" />
+    <script src="login.js"></script>
+</head>
+<body>
+    <div class="upper-bar">
+        <div class="upper-title">Login Window</div>
+    </div>
+    <div class="login-window">
+        <div id="new-form">
+            <b>Create a new user</b>
+            <table class="new-info">
+                <tr>
+                    <td>Login</td>
+                    <td><input id="new-login" type="text" size="25" /></td>
+                </tr>
+                <tr>
+                    <td>Password</td>
+                    <td><input id="new-pwd" type="password" size="25" /></td>
+                </tr>
+                <tr>
+                    <td>Retype your Password</td>
+                    <td><input id="new-pwdbis" type="password" size="25" /></td>
+                </tr>
+            </table>
+            <div class="new-fields">
+                Enter a Secret Question to Recover your Password<br />
+                <input id="new-que" type="text" size="50" /><br />
+                Enter a Secret Answer to Recover your Password<br />
+                <input id="new-ans" type="text" size="50" /><br />
+                <div id="new-error" class="error-message"></div>
+            </div>
+            <div id="new-confirm" class="login-button">CREATE</div>
+            <div id="connect-link" class="connect-link-class">Connect with an existing account</div>
+        </div>
+        <div id="connect-form">
+            <div class="connect-fields">
+                <b>Connect with an existing user</b>
+                <table>
+                    <tr>
+                        <td>Login</td>
+                        <td><input id="connect-login" type="text" /></td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td><input id="connect-pwd" type="password" /></td>
+                    </tr>
+                </table>
+                <div id="connect-confirm" class="login-button">CONNECT</div>
+                <div id="connect-error" class="error-message"></div>
+            </div>
+            <div class="alternative-link">
+                <div id="lost-link">Lost password</div>
+                <div id="new-link">Create a new user</div>
+                <div id="provider-link">Add providers</div>
+            </div>
+        </div>
+        <div id="lost-form">
+            <div class="lost-fields">
+                <b>Answer to your secret question</b><br />
+                <span id="lost-que"></span>
+                <input id="lost-ans" type="text" size="50" /><br />
+                <div id="lost-confirm" class="login-button">RECOVER</div>
+                <div id="lost-error" class="error-message"></div>
+            </div>
+            <div id="connect-link3" class="password-link-class">Connect with an existing account</div>
+        </div>
+    </div>
+    <div class="user-interface">
+        <div class="interface-body"></div>
+    </div>
+</body>
+</html>
