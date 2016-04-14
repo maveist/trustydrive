@@ -1,6 +1,7 @@
 ﻿//TODO Sort CSS by alphabetic order
 //TODO Customize settings panel
 //NOTE If no file in the folder, do I delete the folder ?
+//LOGIN test / toto
 
 // Global variables
 const g_td_version = '0.1.0';

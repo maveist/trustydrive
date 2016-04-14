@@ -18,13 +18,7 @@
             // Display a waiting wheel
             dropboxLogin(function (provider) {
                 if (g_providers.length > 1) {
-                    dropboxExists(configurationChunkName(provider), provider.token, function (args) {
-                        if (args.exists) {
-                            downloadConfiguration();
-                        } else {
-                            uploadConfiguration();
-                        }
-                    });
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
                 } else {
                     WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
                 }

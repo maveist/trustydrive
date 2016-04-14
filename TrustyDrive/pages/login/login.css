@@ -1,7 +1,7 @@
 ﻿
 .alternative-link {
-    width: 200px;
-    margin-top: 80px;
+    width: 300px;
+    margin-top: 140px;
 }
 
 .alternative-link div {
@@ -21,13 +21,7 @@
 }
 
 .connect-fields {
-    height: 100px;
-}
-
-.connect-link-class {
-    height: 30px;
-    padding-top: 5px;
-    font-weight: bold;
+    height: 140px;
 }
 
 .error-message {
@@ -96,19 +90,12 @@
 }
 
 .new-fields {
-    height: 100px;
+    height: 140px;
     margin-left: 3px;
 }
 
 .new-info {
     height: 80px;
-}
-
-.password-link-class {
-    height: 30px;
-    padding-top: 5px;
-    margin-top: 60px;
-    font-weight: bold;
 }
 
 .progress-bar {
