@@ -1,25 +1,4 @@
-﻿function createElement(name, kind) {
-    var element;
-    if (kind == 'file') {
-        if (g_files[name] == undefined) {
-            element = { 'name': name, 'kind': 'file', 'chunks': [], 'providers': [] };
-            g_files[name] = element;
-            return element;
-        } else {
-            return g_files[name];
-        }
-    } else if (kind = 'folder') {
-        if (g_folders[name] == undefined) {
-            element = { 'name': name, 'kind': 'folder', 'files': [], 'folders': [] };
-            g_folders[name] = element;
-            return element;
-        } else {
-            return g_folders[name];
-        }
-    }
-}
-
-function addToFolder(parent, child) {
+﻿function addToFolder(parent, child) {
     var index, path = '';
     if (parent != undefined && child['kind'] != undefined) {
         if (child['kind'] == 'folder') {
@@ -36,17 +15,6 @@ function addToFolder(parent, child) {
             setPath(parent, child);
         }
     }
-}
-
-function setPath(folder, file) {
-    var path = '';
-    // Set the path of the file from the folder
-    while (folder.name != g_homeFolderName) {
-        path = folder.name + '/' + path;
-        folder = folder.father;
-    }
-    path = '/' + path;
-    file['path'] = path;
 }
 
 function buildFolderStructure() {
@@ -78,6 +46,27 @@ function buildFolderStructure() {
     });
 }
 
+function createElement(name, kind) {
+    var element;
+    if (kind == 'file') {
+        if (g_files[name] == undefined) {
+            element = { 'name': name, 'kind': 'file', 'chunks': [], 'providers': [] };
+            g_files[name] = element;
+            return element;
+        } else {
+            return g_files[name];
+        }
+    } else if (kind = 'folder') {
+        if (g_folders[name] == undefined) {
+            element = { 'name': name, 'kind': 'folder', 'files': [], 'folders': [] };
+            g_folders[name] = element;
+            return element;
+        } else {
+            return g_folders[name];
+        }
+    }
+}
+
 function longName(name, limit) {
     if (limit == undefined) {
         limit = 25;
@@ -87,4 +76,15 @@ function longName(name, limit) {
     } else {
         return name;
     }
+}
+
+function setPath(folder, file) {
+    var path = '';
+    // Set the path of the file from the folder
+    while (folder.name != g_homeFolderName) {
+        path = folder.name + '/' + path;
+        folder = folder.father;
+    }
+    path = '/' + path;
+    file['path'] = path;
 }

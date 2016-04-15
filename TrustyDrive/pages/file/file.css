@@ -1,8 +1,17 @@
-﻿.file-info {
-    width: 340px;
-    height: 20%;
-    margin: auto;
-    margin-top: 30px;
+﻿.cloud-delete {
+    background: url("../../images/style/cloud-delete.png") no-repeat;
+}
+
+.download {
+    background: url("../../images/style/download.png") no-repeat;
+}
+
+.drive {
+        background: url("../../images/style/drive.png") no-repeat;
+}
+
+.dropbox {
+    background: url("../../images/style/dropbox.png") no-repeat;
 }
 
 .file-icon {
@@ -12,16 +21,11 @@
     float: left;
 }
 
-.file-stats {
-    width: 220px;
-    height: 100px;
-    font-size: 16px;
-    font-weight: bold;
-    float: left;
-}
-
-.file-stats tr td:first-child {
-    width: 100px;
+.file-info {
+    width: 340px;
+    height: 20%;
+    margin: auto;
+    margin-top: 30px;
 }
 
 .file-props {
@@ -42,42 +46,33 @@
     font-weight: bold;
 }
 
-.used-provider {
-    width: 243px;
-    height: 45px;
-    padding-left: 70px;
-    padding-top: 15px;
+.file-stats {
+    width: 220px;
+    height: 100px;
+    font-size: 16px;
+    font-weight: bold;
+    float: left;
 }
 
-/*** File Action Icons ***/
-.download {
-    background: url("../../images/style/download.png") no-repeat;
-}
-
-.open {
-    background: url("../../images/style/open.png") no-repeat;
+.file-stats tr td:first-child {
+    width: 100px;
 }
 
 .move {
     background: url("../../images/style/move.png") no-repeat;
 }
 
-.cloud-delete {
-    background: url("../../images/style/cloud-delete.png") no-repeat;
-}
-
-/*** End of File Action Icons ***/
-
-/*** Provider Icons ***/
-.dropbox {
-    background: url("../../images/style/dropbox.png") no-repeat;
-}
-
 .onedrive {
     background: url("../../images/style/onedrive.png") no-repeat;
 }
 
-.drive {
-        background: url("../../images/style/drive.png") no-repeat;
+.open {
+    background: url("../../images/style/open.png") no-repeat;
 }
-/*** End of Provider Icons ***/
+
+.used-provider {
+    width: 243px;
+    height: 45px;
+    padding-left: 70px;
+    padding-top: 15px;
+}

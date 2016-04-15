@@ -159,6 +159,27 @@ function createDir(fname, folder) {
     }
 }
 
+function deleteFolder(folder) {
+    var current = [], future = [], allFiles = [], nbChunks = 0;
+    current.push(folder);
+    while (current.length > 0) {
+        current.forEach(function (c) {
+            c.files.forEach(function (f) {
+                allFiles.push({ 'file': f, 'folder': c });
+                nbChunks += f.chunks.length;
+            });
+            future = future.concat(c.folders);
+        });
+        current = future.slice(0);
+        future = [];
+    }
+    g_complete = 0;
+    progressBar(g_complete, nbChunks + 1, 'Initialization', 'Delete the Content of the Folder ' + folder.name);
+    allFiles.forEach(function (af) {
+        cloudDelete(af.file, nbChunks, af.folder);
+    });
+}
+
 function renameFolder(folder, newName) {
     var current = [], future = [], modify = false;
     if (newName.length == 0 || g_folders[newName] != undefined) {
@@ -192,25 +213,4 @@ function renameFolder(folder, newName) {
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
     }
-}
-
-function deleteFolder(folder) {
-    var current = [], future = [], allFiles = [], nbChunks = 0;
-    current.push(folder);
-    while (current.length > 0) {
-        current.forEach(function (c) {
-            c.files.forEach(function (f) {
-                allFiles.push({ 'file': f, 'folder': c });
-                nbChunks += f.chunks.length;
-            });
-            future = future.concat(c.folders);
-        });
-        current = future.slice(0);
-        future = [];
-    }
-    g_complete = 0;
-    progressBar(g_complete, nbChunks + 1, 'Initialization', 'Delete the Content of the Folder ' + folder.name);
-    allFiles.forEach(function (af) {
-        cloudDelete(af.file, nbChunks, af.folder);
-    });
 }

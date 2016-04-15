@@ -4,18 +4,18 @@
 //LOGIN test / toto
 
 // Global variables
-const g_td_version = '0.1.0';
-const g_maxChunkSize = 10000;
-const g_configName = 'config1983stuff';
 // Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
-var g_homeFolderName = 'Home';
+const g_configName = 'config1983stuff';
+const g_maxChunkSize = 10000;
+const g_td_version = '0.1.0';
 var g_chunks = [];
-var g_providers = [];
-var g_workingFolder;
 var g_complete;
 var g_files = {};
 var g_folders = {};
+var g_homeFolderName = 'Home';
+var g_providers = [];
+var g_workingFolder;
 
 (function () {
     "use strict";

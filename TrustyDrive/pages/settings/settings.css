@@ -1,11 +1,4 @@
-﻿.used-account {
-    width: 280px;
-    height: 60px;
-    padding-left: 80px;
-    padding-top: 30px;
-}
-
-.my-accounts {
+﻿.my-accounts {
     width: 360px;
 }
 
@@ -28,4 +21,11 @@
     border: 1px dotted #808080;
     float: right;
     text-align: center;
+}
+
+.used-account {
+    width: 280px;
+    height: 60px;
+    padding-left: 80px;
+    padding-top: 30px;
 }

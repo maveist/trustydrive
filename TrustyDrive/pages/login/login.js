@@ -39,6 +39,19 @@
     }
 })
 
+function connectToFilesystem() {
+    var user = $('#connect-login').val(), pwd = $('#connect-pwd').val();
+    if (user.length == 0 || pwd.length == 0) {
+        $('#connect-error').html('<b>Wrong login or password!</b>');
+    } else {
+        g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'chunks': [], 'providers': [] };
+        g_providers.forEach(function (p) {
+            g_files[g_configName].chunks.push(configurationChunkName(p));
+        });
+        downloadConfiguration();
+    }
+}
+
 function connect(credentials, idx, vault) {
     if (idx < credentials.length) {
         log('Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
@@ -64,6 +77,25 @@ function connect(credentials, idx, vault) {
         } else {
             // Enter the login/password to load metadata
             WinJS.Navigation.navigate('/pages/login/login.html', '');
+        }
+    }
+}
+
+function createAccount() {
+    var user = $('#new-login').val(), pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val(),
+        question = $('#new-que').val(), answer = $('#new-ans').val();
+    // Check there is no empty fields
+    if (user.length == 0 || pwd.length == 0 || pwd.length == 0 || pwdbis.length == 0 || question.length == 0 || answer.length == 0) {
+        $('#new-error').html('<b>All fields are required!</b>');
+    } else {
+        if (pwd != pwdbis) {
+            $('#new-error').html('<b>Passwords do not match!</b>');
+        } else {
+            g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
+            g_providers.forEach(function (p) {
+                g_files[g_configName].chunks.push(configurationChunkName(p));
+            });
+            uploadConfiguration();
         }
     }
 }
@@ -149,37 +181,5 @@ function showConnectFields(logError) {
                 });
             }
         });
-    }
-}
-
-function connectToFilesystem() {
-    var user = $('#connect-login').val(), pwd = $('#connect-pwd').val();
-    if (user.length == 0 || pwd.length == 0) {
-        $('#connect-error').html('<b>Wrong login or password!</b>');
-    } else {
-        g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'chunks': [], 'providers': [] };
-        g_providers.forEach(function (p) {
-            g_files[g_configName].chunks.push(configurationChunkName(p));
-        });
-        downloadConfiguration();
-    }
-}
-
-function createAccount() {
-    var user = $('#new-login').val(), pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val(),
-        question = $('#new-que').val(), answer = $('#new-ans').val();
-    // Check there is no empty fields
-    if (user.length == 0 || pwd.length == 0 || pwd.length == 0 || pwdbis.length == 0 || question.length == 0 || answer.length == 0) {
-        $('#new-error').html('<b>All fields are required!</b>');
-    } else {
-        if (pwd != pwdbis) {
-            $('#new-error').html('<b>Passwords do not match!</b>');
-        } else {
-            g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
-            g_providers.forEach(function (p) {
-                g_files[g_configName].chunks.push(configurationChunkName(p));
-            });
-            uploadConfiguration();
-        }
     }
 }

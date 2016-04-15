@@ -1,8 +1,9 @@
-﻿.file-list {
-    width: 95%;
-    padding: 2%;
-    margin: auto;
-    overflow: auto;
+﻿.archive {
+    background: url("../../images/style/archive.png") no-repeat;
+}
+
+.create-dir {
+    background: url("../../images/style/create-dir.png") no-repeat;
 }
 
 .file {
@@ -15,13 +16,35 @@
     float: left;
 }
 
-/*** File Icons ***/
-.archive {
-    background: url("../../images/style/archive.png") no-repeat;
+.file-list {
+    width: 95%;
+    padding: 2%;
+    margin: auto;
+    overflow: auto;
 }
 
 .folder {
     background: url("../../images/style/folder.png") no-repeat;
+}
+
+.local-delete {
+    background: url("../../images/style/local-delete.png") no-repeat;
+}
+
+.menu-bar {
+    width: 100%;
+    text-align: center;
+    background: #FFFFFF;
+    border-top: 1px solid #808080;
+    position: absolute;
+}
+
+.menu-item {
+    width: 50px;
+    height: 50px;
+    margin-left: 10px;
+    margin-right: 10px;
+    display: inline-block;
 }
 
 .music {
@@ -34,6 +57,10 @@
 
 .picture {
     background: url("../../images/style/picture.png") no-repeat;
+}
+
+.rename {
+    background: url("../../images/style/rename.png") no-repeat;
 }
 
 .script {
@@ -52,6 +79,10 @@
     background: url("../../images/style/unknown.png") no-repeat;
 }
 
+.upload {
+    background: url('../../images/style/upload.png') no-repeat;
+}
+
 .video {
     background: url("../../images/style/video.png") no-repeat;
 }
@@ -59,39 +90,3 @@
 .web {
     background: url("../../images/style/web.png") no-repeat;
 }
-/*** End of File Icons ***/
-
-/*** The Menu Bar ***/
-.menu-bar {
-    width: 100%;
-    text-align: center;
-    background: #FFFFFF;
-    border-top: 1px solid #808080;
-    position: absolute;
-}
-
-.menu-item {
-    width: 50px;
-    height: 50px;
-    margin-left: 10px;
-    margin-right: 10px;
-    display: inline-block;
-}
-
-.upload {
-    background: url('../../images/style/upload.png') no-repeat;
-}
-
-.create-dir {
-    background: url("../../images/style/create-dir.png") no-repeat;
-}
-
-.rename {
-    background: url("../../images/style/rename.png") no-repeat;
-}
-
-.local-delete {
-    background: url("../../images/style/local-delete.png") no-repeat;
-}
-
-/*** End of the Menu bar ***/

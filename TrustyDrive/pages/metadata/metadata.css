@@ -1,14 +1,37 @@
-﻿.editor-list {
+﻿.chunk-item {
     width: 100%;
-    height: 88%;
-    margin: auto;
-    margin-top: 20px;
-    overflow: auto;
+    height: 25px;
+    border-bottom: 1px dotted #808080;
+}
+
+.chunk-item div {
+    height: 25px;
+    float: left;
+}
+
+.chunk-list {
+    display: none;
+}
+
+.chunk-name {
+    width: 20%;
+}
+
+.chunk-provider {
+    width: 55%;
 }
 
 .editor-item {
     width: 100%;
     border-bottom: 1px solid #808080;
+}
+
+.editor-list {
+    width: 100%;
+    height: 88%;
+    margin: auto;
+    margin-top: 20px;
+    overflow: auto;
 }
 
 .item-title {
@@ -24,29 +47,6 @@
 .item-title button {
     width: 60px;
     float: right;
-}
-
-.chunk-list {
-    display: none;
-}
-
-.chunk-item {
-    width: 100%;
-    height: 25px;
-    border-bottom: 1px dotted #808080;
-}
-
-.chunk-item div {
-    height: 25px;
-    float: left;
-}
-
-.chunk-provider {
-    width: 55%;
-}
-
-.chunk-name {
-    width: 20%;
 }
 
 .orphan-list {

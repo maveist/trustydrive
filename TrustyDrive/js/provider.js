@@ -1,28 +1,10 @@
-﻿function log(message) {
-    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
-    var dateString, d = new Date();
-    dateString = '[' + d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
-    if (d.getMinutes() > 9) {
-        dateString += d.getHours() + ':' + d.getMinutes() + ':';
-    } else {
-        dateString += d.getHours() + ':0' + d.getMinutes() + ':';
-    }
-    if (d.getSeconds() > 9) {
-        dateString += d.getSeconds() + '] ';
-    } else {
-        dateString += '0' + d.getSeconds() + '] ';
-    }
-    Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
-        function (file) {
-            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n').then();
-        },
-        function (error) {
-            Windows.Storage.ApplicationData.current.localFolder.createFileAsync('logs.txt').then(function (file) {
-                Windows.Storage.FileIO.appendTextAsync(file, dateString + '##### NEW FILE ######\n');
-                Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
-            });
-        }
-    );
+﻿// Return an array with all existing chunk names
+function allChunkNames() {
+    var allChunks = [];
+    $.each(g_files, function (useless, file) {
+        allChunks = allChunks.concat(file.chunks);
+    });
+    return allChunks;
 }
 
 // Compute the chunk name for one piece of metadata
@@ -33,15 +15,6 @@ function configurationChunkName(provider) {
     var chunkName = provider.user + g_files[g_configName].user + provider.provider;
     hasher.append(crypto.CryptographicBuffer.convertStringToBinary(chunkName, crypto.BinaryStringEncoding.utf8));
     return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
-}
-
-// Return an array with all existing chunk names
-function allChunkNames() {
-    var allChunks = [];
-    $.each(g_files, function (useless, file) {
-        allChunks = allChunks.concat(file.chunks);
-    });
-    return allChunks;
 }
 
 // Add a provider to the provider list (g_providers)
@@ -73,36 +46,6 @@ function createProvider(provider, email, token, freeStorage, totalStorage) {
         return provider;
     } else {
         return found;
-    }
-}
-
-function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
-    var found = false, current = g_files[filenames[index]];
-    if (index >= filenames.length) {
-        after();
-    } else {
-        if (current == undefined || current.name == g_configName) {
-            filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
-        } else {
-            current.providers.forEach(function (p) {
-                if (p.provider == myprovider.provider && p.user == myprovider.user) {
-                    found = true;
-                }
-            });
-            if (found) {
-                g_workingFolder.getFileAsync(current.name).then(
-                    function (file) {
-                        filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
-                    },
-                    function (error) {
-                        errorFiles.push(current);
-                        filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
-                    }
-                );
-            } else {
-                filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
-            }
-        }
     }
 }
 
@@ -153,6 +96,36 @@ function deleteProvider(provider) {
     }
 }
 
+function filesOnProvider(filenames, index, myprovider, errorFiles, after) {
+    var found = false, current = g_files[filenames[index]];
+    if (index >= filenames.length) {
+        after();
+    } else {
+        if (current == undefined || current.name == g_configName) {
+            filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
+        } else {
+            current.providers.forEach(function (p) {
+                if (p.provider == myprovider.provider && p.user == myprovider.user) {
+                    found = true;
+                }
+            });
+            if (found) {
+                g_workingFolder.getFileAsync(current.name).then(
+                    function (file) {
+                        filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
+                    },
+                    function (error) {
+                        errorFiles.push(current);
+                        filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
+                    }
+                );
+            } else {
+                filesOnProvider(filenames, index + 1, myprovider, errorFiles, after);
+            }
+        }
+    }
+}
+
 function getProvider(provider, user) {
     var result = undefined;
     g_providers.forEach(function (p) {
@@ -161,4 +134,31 @@ function getProvider(provider, user) {
         }
     });
     return result;
+}
+
+function log(message) {
+    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
+    var dateString, d = new Date();
+    dateString = '[' + d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
+    if (d.getMinutes() > 9) {
+        dateString += d.getHours() + ':' + d.getMinutes() + ':';
+    } else {
+        dateString += d.getHours() + ':0' + d.getMinutes() + ':';
+    }
+    if (d.getSeconds() > 9) {
+        dateString += d.getSeconds() + '] ';
+    } else {
+        dateString += '0' + d.getSeconds() + '] ';
+    }
+    Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
+        function (file) {
+            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n').then();
+        },
+        function (error) {
+            Windows.Storage.ApplicationData.current.localFolder.createFileAsync('logs.txt').then(function (file) {
+                Windows.Storage.FileIO.appendTextAsync(file, dateString + '##### NEW FILE ######\n');
+                Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
+            });
+        }
+    );
 }

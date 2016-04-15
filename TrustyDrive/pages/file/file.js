@@ -152,43 +152,6 @@
     }
 })
 
-function replaceAnnoyingChars(annoying) {
-    return annoying.replace(' ', '_');
-}
-
-function sizeString(size) {
-    var res = {};
-    if (size > 999999999999) {
-        res.value = (size / 1000000000).toFixed(1);
-        res.unit = 'TBytes';
-    } else if (size > 999999999) {
-        res.value = (size / 1000000).toFixed(1);
-        res.unit = 'GBytes';
-    } else if (size > 999999) {
-        res.value = (size / 1000000).toFixed(1);
-        res.unit = 'MBytes';
-    } else if (size > 999) {
-        res.value = (size / 1000).toFixed(1);
-        res.unit = 'KBytes';
-    } else {
-        res.value = size;
-        res.unit = 'Bytes';
-    }
-    return res;
-}
-
-function renameFile(file, newName, folder) {
-    if (newName.length > 0 && g_files[newName] == undefined) {
-        log('Rename the file ' + file.name + ' inside ' + folder.name);
-        delete g_files[file.name];
-        file.name = newName;
-        g_files[newName] = file;
-        uploadConfiguration();
-    } else {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
-    }
-}
-
 // nbDelete = # of chunks of the file or # of chunks in the folder
 function cloudDelete(file, nbDelete, folder) {
     var index = true;
@@ -234,4 +197,41 @@ function deleteComplete(nbDelete, folder) {
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
     }
+}
+
+function renameFile(file, newName, folder) {
+    if (newName.length > 0 && g_files[newName] == undefined) {
+        log('Rename the file ' + file.name + ' inside ' + folder.name);
+        delete g_files[file.name];
+        file.name = newName;
+        g_files[newName] = file;
+        uploadConfiguration();
+    } else {
+        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
+    }
+}
+
+function replaceAnnoyingChars(annoying) {
+    return annoying.replace(' ', '_');
+}
+
+function sizeString(size) {
+    var res = {};
+    if (size > 999999999999) {
+        res.value = (size / 1000000000).toFixed(1);
+        res.unit = 'TBytes';
+    } else if (size > 999999999) {
+        res.value = (size / 1000000).toFixed(1);
+        res.unit = 'GBytes';
+    } else if (size > 999999) {
+        res.value = (size / 1000000).toFixed(1);
+        res.unit = 'MBytes';
+    } else if (size > 999) {
+        res.value = (size / 1000).toFixed(1);
+        res.unit = 'KBytes';
+    } else {
+        res.value = size;
+        res.unit = 'Bytes';
+    }
+    return res;
 }
