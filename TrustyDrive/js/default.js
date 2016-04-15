@@ -1,13 +1,12 @@
-﻿//TODO Sort CSS by alphabetic order
-//TODO Customize settings panel
-//NOTE If no file in the folder, do I delete the folder ?
-//LOGIN test / toto
+﻿//TODO Customize settings panel
+//LOGIN remy / toto
 
 // Global variables
 // Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
 const g_configName = 'config1983stuff';
-const g_maxChunkSize = 10000;
+// The maximum size in bytes of one chunk, 100 kB
+const g_maxChunkSize = 100000;
 const g_td_version = '0.1.0';
 var g_chunks = [];
 var g_complete;
