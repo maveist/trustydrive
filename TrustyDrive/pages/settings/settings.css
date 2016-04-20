@@ -1,5 +1,17 @@
-﻿.my-accounts {
-    width: 360px;
+﻿.generic-param {
+    width: 210px;
+    margin: 20px;
+}
+
+.generic-param button {
+    width: 200px;
+    height: 50px;
+}
+
+.my-accounts {
+    width: 335px;
+    margin-top: 30px;
+    margin-left: 20px;
 }
 
 .new-provider {
@@ -14,18 +26,26 @@
 }
 
 .remove-provider {
-    width: 80px;
-    height: 25px;
-    padding-top: 5px;
+    width: 30px;
+    height: 30px;
     margin-right: 5px;
-    border: 1px dotted #808080;
+    margin-top: -8px;
+    background: url("../../images/style/remove-provider.png") no-repeat;
     float: right;
-    text-align: center;
+}
+
+.settings-params {
+    overflow: auto;
 }
 
 .used-account {
-    width: 280px;
+    width: 255px;
     height: 60px;
     padding-left: 80px;
     padding-top: 30px;
+}
+
+.version-param {
+    margin-left: 20px;
+    margin-top: 20px;
 }

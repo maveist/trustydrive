@@ -3,8 +3,12 @@
         ready: function () {
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             var localSettings = Windows.Storage.ApplicationData.current.localSettings;
+            var height = $('#content').innerHeight();
             // Display the TrustyDrive current version
             $('#td-version').html('You are running TrustyDrive v' + g_td_version + '<br>');
+            // Set the height of the page
+            $('.menu-bar').css('top', height - 60);
+            $('.settings-params').innerHeight(height - 60 - 5);
             // Add click listeners
             $('#picker-button').click(function () {
                 var folderPicker = new Windows.Storage.Pickers.FolderPicker();
@@ -46,8 +50,13 @@
                 $('.my-accounts > b').css('color', 'red');
             }
             g_providers.forEach(function (p) {
-                var embed = $('<div class="remove-provider">Remove</div>');
-                var div = $('<div class="used-account">' + p.user + '</div>');
+                var embed = $('<div class="remove-provider"></div>');
+                var div;
+                if (p.user.length > 26) {
+                    div = $('<div class="used-account">...' + p.user.substring(p.user.length - 23, p.user.length) + '</div>');
+                } else {
+                    div = $('<div class="used-account">' + p.user + '</div>');
+                }
                 div.append(embed);
                 div.css('background', 'url(../../images/style/' + p.provider + '.png) no-repeat');
                 embed.click(function () {

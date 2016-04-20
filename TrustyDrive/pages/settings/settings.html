@@ -11,11 +11,19 @@
         <div class="upper-title">Settings</div>
     </div>
     <div class="settings-params">
-        <span id="td-version"></span>
-        <button id="metadata-editor">Metadata Editor</button><br />
-        <button id="change-pwd">Change your password</button><br />
-        <b>Working Folder</b>: <button id="picker-button"></button><br />
-        <b>Sort files by</b>: <button id="file-view"></button><br />
+        <div id="td-version" class="version-param"></div>
+        <div class="generic-param">
+            <b>Check your Metadata</b><button id="metadata-editor">Metadata Editor</button>
+        </div>
+        <div class="generic-param">
+            <b>Secure your Account</b><button id="change-pwd">Change your Password</button>
+        </div>
+        <div class="generic-param">
+            <b>Path to the Working Folder</b><button id="picker-button"></button>
+        </div>
+        <div class="generic-param">
+            <b>Sort Files by</b><button id="file-view"></button>
+        </div>
         <div class="my-accounts">
             <b>Accounts currently in use</b>:
             <button class="new-provider">Add</button>
