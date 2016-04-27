@@ -24,7 +24,16 @@
                 }
             });
         });
-        $('.add-drive').click(driveLogin);
+        $('.add-drive').click(function () {
+            // Display a waiting wheel
+            gdriveLogin(function (provider) {
+                if (g_providers.length > 1) {
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
+                } else {
+                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                }
+            });
+        });
         $('.add-onedrive').click(oneDriveLogin);
     }
 })
