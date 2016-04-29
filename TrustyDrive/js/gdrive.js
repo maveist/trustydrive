@@ -61,7 +61,6 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
                 httpClient.sendRequestAsync(requestMessage).then(function (success) {
                     if (success.isSuccessStatusCode) {
                         success.content.readAsStringAsync().then(function (jsonInfo) {
-                            log('about my drive: ' + jsonInfo);
                             var data = $.parseJSON(jsonInfo), found = undefined;
                             // Check if the provider already exists, then just update the token
                             g_providers.forEach(function (p) {
@@ -70,12 +69,12 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
                                 }
                             });
                             if (found == undefined) {
-                                createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
+                                found = createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
                                     data['storageQuota']['limit'] - data['storageQuota']['usage'], data['storageQuota']['limit']);
                             } else {
-                                p.token = token;
+                                found.token = token;
                             }
-                            func();
+                            gdriveFolderExist(found, func);
                         });
                     } else {
                         log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
@@ -88,16 +87,48 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
     });
 }
 
-function driveList() {
-    var uri = new Windows.Foundation.Uri('https://www.googleapis.com/drive/v3/files');
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
+function gdriveFolderExist(provider, func) {
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22root%22+in+parents'
+        + '+and+mimeType+%3D+%22application%2Fvnd.google-apps.folder%22+and+name+%3D+%22trustydrive%22+and+trashed+%3D+false';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
-    accessToken = 'ya29.CjHTAtd1AEoG1Cj6RJn_1pAgoGFWFzm1-N6d5-jmRAzmAKFpzxRVlPYxK50d6332nWqB';
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                if ($.parseJSON(jsonInfo)['files'].length == 0) {
+                    // Create the app folder
+                    uri = 'https://www.googleapis.com/drive/v3/files?fields=id';
+                    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+                    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+                    requestMessage.content = new Windows.Web.Http.HttpStringContent('{ "mimeType": "application/vnd.google-apps.folder", "name": "'
+                        + g_cloudFolder.substr(0, g_cloudFolder.length - 1) + '" }', Windows.Storage.Streams.UnicodeEncoding.utf8, 'application/json; charset=UTF-8');
+                    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+                        if (success.isSuccessStatusCode) {
+                            func();
+                        } else {
+                            log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
+                        }
+                    });
+                } else {
+                    // The app folder exists, continue
+                    func();
+                }
+            });
+        } else {
+            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+        }
+    });
+}
+
+function gdriveList() {
+    var uri = 'https://www.googleapis.com/drive/v3/files';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
     requestMessage.headers.append('Authorization', 'Bearer ' + accessToken);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
-                var data, storage;
                 log('about my drive: ' + jsonInfo);
             });
         } else {
