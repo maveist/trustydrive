@@ -18,7 +18,7 @@ function configurationChunkName(provider) {
 }
 
 // Add a provider to the provider list (g_providers)
-function createProvider(provider, email, token, freeStorage, totalStorage) {
+function createProvider(provider, email, refreshToken, token, freeStorage, totalStorage) {
     var credentials = Windows.Security.Credentials;
     var passwordVault = new credentials.PasswordVault();
     var i, found = undefined;
@@ -30,11 +30,15 @@ function createProvider(provider, email, token, freeStorage, totalStorage) {
     }
     if (found == undefined) {
         // Add the provider
-        cred = new credentials.PasswordCredential(provider, email, token)
+        if (refreshToken == undefined) {
+            cred = new credentials.PasswordCredential(provider, email, token)
+        } else {
+            cred = new credentials.PasswordCredential(provider, email, refreshToken)
+        }
         passwordVault.add(cred);
         log('Add the provider: ' + provider + '/' + email);
         provider = {
-            'provider': cred.resource, 'user': cred.userName, 'token': cred.password,
+            'provider': cred.resource, 'user': cred.userName, 'token': token, 'refresh': refreshToken,
             'free': freeStorage, 'total': totalStorage
         };
         g_providers.push(provider);

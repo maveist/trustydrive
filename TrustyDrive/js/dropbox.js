@@ -133,6 +133,7 @@ function dropboxSync(chunks) {
     var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder);
     g_complete = 0;
     $.each(g_providers, function (index, p) {
+        //BUG Test if it is a dropbox provider
         var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
         requestMessage.headers.append('Authorization', 'Bearer ' + p.token);
         httpClient.sendRequestAsync(requestMessage).then(function (response) {
@@ -189,11 +190,11 @@ function dropboxUserInfo(token, reconnect, func) {
                     // Check that the 'trustydrive' folder exists
                     dropboxExists('', token, function (args) {
                         if (args.exists) {
-                            createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
+                            createProvider('dropbox', data['email'], undefined, token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
                             func();
                         } else {
                             dropboxCreateFolder(token, function () {
-                                createProvider('dropbox', data['email'], token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
+                                createProvider('dropbox', data['email'], undefined, token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
                                 func();
                             });
                         }

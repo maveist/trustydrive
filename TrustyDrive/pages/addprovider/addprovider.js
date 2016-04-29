@@ -16,7 +16,7 @@
         }
         $('.add-dropbox').click(function () {
             // Display a waiting wheel
-            dropboxLogin(function (provider) {
+            dropboxLogin(function () {
                 if (g_providers.length > 1) {
                     WinJS.Navigation.navigate('/pages/login/login.html', '');
                 } else {
@@ -25,8 +25,7 @@
             });
         });
         $('.add-drive').click(function () {
-            // Display a waiting wheel
-            gdriveLogin(function (provider) {
+            gdriveLogin(function () {
                 if (g_providers.length > 1) {
                     WinJS.Navigation.navigate('/pages/login/login.html', '');
                 } else {

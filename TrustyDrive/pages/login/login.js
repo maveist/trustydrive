@@ -64,7 +64,10 @@ function connect(credentials, idx, vault) {
                     connect(credentials, idx + 1, vault);
                 });
                 break;
-            case 'googledrive':
+            case 'gdrive':
+                gdriveUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
+                    connect(credentials, idx + 1, vault);
+                });
                 break;
             case 'onedrive':
                 break;
