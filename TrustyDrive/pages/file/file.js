@@ -182,9 +182,18 @@ function cloudDelete(file, nbDelete, folder) {
 
 function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
     if (chunkIdx < file.chunks.length) {
-        setTimeout(function () {
-            dropboxDelete(file.chunks[chunkIdx], providers[chunkIdx % providers.length], nbDelete, folder);
-        }, 500);
+        switch (provider.provider) {
+            case 'dropbox':
+                setTimeout(function () {
+                    dropboxDelete(file.chunks[chunkIdx]['name'], providers[chunkIdx % providers.length], nbDelete, folder);
+                }, 500);
+                break;
+            case 'gdrive':
+                setTimeout(function () {
+                    gdriveDelete(file.chunks[chunkIdx]['name'], providers[chunkIdx % providers.length], nbDelete, folder);
+                }, 500);
+                break;
+        }
         deleteChunks(file, providers, chunkIdx + 1, nbDelete, folder);
     }
 }

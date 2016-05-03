@@ -88,3 +88,12 @@ function setPath(folder, file) {
     path = '/' + path;
     file['path'] = path;
 }
+
+function indexOfChunk(chunks, chunkName) {
+    $.each(chunks, function (idx, c) {
+        if (c.name == chunkName) {
+            return idx;
+        }
+    });
+    return -1;
+}

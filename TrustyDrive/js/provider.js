@@ -87,9 +87,16 @@ function deleteProvider(provider) {
                     }
                 });
                 // Delete the chunk related to the configuration
-                dropboxDelete(chunkName, provider.token);
+                switch (provider.provider) {
+                    case 'dropbox':
+                        dropboxDelete(chunkName, provider.token);
+                        break;
+                    case 'gdrive':
+                        gdriveDelete(chunkName, provider);
+                        break;
+                }
                 if (g_files[g_configName] != undefined) {
-                    g_files[g_configName]['chunks'].splice(g_files[g_configName]['chunks'].indexOf(chunkName), 1);
+                    g_files[g_configName]['chunks'].splice(indexOfChunk(g_files[g_configName]['chunks'], chunkName), 1);
                     // Upload the configuration
                     uploadConfiguration();
                 }

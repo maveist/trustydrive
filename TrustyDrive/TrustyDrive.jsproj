@@ -85,11 +85,12 @@
     <Content Include="images\style\cloud-delete.png" />
     <Content Include="images\style\create-dir.png" />
     <Content Include="images\style\download.png" />
-    <Content Include="images\style\drive.png" />
+    <Content Include="images\style\gdrive.png" />
     <Content Include="images\style\dropbox-small.png" />
     <Content Include="images\style\dropbox.png" />
     <Content Include="images\style\folder-big.png" />
     <Content Include="images\style\folder.png" />
+    <Content Include="images\style\gdrive-small.png" />
     <Content Include="images\style\home.png" />
     <Content Include="images\style\remove-provider.png" />
     <Content Include="images\style\local-delete.png" />

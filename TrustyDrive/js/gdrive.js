@@ -87,16 +87,49 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
     });
 }
 
+function gdriveExists(chunkName, provider, func, args) {
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents'
+        + '+and+name+%3D+%22' + chunkName + '%22+and+trashed+%3D+false';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var myFiles;
+    if (args == undefined) {
+        args = { 'exists': false, 'chunks': [], 'providers': [], 'all': [] };
+    } else {
+        args.exists = false;
+    }
+    args.all.push(chunkName);
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                myFiles = $.parseJSON(jsonInfo)['files'];
+                if (myFiles.length > 0) {
+                    args.exists = true;
+                    // Register the file ID
+                    args.chunks.push({ 'name': chunkName, 'id': myFiles[0].id });
+                    args.providers.push(provider);
+                }
+                func(args);
+            });
+        } else {
+            func(args);
+        }
+    });
+}
+
 function gdriveFolderExist(provider, func) {
     var uri = 'https://www.googleapis.com/drive/v3/files?q=%22root%22+in+parents'
         + '+and+mimeType+%3D+%22application%2Fvnd.google-apps.folder%22+and+name+%3D+%22trustydrive%22+and+trashed+%3D+false';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    var myFiles;
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
-                if ($.parseJSON(jsonInfo)['files'].length == 0) {
+                myFiles = $.parseJSON(jsonInfo)['files'];
+                if (myFiles.length == 0) {
                     // Create the app folder
                     uri = 'https://www.googleapis.com/drive/v3/files?fields=id';
                     requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
@@ -105,18 +138,40 @@ function gdriveFolderExist(provider, func) {
                         + g_cloudFolder.substr(0, g_cloudFolder.length - 1) + '" }', Windows.Storage.Streams.UnicodeEncoding.utf8, 'application/json; charset=UTF-8');
                     httpClient.sendRequestAsync(requestMessage).then(function (success) {
                         if (success.isSuccessStatusCode) {
-                            func();
+                            success.content.readAsStringAsync().then(function (jsonInfo) {
+                                g_cloudFolderId = $.parseJSON(jsonInfo)['id'];
+                                func();
+                            });
                         } else {
                             log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
                         }
                     });
                 } else {
-                    // The app folder exists, continue
+                    g_cloudFolderId = myFiles[0].id;
                     func();
                 }
             });
         } else {
             log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+        }
+    });
+}
+
+function gdriveUpload(file, chunkIdx, data, provider) {
+    // Create a new file with the name provided inside the 'data' buffer
+    var uri = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+    requestMessage.content.headers.append('Content-Type', 'multipart/related; boundary=trustydrive_separator');
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+            });
+        } else {
+            log('Upload Create Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
     });
 }
@@ -130,6 +185,25 @@ function gdriveList() {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
                 log('about my drive: ' + jsonInfo);
+            });
+        } else {
+            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+        }
+    });
+}
+
+function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
+    var uri = 'https://www.googleapis.com/drive/v3/files/' + file.chunks[chunkIdx].id + '?alt=media';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (contentString) {
+                var buffer, crypto = Windows.Security.Cryptography;
+                buffer = crypto.CryptographicBuffer.convertStringToBinary(contentString, crypto.BinaryStringEncoding.utf8);
+                g_chunks.push({ 'idx': chunkIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
+                downloadComplete(file, myProviders, folder, writer);
             });
         } else {
             log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);

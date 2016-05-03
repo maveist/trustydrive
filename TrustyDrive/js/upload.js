@@ -14,18 +14,39 @@
     });
     temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
-        var i, p, chunkName, idx, d = new Date(), filetype = 'unknown';
+        var i, p, idx, d = new Date(), filetype = 'unknown';
         var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
         reader.readBytes(temp);
         for (i = 0; i < temp.byteLength;) {
             for (p = 0; p < g_providers.length; p++) {
+                if (i < g_providers.length && g_providers[p].provider == 'gdrive') {
+                    // Add the chunk storage information for Google Drive providers
+                    if (file.chunks[p].id == undefined) {
+                        chunks[p].stream.writeString('--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n'
+                            + '{\n"name": "' + file['chunks'][p]['name'] + '",\n"parents": [ "' + g_cloudFolderId + '" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n');
+                    } else {
+                        chunks[p].stream.writeString('--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n'
+                            + '{\n"id": "' + file['chunks'][p]['id'] + '",\n"parents": [ "' + g_cloudFolderId + '" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n');
+                    }
+                }
                 if (i < temp.byteLength) {
                     chunks[p].stream.writeByte(temp[i++]);
                 }
             }
         }
         for (p = 0; p < g_providers.length; p++) {
-            dropboxUpload(file['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
+            if (g_providers[p].provider == 'gdrive') {
+                // Close the multipart section for Google Drive providers
+                chunks[p].stream.writeString('\n--trustydrive_separator--');
+            }
+            switch (g_providers[p].provider) {
+                case 'dropbox':
+                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
+                    break;
+                case 'gdrive':
+                    gdriveUpload(file, nbCreatedChunks + p, chunks[p].stream.detachBuffer(), g_providers[p]);
+                    break;
+            }
             chunks[p].stream.close();
         }
         nbCreatedChunks += g_providers.length;
@@ -136,7 +157,14 @@ function uploadChunks(filename, folder, readStream) {
                 } else {
                     log('Delete all chunks from ' + provider.provider + '/' + provider.user);
                     for (j = 0; j < file.chunks.length; j += file.providers.length) {
-                        dropboxDelete(file.chunks[i + j], provider.token);
+                        switch (provider.provider) {
+                            case 'dropbox':
+                                dropboxDelete(file.chunks[i + j]['name'], provider.token);
+                                break;
+                            case 'gdrive':
+                                gdriveDelete();
+                                break;
+                        }
                     }
                 }
             }
@@ -149,7 +177,14 @@ function uploadChunks(filename, folder, readStream) {
                         log('Can not get the provider, delete chunks manually');
                     } else {
                         for (j = 0; j < file.chunks.length; j += file.providers.length) {
-                            dropboxDelete(file.chunks[i + j], provider.token);
+                            switch (provider.provider) {
+                                case 'dropbox':
+                                    dropboxDelete(file.chunks[i + j]['name'], provider.token);
+                                    break;
+                                case 'gdrive':
+                                    gdriveDelete();
+                                    break;
+                            }
                         }
                     }
                 }
@@ -158,8 +193,16 @@ function uploadChunks(filename, folder, readStream) {
     }
     // Set the providers of the file to the current providers
     file['providers'] = [];
+    if (filename == g_configName) {
+        // Delete chunk names for the configuration
+        file['chunks'] = []
+    }
     g_providers.forEach(function (p) {
         file.providers.push({ 'provider': p.provider, 'user': p.user });
+        if (filename == g_configName) {
+            // Generate chunk names for the configuration
+            file['chunks'].push({ 'name': configurationChunkName(p) });
+        }
     });
     // The minimal file size required, 3 bytes on every provider
     if (readStream.size < nbProviders * 3) {
@@ -179,7 +222,9 @@ function uploadChunks(filename, folder, readStream) {
     } else {
         existingChunks = [];
         $.each(g_files, function (useless, file) {
-            existingChunks = existingChunks.concat(file.chunks);
+            file.chunks.forEach(function (c) {
+                existingChunks.push(c.name);
+            });
         });
         while (mychunks.length < nbChunks) {
             // Generate chunk names that look like a SHA1, i.e., 40 random hexa chars
@@ -189,7 +234,7 @@ function uploadChunks(filename, folder, readStream) {
                     chunkName += Math.floor(Math.random() * 16).toString(16);
                 }
             } while (existingChunks.indexOf(chunkName) > -1);
-            mychunks.push(chunkName);
+            mychunks.push({ 'name': chunkName });
         }
     }
     log('Nb. of Chunks: ' + mychunks.length + ', chunksize=' + Math.floor(readStream.size / mychunks.length));
@@ -202,6 +247,7 @@ function uploadChunks(filename, folder, readStream) {
 
 // Configuration management
 function uploadConfiguration() {
+    //TODO remove the exists property of chunks
     var config = JSON.stringify(g_files);
     var crypto = Windows.Security.Cryptography;
     var cBuffer = crypto.CryptographicBuffer;
@@ -213,9 +259,6 @@ function uploadConfiguration() {
     // Save the configuration to the cloud
     var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
     writer.writeAsync(buffer);
-    g_files[g_configName].chunks.forEach(function (c) {
-        log('config chunk: ' + c);
-    });
     uploadChunks(g_configName, undefined, writer);
 }
 

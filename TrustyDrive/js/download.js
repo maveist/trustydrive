@@ -2,7 +2,14 @@
     var i;
     g_chunks = [];
     for (i = 0; i < myProviders.length; i++) {
-        dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i].token, writer);
+        switch (myProviders[i].provider) {
+            case 'dropbox':
+                dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i].token, writer);
+                break;
+            case 'gdrive':
+                gdriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
+                break;
+        }
     }
 }
 
@@ -91,12 +98,35 @@ function downloadComplete(file, myProviders, folder, writer) {
     }
 }
 
-function downloadConfiguration() {
+function downloadConfiguration(args) {
     var file = g_files[g_configName];
-    var writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
-    g_complete = 0;
-    progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
-    downloadChunks(file, g_providers, undefined, g_complete, writer);
+    var writer;
+    if (args == undefined) {
+        // Fill args with both valid chunks and valid providers
+        args = { 'providers': [], 'chunks': [], 'exists': false, 'all': [], 'idx': -1 };
+    }
+    args.idx++;
+        // Check if configuration chunks exist, configuration = 1 chunk per provider
+    if (args.idx < g_providers.length) {
+        switch (g_providers[args.idx].provider) {
+            case 'dropbox':
+                dropboxExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                break;
+            case 'gdrive':
+                gdriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                break;
+        }
+    } else {
+        file['chunks'] = args.chunks;
+        writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
+        g_complete = 0;
+        if (file['chunks'].length == 0) {
+            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+        } else {
+            progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
+            downloadChunks(file, args.providers, undefined, g_complete, writer);
+        }
+    }
 }
 
 function downloadFile(file, folder) {

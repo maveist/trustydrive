@@ -1,4 +1,6 @@
-﻿//TODO Customize settings panel
+﻿// BUG TO BE CONFIRMED Can not login after login error
+//TODO Use provider instead of token for dropbox functions
+//TODO Remove the exists property of chunk while dumping the configuration
 //LOGIN remy / toto
 
 // Global variables
@@ -9,6 +11,8 @@ const g_configName = 'config1983stuff';
 const g_maxChunkSize = 100000;
 const g_td_version = '0.1.0';
 var g_chunks = [];
+// The cloud folder id for Google Drive
+var g_cloudFolderId;
 var g_complete;
 var g_files = {};
 var g_folders = {};

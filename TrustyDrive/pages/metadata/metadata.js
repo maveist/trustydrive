@@ -25,7 +25,7 @@
                 } else {
                     $(this).text('Hide');
                     for (i = 0; i < file.chunks.length; i++) {
-                        chunkName = file.chunks[i];
+                        chunkName = file.chunks[i]['name'];
                         if (file.name == g_configName) {
                             provider = g_providers[i % g_providers.length];
                         } else {
@@ -52,7 +52,14 @@
                         listWidth += 90;
                         list.append($('<div class="chunk-item"></div>').append(chunkDiv).append(providerDiv)
                             .append('<div id="' + chunkName + '" class="chunk-status">??</div>'));
-                        dropboxExists(chunkName, provider.token, chunkStatus, { 'id': chunkName });
+                        switch (provider.provider) {
+                            case 'dropbox':
+                                dropboxExists(chunkName, provider, chunkStatus);
+                                break;
+                            case 'gdrive':
+                                gdriveExists(chunkName, provider, chunkStatus);
+                                break;
+                        }
                     }
                     list.fadeIn('fast');
                 }
@@ -61,13 +68,20 @@
         });//$.each(g_files
         // Check consistency button
         $('#orphaned-files').click(function () {
-            dropboxSync(allChunks);
+            switch (provider.provider) {
+                case 'dropbox':
+                    dropboxSync(allChunks);
+                    break;
+                case 'gdrive':
+                    gdriveSync();
+                    break;
+            }
         });
     }
 })
 
 function chunkStatus(args) {
-    var status = $('#' + args.id);
+    var status = $('#' + args.all[0]);
     if (args.exists) {
         status.html('<b>SUCCESS</b>');
         status.css('color', 'green');
@@ -94,7 +108,14 @@ function deleteOrphansDialog(orphans) {
             g_complete = 0;
             progressBar(g_complete, orphans.length + 1, 'Initialization', 'Delete Unused Chunks');
             orphans.forEach(function (o) {
-                dropboxDelete(o.name, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                switch (provider.provider) {
+                    case 'dropbox':
+                        dropboxDelete(o.name, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                        break;
+                    case 'gdrive':
+                        gdriveDelete();
+                        break;
+                }
             });
         });
         $('#cancel-button').click(function () {

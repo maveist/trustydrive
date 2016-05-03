@@ -46,7 +46,7 @@ function connectToFilesystem() {
     } else {
         g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'chunks': [], 'providers': [] };
         g_providers.forEach(function (p) {
-            g_files[g_configName].chunks.push(configurationChunkName(p));
+            g_files[g_configName].chunks.push({ 'name': configurationChunkName(p) });
         });
         downloadConfiguration();
     }
@@ -96,7 +96,7 @@ function createAccount() {
         } else {
             g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
             g_providers.forEach(function (p) {
-                g_files[g_configName].chunks.push(configurationChunkName(p));
+                g_files[g_configName].chunks.push({ 'name': configurationChunkName(p) });
             });
             uploadConfiguration();
         }
