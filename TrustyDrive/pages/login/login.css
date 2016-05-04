@@ -28,6 +28,11 @@
     color: red;
 }
 
+.error-message div {
+    height: 50px;
+    overflow: auto;
+}
+
 .interface-body {
     width: 90%;
     height: 60%;

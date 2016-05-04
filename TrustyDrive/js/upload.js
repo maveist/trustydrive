@@ -1,53 +1,57 @@
 ﻿function createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks) {
-    var temp, tempSize = 0;
-    var chunks = [];
+    var p, temp, tempSize = 0;
+    var chunkBuffers = [];
     // One chunk per provider
-    g_providers.forEach(function (useless) {
+    for (p = 0; p < g_providers.length; p++) {
         if (remainSize > 0) {
-            chunks.push({ 'size': chunkSize + 1, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
+            chunkBuffers.push({ 'created': false, 'size': chunkSize + 1, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
             tempSize += chunkSize + 1;
             remainSize--;
         } else {
-            chunks.push({ 'size': chunkSize, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
+            chunkBuffers.push({ 'created': false, 'size': chunkSize, 'stream': new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream()) });
             tempSize += chunkSize;
         }
-    });
+    }
     temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
-        var i, p, idx, d = new Date(), filetype = 'unknown';
+        var i, idx, d = new Date(), filetype = 'unknown';
         var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
         reader.readBytes(temp);
         for (i = 0; i < temp.byteLength;) {
             for (p = 0; p < g_providers.length; p++) {
                 if (i < g_providers.length && g_providers[p].provider == 'gdrive') {
                     // Add the chunk storage information for Google Drive providers
-                    if (file.chunks[p].id == undefined) {
-                        chunks[p].stream.writeString('--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n'
-                            + '{\n"name": "' + file['chunks'][p]['name'] + '",\n"parents": [ "' + g_cloudFolderId + '" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n');
-                    } else {
-                        chunks[p].stream.writeString('--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n'
-                            + '{\n"id": "' + file['chunks'][p]['id'] + '",\n"parents": [ "' + g_cloudFolderId + '" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n');
+                    if (file.chunks[nbCreatedChunks + p].id == undefined) {
+                        chunkBuffers[p].stream.writeString('--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n'
+                            + '{\n"name": "' + file['chunks'][nbCreatedChunks + p]['name'] + '",\n"parents": [ "' + g_cloudFolderId + '" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n');
+                        chunkBuffers[p].created = true;
                     }
                 }
                 if (i < temp.byteLength) {
-                    chunks[p].stream.writeByte(temp[i++]);
+                    chunkBuffers[p].stream.writeByte(temp[i++]);
                 }
             }
         }
         for (p = 0; p < g_providers.length; p++) {
-            if (g_providers[p].provider == 'gdrive') {
+            if (g_providers[p].provider == 'gdrive' && chunkBuffers[p].created) {
                 // Close the multipart section for Google Drive providers
-                chunks[p].stream.writeString('\n--trustydrive_separator--');
+                chunkBuffers[p].stream.writeString('\n--trustydrive_separator--');
             }
             switch (g_providers[p].provider) {
                 case 'dropbox':
-                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunks[p].stream.detachBuffer(), g_providers[p].token);
+                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunkBuffers[p].stream.detachBuffer(), g_providers[p].token);
                     break;
                 case 'gdrive':
-                    gdriveUpload(file, nbCreatedChunks + p, chunks[p].stream.detachBuffer(), g_providers[p]);
+                    if (file.chunks[nbCreatedChunks + p].id == undefined) {
+                        // Create a new file for the chunk
+                        gdriveUpload(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                    } else {
+                        // Update the content of an existing chunk
+                        gdriveUpdate(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                    }
                     break;
             }
-            chunks[p].stream.close();
+            chunkBuffers[p].stream.close();
         }
         nbCreatedChunks += g_providers.length;
         progressBar(nbCreatedChunks, file['chunks'].length + 1, 'Number of Uploaded Chunks: ' + nbCreatedChunks);
@@ -193,15 +197,13 @@ function uploadChunks(filename, folder, readStream) {
     }
     // Set the providers of the file to the current providers
     file['providers'] = [];
-    if (filename == g_configName) {
-        // Delete chunk names for the configuration
-        file['chunks'] = []
-    }
     g_providers.forEach(function (p) {
         file.providers.push({ 'provider': p.provider, 'user': p.user });
         if (filename == g_configName) {
             // Generate chunk names for the configuration
-            file['chunks'].push({ 'name': configurationChunkName(p) });
+            if (indexOfChunk(file.chunks, configurationChunkName(p)) == -1) {
+                file['chunks'].push({ 'name': configurationChunkName(p) });
+            }
         }
     });
     // The minimal file size required, 3 bytes on every provider

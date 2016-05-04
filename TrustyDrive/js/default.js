@@ -1,4 +1,4 @@
-﻿// BUG TO BE CONFIRMED Can not login after login error
+﻿//TODO detect the end of a file upload: use an uploadComplete() function
 //TODO Use provider instead of token for dropbox functions
 //TODO Remove the exists property of chunk while dumping the configuration
 //LOGIN remy / toto

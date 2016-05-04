@@ -70,10 +70,11 @@ function downloadComplete(file, myProviders, folder, writer) {
                                 error = 'The configuration file is malformed. Please check your cloud accounts configuration in Settings'
                                     + ', maybe some providers are missing!'
                                     + '<br>To reset your configuration (<b>all files stored in TrustyDrive will be lost</b>),'
-                                    + ' delete the trustydrive folder on the following accounts:<br>';
+                                    + ' delete the trustydrive folder on the following accounts:<div>';
                                 g_providers.forEach(function (p) {
                                     error += p.provider + ' - ' + p.user + '<br>';
                                 });
+                                error += '</div>';
                             }
                             writer.close();
                             stream.close();

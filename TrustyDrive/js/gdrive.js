@@ -171,7 +171,26 @@ function gdriveUpload(file, chunkIdx, data, provider) {
                 file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
             });
         } else {
-            log('Upload Create Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+        }
+    });
+}
+
+function gdriveUpdate(file, chunkIdx, data, provider) {
+    // Update the content of an existing file from its ID
+    var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + file.chunks[chunkIdx].id + '?uploadType=media';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.patch, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+    requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            // Information about the uploaded chunk
+            //success.content.readAsStringAsync().then(function (jsonInfo) {
+            //});
+        } else {
+            log('Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
     });
 }
@@ -199,9 +218,7 @@ function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().then(function (contentString) {
-                var buffer, crypto = Windows.Security.Cryptography;
-                buffer = crypto.CryptographicBuffer.convertStringToBinary(contentString, crypto.BinaryStringEncoding.utf8);
+            success.content.readAsBufferAsync().then(function (buffer) {
                 g_chunks.push({ 'idx': chunkIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
                 downloadComplete(file, myProviders, folder, writer);
             });
