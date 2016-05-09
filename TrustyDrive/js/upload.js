@@ -39,7 +39,7 @@
             }
             switch (g_providers[p].provider) {
                 case 'dropbox':
-                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunkBuffers[p].stream.detachBuffer(), g_providers[p].token);
+                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     break;
                 case 'gdrive':
                     if (file.chunks[nbCreatedChunks + p].id == undefined) {

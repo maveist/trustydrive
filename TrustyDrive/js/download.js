@@ -4,7 +4,7 @@
     for (i = 0; i < myProviders.length; i++) {
         switch (myProviders[i].provider) {
             case 'dropbox':
-                dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i].token, writer);
+                dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
                 break;
             case 'gdrive':
                 gdriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);

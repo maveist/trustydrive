@@ -88,8 +88,8 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
 }
 
 function gdriveExists(chunkName, provider, func, args) {
-    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents'
-        + '+and+name+%3D+%22' + chunkName + '%22+and+trashed+%3D+false';
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId
+        + '%22+in+parents+and+name+%3D+%22' + chunkName + '%22+and+trashed+%3D+false';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
     var myFiles;
