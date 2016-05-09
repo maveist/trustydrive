@@ -163,10 +163,10 @@ function uploadChunks(filename, folder, readStream) {
                     for (j = 0; j < file.chunks.length; j += file.providers.length) {
                         switch (provider.provider) {
                             case 'dropbox':
-                                dropboxDelete(file.chunks[i + j]['name'], provider.token);
+                                dropboxDelete(file.chunks[i + j]['name'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                 break;
                             case 'gdrive':
-                                gdriveDelete();
+                                gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                 break;
                         }
                     }
@@ -183,10 +183,10 @@ function uploadChunks(filename, folder, readStream) {
                         for (j = 0; j < file.chunks.length; j += file.providers.length) {
                             switch (provider.provider) {
                                 case 'dropbox':
-                                    dropboxDelete(file.chunks[i + j]['name'], provider.token);
+                                    dropboxDelete(file.chunks[i + j]['name'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                     break;
                                 case 'gdrive':
-                                    gdriveDelete();
+                                    gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                     break;
                             }
                         }

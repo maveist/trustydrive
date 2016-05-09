@@ -50,8 +50,8 @@
 }
 
 .orphan-list {
-    height: 300px;
-    margin-bottom: 20px;
+    height: 290px;
+    margin-bottom: 5px;
     padding-left: 10px;
     text-align: left;
     overflow: auto;

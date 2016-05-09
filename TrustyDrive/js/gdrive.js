@@ -195,22 +195,6 @@ function gdriveUpdate(file, chunkIdx, data, provider) {
     });
 }
 
-function gdriveList() {
-    var uri = 'https://www.googleapis.com/drive/v3/files';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    var httpClient = new Windows.Web.Http.HttpClient();
-    requestMessage.headers.append('Authorization', 'Bearer ' + accessToken);
-    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().then(function (jsonInfo) {
-                log('about my drive: ' + jsonInfo);
-            });
-        } else {
-            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-        }
-    });
-}
-
 function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
     var uri = 'https://www.googleapis.com/drive/v3/files/' + file.chunks[chunkIdx].id + '?alt=media';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
@@ -225,5 +209,49 @@ function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
         } else {
             log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
+    });
+}
+
+function gdriveDelete(chunkId, provider, nbDelete, folder) {
+    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunkId;
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    if (chunkId == undefined) {
+        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
+    } else {
+        requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+        httpClient.sendRequestAsync(requestMessage).then(function (response) {
+            if (response.isSuccessStatusCode) {
+                deleteComplete(nbDelete, folder);
+            } else {
+                log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
+                setTimeout(function () {
+                    gdriveDelete(chunkId, provider, nbDelete, folder);
+                }, 500);
+            }
+        });
+    }
+}
+
+function gdriveSync(chunks, provider, orphans) {
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents+and+trashed+%3D+false';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        response.content.readAsStringAsync().then(function (jsonInfo) {
+            data = $.parseJSON(jsonInfo);
+            if (data['files'] != undefined) {
+                data.files.forEach(function (f) {
+                    if (indexOfChunk(chunks, f['name']) == -1) {
+                        orphans.push({ 'name': f['name'], 'id': f['id'], 'provider': provider });
+                    }
+                });
+                g_complete++;
+                syncComplete(orphans);
+            } else {
+                log('Google Drive Sync Error: no contents');
+            }
+        });
     });
 }

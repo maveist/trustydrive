@@ -1,6 +1,8 @@
-﻿//TODO detect the end of a file upload: use an uploadComplete() function
+﻿//TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Use provider instead of token for dropbox functions
 //TODO Remove the exists property of chunk while dumping the configuration
+//TODO Limit the number of consecutive automatic attempts when an operation fails
+//TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 //LOGIN remy / toto
 
 // Global variables

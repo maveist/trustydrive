@@ -53,10 +53,12 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
     }
 }
 
+// Remove this provider of the provider list then spread the metadata between the remaining providers
+// The configuration chunk on this provider is deleted
 function deleteProvider(provider) {
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
-    var chunkName = configurationChunkName(provider);
+    var chunkId, chunkName = configurationChunkName(provider);
     var index = g_providers.indexOf(provider);
     var myprovider, message, errorFiles = [];
     log('Try to Delete the provider ' + provider.provider + '/' + provider.user);
@@ -87,12 +89,20 @@ function deleteProvider(provider) {
                     }
                 });
                 // Delete the chunk related to the configuration
+                if (provider.provider == 'gdrive') {
+                    // For Google Drive, get the ID of the chunk
+                    g_files[g_configName].chunks.forEach(function (c) {
+                        if (c.name == chunkName) {
+                            chunkId = c.id;
+                        }
+                    });
+                }
                 switch (provider.provider) {
                     case 'dropbox':
-                        dropboxDelete(chunkName, provider.token);
+                        dropboxDelete(chunkName, provider, 1, g_folders[g_homeFolderName]);
                         break;
                     case 'gdrive':
-                        gdriveDelete(chunkName, provider);
+                        gdriveDelete(chunkId, provider, 1, g_folders[g_homeFolderName]);
                         break;
                 }
                 if (g_files[g_configName] != undefined) {

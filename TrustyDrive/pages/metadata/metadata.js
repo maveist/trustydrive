@@ -68,14 +68,18 @@
         });//$.each(g_files
         // Check consistency button
         $('#orphaned-files').click(function () {
-            switch (provider.provider) {
-                case 'dropbox':
-                    dropboxSync(allChunks);
-                    break;
-                case 'gdrive':
-                    gdriveSync();
-                    break;
-            }
+            var orphans = [];
+            g_complete = 0;
+            g_providers.forEach(function (p) {
+                switch (p.provider) {
+                    case 'dropbox':
+                        dropboxSync(allChunks, p, orphans);
+                        break;
+                    case 'gdrive':
+                        gdriveSync(allChunks, p, orphans);
+                        break;
+                }
+            });
         });
     }
 })
@@ -108,12 +112,12 @@ function deleteOrphansDialog(orphans) {
             g_complete = 0;
             progressBar(g_complete, orphans.length + 1, 'Initialization', 'Delete Unused Chunks');
             orphans.forEach(function (o) {
-                switch (provider.provider) {
+                switch (o.provider.provider) {
                     case 'dropbox':
                         dropboxDelete(o.name, o.provider, orphans.length, g_folders[g_homeFolderName]);
                         break;
                     case 'gdrive':
-                        gdriveDelete();
+                        gdriveDelete(o.id, o.provider, orphans.length, g_folders[g_homeFolderName]);
                         break;
                 }
             });

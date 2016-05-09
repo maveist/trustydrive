@@ -191,7 +191,7 @@ function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
                 break;
             case 'gdrive':
                 setTimeout(function () {
-                    gdriveDelete(file.chunks[chunkIdx]['name'], providers[providerIdx], nbDelete, folder);
+                    gdriveDelete(file.chunks[chunkIdx]['id'], providers[providerIdx], nbDelete, folder);
                 }, 500);
                 break;
         }
@@ -206,6 +206,12 @@ function deleteComplete(nbDelete, folder) {
         uploadConfiguration();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
+    }
+}
+
+function syncComplete(orphans) {
+    if (g_complete == g_providers.length) {
+        deleteOrphansDialog(orphans);
     }
 }
 

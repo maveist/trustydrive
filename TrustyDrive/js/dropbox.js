@@ -14,6 +14,7 @@ function dropboxCreateFolder(token, func) {
     });
 }
 
+// nbDelete: number of chunks to delete to complete the operation
 function dropboxDelete(chunkName, provider, nbDelete, folder) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -129,33 +130,26 @@ function dropboxLogin(func) {
     });
 }
 
-function dropboxSync(chunks) {
-    var orphans = [];
+function dropboxSync(chunks, provider, orphans) {
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = new Windows.Foundation.Uri('https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder);
-    g_complete = 0;
-    $.each(g_providers, function (index, p) {
-        //BUG Test if it is a dropbox provider
-        var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, uri);
-        requestMessage.headers.append('Authorization', 'Bearer ' + p.token);
-        httpClient.sendRequestAsync(requestMessage).then(function (response) {
-            response.content.readAsStringAsync().then(function (jsonInfo) {
-                data = $.parseJSON(jsonInfo);
-                if (data['contents'] != undefined) {
-                    data.contents.forEach(function (c) {
-                        var chunkName = c['path'].substring(c['path'].lastIndexOf("/") + 1, c['path'].length);
-                        if (indexOfChunk(chunks, chunkName) == -1) {
-                            orphans.push({ 'name': chunkName, 'provider': p });
-                        }
-                    });
-                    g_complete++;
-                    if (g_complete == g_providers.length) {
-                        deleteOrphansDialog(orphans);
+    var uri = 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder;
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        response.content.readAsStringAsync().then(function (jsonInfo) {
+            data = $.parseJSON(jsonInfo);
+            if (data['contents'] != undefined) {
+                data.contents.forEach(function (c) {
+                    var chunkName = c['path'].substring(c['path'].lastIndexOf("/") + 1, c['path'].length);
+                    if (indexOfChunk(chunks, chunkName) == -1) {
+                        orphans.push({ 'name': chunkName, 'provider': provider });
                     }
-                } else {
-                    log('No contents');
-                }
-            });
+                });
+                g_complete++;
+                syncComplete(orphans);
+            } else {
+                log('Dropbox Sync Error: no contents');
+            }
         });
     });
 }

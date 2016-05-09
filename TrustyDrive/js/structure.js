@@ -90,10 +90,11 @@ function setPath(folder, file) {
 }
 
 function indexOfChunk(chunks, chunkName) {
+    var result = -1;
     $.each(chunks, function (idx, c) {
         if (c.name == chunkName) {
-            return idx;
+            result = idx;
         }
     });
-    return -1;
+    return result;
 }
