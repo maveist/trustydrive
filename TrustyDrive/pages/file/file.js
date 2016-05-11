@@ -194,6 +194,11 @@ function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
                     gdriveDelete(file.chunks[chunkIdx]['id'], providers[providerIdx], nbDelete, folder);
                 }, 500);
                 break;
+            case 'onedrive':
+                setTimeout(function () {
+                    oneDriveDelete(file.chunks[chunkIdx]['id'], providers[providerIdx], nbDelete, folder);
+                }, 500);
+                break;
         }
         deleteChunks(file, providers, chunkIdx + 1, nbDelete, folder);
     }

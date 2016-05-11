@@ -104,6 +104,9 @@ function deleteProvider(provider) {
                     case 'gdrive':
                         gdriveDelete(chunkId, provider, 1, g_folders[g_homeFolderName]);
                         break;
+                    case 'onedrive':
+                        oneDriveDelete(chunkId, provider, 1, g_folders[g_homeFolderName]);
+                        break;
                 }
                 if (g_files[g_configName] != undefined) {
                     g_files[g_configName]['chunks'].splice(indexOfChunk(g_files[g_configName]['chunks'], chunkName), 1);

@@ -59,6 +59,9 @@
                             case 'gdrive':
                                 gdriveExists(chunkName, provider, chunkStatus);
                                 break;
+                            case 'onedrive':
+                                oneDriveExists(chunkName, provider, chunkStatus);
+                                break;
                         }
                     }
                     list.fadeIn('fast');
@@ -77,6 +80,9 @@
                         break;
                     case 'gdrive':
                         gdriveSync(allChunks, p, orphans);
+                        break;
+                    case 'onedrive':
+                        oneDriveSync(allChunks, p, orphans);
                         break;
                 }
             });
@@ -118,6 +124,9 @@ function deleteOrphansDialog(orphans) {
                         break;
                     case 'gdrive':
                         gdriveDelete(o.id, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                        break;
+                    case 'onedrive':
+                        oneDriveDelete(o.id, o.provider, orphans.length, g_folders[g_homeFolderName]);
                         break;
                 }
             });

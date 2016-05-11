@@ -33,6 +33,14 @@
                 }
             });
         });
-        $('.add-onedrive').click(oneDriveLogin);
+        $('.add-onedrive').click(function () {
+           oneDriveLogin(function () {
+                if (g_providers.length > 1) {
+                    WinJS.Navigation.navigate('/pages/login/login.html', '');
+                } else {
+                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                }
+            });
+        });
     }
 })

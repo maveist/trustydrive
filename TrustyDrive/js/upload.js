@@ -33,7 +33,7 @@
             }
         }
         for (p = 0; p < g_providers.length; p++) {
-            if (g_providers[p].provider == 'gdrive' && chunkBuffers[p].created) {
+            if (chunkBuffers[p].created) {
                 // Close the multipart section for Google Drive providers
                 chunkBuffers[p].stream.writeString('\n--trustydrive_separator--');
             }
@@ -49,6 +49,9 @@
                         // Update the content of an existing chunk
                         gdriveUpdate(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     }
+                    break;
+                case 'onedrive':
+                    oneDriveUpload(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     break;
             }
             chunkBuffers[p].stream.close();
@@ -168,6 +171,9 @@ function uploadChunks(filename, folder, readStream) {
                             case 'gdrive':
                                 gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                 break;
+                            case 'onedrive':
+                                oneDriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
+                                break;
                         }
                     }
                 }
@@ -188,6 +194,9 @@ function uploadChunks(filename, folder, readStream) {
                                 case 'gdrive':
                                     gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
                                     break;
+                                case 'onedrive':
+                                    oneDriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
+                                    break;
                             }
                         }
                     }
@@ -197,12 +206,20 @@ function uploadChunks(filename, folder, readStream) {
     }
     // Set the providers of the file to the current providers
     file['providers'] = [];
+    if (filename == g_configName) {
+        existingChunks = file.chunks.slice(0);
+        file.chunks = [];
+    }
     g_providers.forEach(function (p) {
+        var index;
         file.providers.push({ 'provider': p.provider, 'user': p.user });
         if (filename == g_configName) {
+            index = indexOfChunk(existingChunks, configurationChunkName(p));
             // Generate chunk names for the configuration
-            if (indexOfChunk(file.chunks, configurationChunkName(p)) == -1) {
-                file['chunks'].push({ 'name': configurationChunkName(p) });
+            if (index == -1) {
+                file.chunks.push({ 'name': configurationChunkName(p) });
+            } else {
+                file.chunks.push(existingChunks[index]);
             }
         }
     });
@@ -249,7 +266,6 @@ function uploadChunks(filename, folder, readStream) {
 
 // Configuration management
 function uploadConfiguration() {
-    //TODO remove the exists property of chunks
     var config = JSON.stringify(g_files);
     var crypto = Windows.Security.Cryptography;
     var cBuffer = crypto.CryptographicBuffer;

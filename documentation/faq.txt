@@ -35,3 +35,7 @@ stockés (12 morceaux de même taille => de 1 à 4 fichiers).
 Pour une taille maximale de 2 Mo, on obtient 3x1 Mo pour A et 6x1,5 Mo pour B. Si un attaquant récupère les 9 morceaux, il sait qu'il y a probablement 2 fichiers (peut-être 3 fichiers si les morceaux de B 
 appartiennent à des fichiers différents). De plus, il est capable d'identifier les morceaux appartenant à A (ils ont une taille de 1 Mo) et les morceaux appartenant à B (ils ont une taille de 1,5 Mo).
 Pour une taille de 0,5 Mo, on obtient 24 morceaux de taille identique. Le nombre de combinaisons pour l'attaquant augmentent (entre 1 à 8 fichiers).
+
+7. Dans le metadata editor, TrustyDrive marque en erreur des chunks qui sont présent sur mon OneDrive ?
+Nous avons des certaines erreurs de détection des créations et des effacements des chunks dûs au cache de OneDrive. Habituellement, redémarrer l'application corrige le problème.
+

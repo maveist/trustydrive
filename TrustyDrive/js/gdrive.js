@@ -217,7 +217,7 @@ function gdriveDelete(chunkId, provider, nbDelete, folder) {
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
     if (chunkId == undefined) {
-        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
+        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user);
     } else {
         requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
         httpClient.sendRequestAsync(requestMessage).then(function (response) {

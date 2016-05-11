@@ -1,7 +1,10 @@
-﻿//TODO Detect the end of a file upload: use an uploadComplete() function
+﻿//BUG Start with a provider that has not a metadata chunk, check in the metadata editor
+//TODO Display the email for onedrive providers. Save the email in the metadata
+//TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Limit the number of consecutive automatic attempts when an operation fails
-//TODO Minimize the saved configuration/metadata (remove config?, exist property...)
+//TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
+//TEST Delete deleted chunks
 //LOGIN remy / toto
 
 // Global variables

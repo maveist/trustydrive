@@ -92,6 +92,7 @@
     <Content Include="images\style\folder.png" />
     <Content Include="images\style\gdrive-small.png" />
     <Content Include="images\style\home.png" />
+    <Content Include="images\style\onedrive-small.png" />
     <Content Include="images\style\remove-provider.png" />
     <Content Include="images\style\local-delete.png" />
     <Content Include="images\style\move.png" />

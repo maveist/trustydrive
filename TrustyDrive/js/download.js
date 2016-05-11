@@ -9,6 +9,9 @@
             case 'gdrive':
                 gdriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
                 break;
+            case 'onedrive':
+                oneDriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
+                break;
         }
     }
 }
@@ -107,7 +110,7 @@ function downloadConfiguration(args) {
         args = { 'providers': [], 'chunks': [], 'exists': false, 'all': [], 'idx': -1 };
     }
     args.idx++;
-        // Check if configuration chunks exist, configuration = 1 chunk per provider
+    // Check if configuration chunks exist, configuration = 1 chunk per provider
     if (args.idx < g_providers.length) {
         switch (g_providers[args.idx].provider) {
             case 'dropbox':
@@ -115,6 +118,9 @@ function downloadConfiguration(args) {
                 break;
             case 'gdrive':
                 gdriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                break;
+            case 'onedrive':
+                oneDriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
                 break;
         }
     } else {

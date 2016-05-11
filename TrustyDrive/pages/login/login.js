@@ -7,7 +7,9 @@
         var credentials = passwordVault.retrieveAll();
         //TESTING Delete all credentials
         //credentials.forEach(function (c) {
-        //    passwordVault.remove(c);
+        //    if (c.resource == 'onedrive') {
+        //        passwordVault.remove(c);
+        //    }
         //});
         // Check the working folder configuration
         if (g_workingFolder == undefined) {
@@ -57,8 +59,6 @@ function connect(credentials, idx, vault) {
         log('Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
         switch (credentials[idx].resource) {
-            case 'box':
-                break;
             case 'dropbox':
                 dropboxUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
                     connect(credentials, idx + 1, vault);
@@ -70,6 +70,9 @@ function connect(credentials, idx, vault) {
                 });
                 break;
             case 'onedrive':
+                oneDriveUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
+                    connect(credentials, idx + 1, vault);
+                });
                 break;
         }
     } else {
