@@ -1,10 +1,17 @@
-﻿//BUG Start with a provider that has not a metadata chunk, check in the metadata editor
-//TODO Display the email for onedrive providers. Save the email in the metadata
+﻿//TODO Display the email for onedrive providers. Save the email in the metadata
 //TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Limit the number of consecutive automatic attempts when an operation fails
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
+//TODO Only Dropbox creates the 'trustydrive' folder on every upload
+//TODO From addprovider panel come back to addprovider panel - use a link to navigate to the login panel
+
+//BUG Login without loading a configuration file must not be allowed - Login with wrong login/password must be an error
+//BUG Start with a provider that has not a metadata chunk, check in the metadata editor
+//BUG After configuring 3 providers, delete the last provider does not work
+
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 //TEST Delete deleted chunks
+
 //LOGIN remy / toto
 
 // Global variables
