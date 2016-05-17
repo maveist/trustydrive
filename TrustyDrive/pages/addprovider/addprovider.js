@@ -15,32 +15,25 @@
         } else {
             g_providers.forEach(function (p) {
                 if (p.provider == 'onedrive') {
-                    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(p.user + '.name').then(function (file) {
-                        Windows.Storage.FileIO.readTextAsync(file).then(function (name) {
-                            $('#registered').append('<li>' + p.provider + ' - ' + name + '</li>');
-                        });
-                    }, function () {
-                        $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
-                    });
+                    $('#registered').append('<li>' + p.provider + ' - ' + p.username + '</li>');
                 } else {
                     $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
                 }
             });
         }
         $('.add-dropbox').click(function () {
-            // Display a waiting wheel
             dropboxLogin(function () {
-                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
             });
         });
         $('.add-drive').click(function () {
             gdriveLogin(function () {
-                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
             });
         });
         $('.add-onedrive').click(function () {
-           oneDriveLogin(function () {
-                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+            oneDriveLogin(function () {
+                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
             });
         });
     }

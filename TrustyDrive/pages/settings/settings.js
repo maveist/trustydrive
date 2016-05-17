@@ -51,21 +51,24 @@
             }
             g_providers.forEach(function (p) {
                 var embed = $('<div class="remove-provider"></div>');
-                var div;
-                if (p.user.length > 26) {
-                    div = $('<div class="used-account">...' + p.user.substring(p.user.length - 23, p.user.length) + '</div>');
+                var div, username = p.user;
+                if (p.provider == 'onedrive') {
+                    username = p.username;
+                }
+                if (username.length > 26) {
+                    div = $('<div class="used-account">...' + username.substring(username.length - 23, username.length) + '</div>');
                 } else {
-                    div = $('<div class="used-account">' + p.user + '</div>');
+                    div = $('<div class="used-account">' + username + '</div>');
                 }
                 div.append(embed);
                 div.css('background', 'url(../../images/style/' + p.provider + '.png) no-repeat');
                 embed.click(function () {
                     deleteProvider(p);
                 });
-                // Display size in MB
-                log('User: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1));
                 // Display currently used accounts
                 $('.my-accounts').append(div);
+                // Display size in MB
+                //log('User: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1));
             });
             // Display the current working directory path
             if (futureAccess.containsItem('PickedFolderToken')) {

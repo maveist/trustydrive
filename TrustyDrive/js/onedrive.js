@@ -29,7 +29,6 @@ function oneDriveLogin(func) {
             httpClient.sendRequestAsync(requestMessage).then(function (response) {
                 if (response.isSuccessStatusCode) {
                     response.content.readAsStringAsync().then(function (jsonInfo) {
-                        $('body').append(jsonInfo);
                         oneDriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
                     });
                 } else {
@@ -56,7 +55,7 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
         if (response.isSuccessStatusCode) {
             response.content.readAsStringAsync().then(function (jsonInfo) {
                 var data = $.parseJSON(jsonInfo);
-                var token = data['access_token'], found = undefined;
+                var token = data['access_token'], provider;
                 refreshToken = data['refresh_token'];
                 // Get the user information
                 uri = 'https://api.onedrive.com/v1.0/drive';
@@ -70,25 +69,17 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
                             data = $.parseJSON(jsonInfo);
                             userId = data['owner']['user']['id'];
                             // Save tokens
-                            g_providers.forEach(function (p) {
-                                if (p.provider == 'onedrive') {
-                                    found = p;
-                                }
+                            provider = createProvider('onedrive', userId, refreshToken, token, data['quota']['remaining'], data['quota']['total']);
+                            provider.username = data['owner']['user']['displayName'];
+                            // Save the username in a file
+                            Windows.Storage.ApplicationData.current.localFolder.createFileAsync(userId + '.name', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+                                Windows.Storage.FileIO.writeTextAsync(file, provider.username).then();
                             });
-                            if (found == undefined) {
-                                found = createProvider('onedrive', userId, refreshToken, token, data['quota']['remaining'], data['quota']['total']);
-                                Windows.Storage.ApplicationData.current.localFolder.createFileAsync(userId + '.name', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                                    Windows.Storage.FileIO.writeTextAsync(file, data['owner']['user']['displayName']).then();
-                                });
-                            } else {
-                                found.token = token;
-                                found.refresh = refreshToken;
-                            }
-                            // Save the name of the oneDrive account
-                            oneDriveFolderExist(found, func);
+                            // Create the TrustyDrive folder
+                            oneDriveFolderExist(provider, func);
                         });
                     } else {
-                        $('body').append('onedrive connection failed!');
+                        log('onedrive connection failed!');
                     }
                 });
             });

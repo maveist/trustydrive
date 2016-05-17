@@ -66,7 +66,7 @@ function downloadComplete(file, myProviders, folder, writer) {
                                 } else {
                                     // Delete the metadata
                                     g_files = { [g_configName]: g_files[g_configName] };
-                                    error = 'Wrong login or password!';
+                                    error = 'The user "' + g_files[g_configName].user + '" does not exist or the password is incorrect.';
                                 }
                             } catch (ex) {
                                 log('error when parsing configuration: ' + ex);
@@ -128,7 +128,7 @@ function downloadConfiguration(args) {
         writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
         g_complete = 0;
         if (file['chunks'].length == 0) {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + file.user + '" does not exist or the password is incorrect.');
         } else {
             progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
             downloadChunks(file, args.providers, undefined, g_complete, writer);

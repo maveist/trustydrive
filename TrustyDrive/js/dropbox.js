@@ -113,19 +113,10 @@ function dropboxLogin(func) {
     uri += 'client_id=qsg6s8c70g3newe&';
     uri += 'redirect_uri=' + webAuthenticationBroker.getCurrentApplicationCallbackUri();
     webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(function (response) {
+        var token, data = response.responseData;
         if (response.responseStatus == webtools.WebAuthenticationStatus.success) {
-            var data = response.responseData;
-            var token = data.substring(data.indexOf('=') + 1, data.indexOf('&'));
-            // Check that the 'trustydrive' folder exists
-            dropboxExists('', { 'token': token }, function (args) {
-                if (args.exists) {
-                    dropboxUserInfo(token, false, func);
-                } else {
-                    dropboxCreateFolder(token, function () {
-                        dropboxUserInfo(token, false, func);
-                    });
-                }
-            });
+            token = data.substring(data.indexOf('=') + 1, data.indexOf('&'));
+            dropboxUserInfo(token, false, func);
         } else {
             $('.interface-body').append('<span class="error-message">Login failure: please retry to sign in later</span>');
             setTimeout(function () {

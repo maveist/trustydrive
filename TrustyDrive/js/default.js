@@ -1,8 +1,6 @@
-﻿//TODO From addprovider panel come back to addprovider panel - use a link to navigate to the login panel
-//TODO Limit the number of consecutive automatic attempts when an operation fails
+﻿//TODO Limit the number of consecutive automatic attempts when an operation fails
 //TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
-//TODO Only Dropbox creates the 'trustydrive' folder on every upload
 
 //BUG Login without loading a configuration file must not be allowed - Login with wrong login/password must be an error
 //BUG Start with a provider that has not a metadata chunk, check in the metadata editor

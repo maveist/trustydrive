@@ -49,6 +49,10 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
         g_files[g_configName].chunks.push(provider.user);
         return provider;
     } else {
+        found.token = token;
+        found.refresh = refreshToken;
+        found.free = freeStorage;
+        found.total = totalStorage;
         return found;
     }
 }

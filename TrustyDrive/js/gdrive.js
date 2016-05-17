@@ -58,23 +58,13 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
                 httpClient.sendRequestAsync(requestMessage).then(function (success) {
                     if (success.isSuccessStatusCode) {
                         success.content.readAsStringAsync().then(function (jsonInfo) {
-                            var data = $.parseJSON(jsonInfo), found = undefined;
-                            // Check if the provider already exists, then just update the token
-                            g_providers.forEach(function (p) {
-                                if (p.provider == 'gdrive' && p.user == data['user']['emailAddress']) {
-                                    found = p;
-                                }
-                            });
-                            if (found == undefined) {
-                                found = createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
+                            var data = $.parseJSON(jsonInfo), provider;
+                            provider = createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
                                     data['storageQuota']['limit'] - data['storageQuota']['usage'], data['storageQuota']['limit']);
-                            } else {
-                                found.token = token;
-                            }
-                            gdriveFolderExist(found, func);
+                            gdriveFolderExist(provider, func);
                         });
                     } else {
-                        log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+                        log('gDrive UserInfo Failure ' + success.statusCode + ': ' + success.reasonPhrase);
                     }
                 });
             });

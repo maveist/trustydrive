@@ -7,35 +7,32 @@
         var credentials = passwordVault.retrieveAll();
         //TESTING Delete all credentials
         //credentials.forEach(function (c) {
-        //    if (c.resource == 'onedrive') {
-        //        passwordVault.remove(c);
-        //    }
+        //    passwordVault.remove(c);
         //});
-        // Check the working folder configuration
+        // Create the default metadata
+        if (g_files[g_configName] == undefined) {
+            // Create the home folder
+            home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
+            g_folders[g_homeFolderName] = home;
+            // Initialize the metadata of files
+            g_files = {};
+            g_files[g_configName] = { 'name': g_configName, 'user': '', 'password': '', 'chunks': [], 'providers': [] };
+        }
         if (g_workingFolder == undefined) {
+            // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
+        } else if (credentials.length < 2) {
+            // There are not enough providers
+            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
-            if (g_files[g_configName] == undefined) {
-                // Create the home folder
-                home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
-                g_folders[g_homeFolderName] = home;
-                // Initialize the metadata of files
-                g_files = {};
-                g_files[g_configName] = { 'name': g_configName, 'user': '', 'password': '', 'chunks': [], 'providers': [] };
-            }
-            if (g_files[g_configName].chunks.length == 0 && credentials.length > 0) {
+            if (g_files[g_configName].user.length == 0 && g_files[g_configName].chunks.length == 0) {
                 // Connect to existing providers
                 progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
                 setTimeout(function () {
                     connect(credentials, 0, passwordVault);
                 }, 300);
             } else {
-                if (g_providers.length < 2) {
-                    // Add a new cloud provider
-                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-                } else {
-                    showConnectFields(logError);
-                }
+                showConnectFields(logError);
             }
         }
     }
@@ -73,10 +70,11 @@ function connect(credentials, idx, vault) {
                 });
                 break;
             case 'onedrive':
+                // Get the name of the user from a file
                 Windows.Storage.ApplicationData.current.localFolder.getFileAsync(user + '.name').then(function (file) {
                     Windows.Storage.FileIO.readTextAsync(file).then(function (userName) {
                         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + userName);
-                        oneDriveUserInfo(vault.retrieve(provider, user).password, true, function () {
+                        oneDriveUserInfo(vault.retrieve(provider, user).password, true,function () {
                             connect(credentials, idx + 1, vault);
                         });
                     });
@@ -89,14 +87,8 @@ function connect(credentials, idx, vault) {
                 break;
         }
     } else {
-        // Connections to every provider are etablished
-        if (g_providers.length < 2) {
-            // Users must add providers, at least 2 providers is required
-            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-        } else {
-            // Enter the login/password to load metadata
-            WinJS.Navigation.navigate('/pages/login/login.html', '');
-        }
+        // Enter the login/password to load metadata
+        WinJS.Navigation.navigate('/pages/login/login.html', '');
     }
 }
 
