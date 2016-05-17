@@ -55,23 +55,36 @@ function connectToFilesystem() {
 }
 
 function connect(credentials, idx, vault) {
+    var provider, user;
     if (idx < credentials.length) {
-        log('Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
-        progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + credentials[idx].resource + ' with ' + credentials[idx].userName);
-        switch (credentials[idx].resource) {
+        var provider = credentials[idx].resource;
+        var user = credentials[idx].userName;
+        switch (provider) {
             case 'dropbox':
-                dropboxUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
+                progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + user);
+                dropboxUserInfo(vault.retrieve(provider, user).password, true, function () {
                     connect(credentials, idx + 1, vault);
                 });
                 break;
             case 'gdrive':
-                gdriveUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
+                progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + user);
+                gdriveUserInfo(vault.retrieve(provider, user).password, true, function () {
                     connect(credentials, idx + 1, vault);
                 });
                 break;
             case 'onedrive':
-                oneDriveUserInfo(vault.retrieve(credentials[idx].resource, credentials[idx].userName).password, true, function () {
-                    connect(credentials, idx + 1, vault);
+                Windows.Storage.ApplicationData.current.localFolder.getFileAsync(user + '.name').then(function (file) {
+                    Windows.Storage.FileIO.readTextAsync(file).then(function (userName) {
+                        progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + userName);
+                        oneDriveUserInfo(vault.retrieve(provider, user).password, true, function () {
+                            connect(credentials, idx + 1, vault);
+                        });
+                    });
+                }, function () {
+                    progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + user);
+                    oneDriveUserInfo(vault.retrieve(provider, user).password, true, function () {
+                        connect(credentials, idx + 1, vault);
+                    });
                 });
                 break;
         }

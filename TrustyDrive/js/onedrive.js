@@ -62,7 +62,9 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
                 httpClient.sendRequestAsync(requestMessage).then(function (success) {
                     if (success.isSuccessStatusCode) {
                         success.content.readAsStringAsync().then(function (jsonInfo) {
+                            var userId;
                             data = $.parseJSON(jsonInfo);
+                            userId = data['owner']['user']['id'];
                             // Save tokens
                             g_providers.forEach(function (p) {
                                 if (p.provider == 'onedrive') {
@@ -70,15 +72,19 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
                                 }
                             });
                             if (found == undefined) {
-                                found = createProvider('onedrive', data['owner']['user']['id'], refreshToken, token, data['quota']['remaining'], data['quota']['total']);
+                                found = createProvider('onedrive', userId, refreshToken, token, data['quota']['remaining'], data['quota']['total']);
+                                Windows.Storage.ApplicationData.current.localFolder.createFileAsync(userId + '.name', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+                                    Windows.Storage.FileIO.writeTextAsync(file, data['owner']['user']['displayName']).then();
+                                });
                             } else {
                                 found.token = token;
                                 found.refresh = refreshToken;
                             }
+                            // Save the name of the oneDrive account
                             oneDriveFolderExist(found, func);
                         });
                     } else {
-                        log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+                        $('body').append('onedrive connection failed!');
                     }
                 });
             });
