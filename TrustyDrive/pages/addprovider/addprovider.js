@@ -7,39 +7,40 @@
         $('.upper-settings').click(function () {
             WinJS.Navigation.navigate('/pages/settings/settings.html');
         });
+        $('.signin-link').click(function () {
+            WinJS.Navigation.navigate('/pages/login/login.html', '');
+        });
         if (g_providers.length == 0) {
             $('#registered').append('<b>none</b>');
         } else {
             g_providers.forEach(function (p) {
-                $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
+                if (p.provider == 'onedrive') {
+                    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(p.user + '.name').then(function (file) {
+                        Windows.Storage.FileIO.readTextAsync(file).then(function (name) {
+                            $('#registered').append('<li>' + p.provider + ' - ' + name + '</li>');
+                        });
+                    }, function () {
+                        $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
+                    });
+                } else {
+                    $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
+                }
             });
         }
         $('.add-dropbox').click(function () {
             // Display a waiting wheel
             dropboxLogin(function () {
-                if (g_providers.length > 1) {
-                    WinJS.Navigation.navigate('/pages/login/login.html', '');
-                } else {
                     WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-                }
             });
         });
         $('.add-drive').click(function () {
             gdriveLogin(function () {
-                if (g_providers.length > 1) {
-                    WinJS.Navigation.navigate('/pages/login/login.html', '');
-                } else {
                     WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-                }
             });
         });
         $('.add-onedrive').click(function () {
            oneDriveLogin(function () {
-                if (g_providers.length > 1) {
-                    WinJS.Navigation.navigate('/pages/login/login.html', '');
-                } else {
                     WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-                }
             });
         });
     }

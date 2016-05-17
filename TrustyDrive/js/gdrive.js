@@ -8,36 +8,33 @@ function gdriveLogin(func) {
         + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
         + 'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive';
     webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(function (response) {
-        if (response.responseStatus != 1) {
-            body.append('<b>Connection error</b>');
-            setTimeout(function () {
-                $('.user-interface').hide();
-            }, 2000);
-        } else {
-            $('.user-interface').show();
-            body = $('.interface-body');
-            body.empty();
-            body.append('Please enter the verification code: <input id="verif-code" type="text"></input><br><button id="verif-button">Done</button>');
-            $('#verif-button').click(function () {
-                var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-                uri = 'https://www.googleapis.com/oauth2/v3/token?'
-                    + 'code=' + $('#verif-code').val().replace('/', '%2F') + '&'
-                    + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
-                    + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
-                    + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
-                    + 'grant_type=authorization_code';
-                requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
-                httpClient.sendRequestAsync(requestMessage).then(function (success) {
-                    if (success.isSuccessStatusCode) {
-                        success.content.readAsStringAsync().then(function (jsonInfo) {
-                            gdriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
-                        });
-                    } else {
-                        log('Login Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-                    }
-                });
+        $('.user-interface').show();
+        body = $('.interface-body');
+        body.empty();
+        body.append('<div class="verification-code">Please enter the verification code: <input id="verif-code" type="text"></input><br>'
+            + '<button id="verif-button">Done</button><button id="cancel-button">Cancel</button></div>');
+        $('#cancel-button').click(function () {
+            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+        });
+        $('#verif-button').click(function () {
+            var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+            uri = 'https://www.googleapis.com/oauth2/v3/token?'
+                + 'code=' + $('#verif-code').val().replace('/', '%2F') + '&'
+                + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
+                + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
+                + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
+                + 'grant_type=authorization_code';
+            requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+            httpClient.sendRequestAsync(requestMessage).then(function (success) {
+                if (success.isSuccessStatusCode) {
+                    success.content.readAsStringAsync().then(function (jsonInfo) {
+                        gdriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
+                    });
+                } else {
+                    $('.interface-body').append('<span class="error-message">Login failure: please check the code or retry to sign in later</span><br>');
+                }
             });
-        }
+        });
     });
 }
 

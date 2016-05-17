@@ -16,7 +16,7 @@
 }
 
 .add-logos {
-    height: 200px;
+    height: 150px;
     text-align: center;
     font-size: 14px;
 }
@@ -44,4 +44,16 @@
 
 .main-add-provider span {
     font-size: 20px;
+}
+
+.signin-link {
+    font-weight: bold;
+}
+
+.verification-code {
+    padding: 10px;
+}
+
+.verification-code button {
+    margin-right: 5px;
 }

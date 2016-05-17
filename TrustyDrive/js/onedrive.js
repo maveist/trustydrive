@@ -26,13 +26,17 @@ function oneDriveLogin(func) {
             uri = 'https://login.live.com/oauth20_token.srf';
             requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
             requestMessage.content = new Windows.Web.Http.HttpStringContent(content, Windows.Storage.Streams.UnicodeEncoding.utf8, 'application/x-www-form-urlencoded');
-            httpClient.sendRequestAsync(requestMessage).then(function (response2) {
-                if (response2.isSuccessStatusCode) {
-                    response2.content.readAsStringAsync().then(function (jsonInfo) {
+            httpClient.sendRequestAsync(requestMessage).then(function (response) {
+                if (response.isSuccessStatusCode) {
+                    response.content.readAsStringAsync().then(function (jsonInfo) {
+                        $('body').append(jsonInfo);
                         oneDriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
                     });
                 } else {
-                    log('Login Failure ' + response2.statusCode + ': ' + response2.reasonPhrase);
+                    $('.interface-body').append('<span class="error-message">Login failure: please retry to sign in later</span>');
+                    setTimeout(function () {
+                        WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                    }, 5000);
                 }
             });
         });
