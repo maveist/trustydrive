@@ -1,9 +1,7 @@
 ﻿//TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
-//TODO Always use the g_providers object, do not create fake providers (deleteProviders)
 
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
-//TEST Delete deleted chunks
 
 //LOGIN remy / toto
 

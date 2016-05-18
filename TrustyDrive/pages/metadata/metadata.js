@@ -30,7 +30,6 @@
                             provider = g_providers[i % g_providers.length];
                         } else {
                             provider = file.providers[i % file.providers.length];
-                            provider = getProvider(provider.provider, provider.user);
                         }
                         account = provider.provider + '/' + provider.user
                         chunkDiv = $('<div title="' + chunkName + '" class="chunk-name"></div>');

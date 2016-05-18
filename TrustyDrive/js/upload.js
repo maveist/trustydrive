@@ -158,23 +158,18 @@ function uploadChunks(filename, folder, readStream) {
         if (file.providers.length != g_providers.length) {
             // Delete every chunk of all providers from the file metadata
             for (i = 0; i < file.providers.length; i++) {
-                provider = getProvider(file.providers[i].provider, file.providers[i].user);
-                if (provider == undefined) {
-                    log('Can not get the provider, delete chunks manually');
-                } else {
-                    log('Delete all chunks from ' + provider.provider + '/' + provider.user);
-                    for (j = 0; j < file.chunks.length; j += file.providers.length) {
-                        switch (provider.provider) {
-                            case 'dropbox':
-                                dropboxDelete(file.chunks[i + j]['name'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                            case 'gdrive':
-                                gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                            case 'onedrive':
-                                oneDriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                        }
+                log('Delete all chunks from ' + file.providers[i].provider + '/' + file.providers[i].user);
+                for (j = 0; j < file.chunks.length; j += file.providers.length) {
+                    switch (file.providers[i].provider) {
+                        case 'dropbox':
+                            dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                            break;
+                        case 'gdrive':
+                            gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                            break;
+                        case 'onedrive':
+                            oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                            break;
                     }
                 }
             }
@@ -182,22 +177,17 @@ function uploadChunks(filename, folder, readStream) {
             // Check the providers of the file are the same that the current providers
             for (i = 0; i < g_providers.length; i++) {
                 if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
-                    provider = getProvider(file.providers[i].provider, file.providers[i].user);
-                    if (provider == undefined) {
-                        log('Can not get the provider, delete chunks manually');
-                    } else {
-                        for (j = 0; j < file.chunks.length; j += file.providers.length) {
-                            switch (provider.provider) {
-                                case 'dropbox':
-                                    dropboxDelete(file.chunks[i + j]['name'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                    break;
-                                case 'gdrive':
-                                    gdriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                    break;
-                                case 'onedrive':
-                                    oneDriveDelete(file.chunks[i + j]['id'], provider, file.chunks.length, g_folders[g_homeFolderName]);
-                                    break;
-                            }
+                    for (j = 0; j < file.chunks.length; j += file.providers.length) {
+                        switch (provider.provider) {
+                            case 'dropbox':
+                                dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                                break;
+                            case 'gdrive':
+                                gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                                break;
+                            case 'onedrive':
+                                oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+                                break;
                         }
                     }
                 }
@@ -205,14 +195,14 @@ function uploadChunks(filename, folder, readStream) {
         }
     }
     // Set the providers of the file to the current providers
-    file['providers'] = [];
+    file.providers = [];
     if (filename == g_configName) {
         existingChunks = file.chunks.slice(0);
         file.chunks = [];
     }
     g_providers.forEach(function (p) {
         var index;
-        file.providers.push({ 'provider': p.provider, 'user': p.user, 'username': p.username });
+        file.providers.push(p);
         if (filename == g_configName) {
             index = indexOfChunk(existingChunks, configurationChunkName(p));
             // Generate chunk names for the configuration

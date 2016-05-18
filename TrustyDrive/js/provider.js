@@ -145,31 +145,6 @@ function deleteProvider(provider) {
     }
 }
 
-function filesOnProvider(filenames, myprovider) {
-    var current, errorFiles = [];
-    filenames.forEach(function (f) {
-        current = g_files[f];
-        if (current != undefined && current.name != g_configName) {
-            current.providers.forEach(function (p) {
-                if (p.provider == myprovider.provider && p.user == myprovider.user) {
-                    errorFiles.push(current);
-                }
-            });
-        }
-    });
-    return errorFiles;
-}
-
-function getProvider(provider, user) {
-    var result = undefined;
-    g_providers.forEach(function (p) {
-        if (p.user == user && p.provider == provider) {
-            result = p;
-        }
-    });
-    return result;
-}
-
 function log(message) {
     var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
     var dateString, d = new Date();

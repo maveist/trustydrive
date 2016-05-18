@@ -156,29 +156,13 @@
 
 // nbDelete = # of chunks of the file or # of chunks in the folder
 function cloudDelete(file, nbDelete, folder) {
-    var index = true;
-    var myProviders = [];
-    // Compute the providers used by the file
-    file.providers.forEach(function (p) {
-        var temp = getProvider(p.provider, p.user);
-        if (temp == undefined) {
-            index = false;
-            log('Can not get the provider ' + p.provider + '/' + p.user);
-        } else {
-            myProviders.push(temp);
-        }
-    });
-    if (index) {
-        log('Delete the file ' + file.name + ' inside ' + folder.name);
-        // Delete every chunks
-        deleteChunks(file, myProviders, 0, nbDelete, folder);
-        delete g_files[file.name];
-        index = folder.files.indexOf(file);
-        if (index > -1) {
-            folder.files.splice(index, 1);
-        }
-    } else {
-        //TODO Display an error and reload this file page
+    log('Delete the file ' + file.name + ' inside ' + folder.name);
+    // Delete every chunks
+    deleteChunks(file, file.providers, 0, nbDelete, folder);
+    delete g_files[file.name];
+    index = folder.files.indexOf(file);
+    if (index > -1) {
+        folder.files.splice(index, 1);
     }
 }
 

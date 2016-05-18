@@ -153,22 +153,7 @@ function downloadFile(file, folder) {
     progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the File ' + file.name);
     g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
         myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
-            var error = false;
-            var myProviders = [];
-            file.providers.forEach(function (p) {
-                var fullp = getProvider(p.provider, p.user);
-                if (fullp == undefined) {
-                    log('Can not download the file: missing the provider ' + p.provider + '/' + p.user);
-                    error = true;
-                } else {
-                    myProviders.push(fullp);
-                }
-            });
-            if (error) {
-                output.close();
-            } else {
-                downloadChunks(file, myProviders, folder, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
-            }
+            downloadChunks(file, file.providers, folder, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
         });
     });
 }
