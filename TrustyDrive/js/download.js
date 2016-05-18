@@ -52,7 +52,6 @@ function downloadComplete(file, myProviders, folder, writer) {
                         var crypto = Windows.Security.Cryptography;
                         var cBuffer = crypto.CryptographicBuffer;
                         if (file.name == g_configName) {
-                            $('body').append('reading the configuration');
                             stream = writer.detachStream();
                             stream.seek(0);
                             reader = new Windows.Storage.Streams.DataReader(stream);
@@ -133,7 +132,6 @@ function downloadConfiguration(args) {
                 break;
         }
     } else {
-        $('body').append('download configuration');
         if (args['chunks'].length == 0) {
             WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + file.user + '" does not exist or the password is incorrect.');
         } else if (args['chunks'].length == 1) {

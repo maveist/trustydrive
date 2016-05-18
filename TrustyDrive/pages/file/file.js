@@ -124,23 +124,20 @@
             g_workingFolder.getFileAsync(file.name).then(
                 function (f) {
                     $('.menu-bar').css('top', height - 120);
-                    $('.upload').click(function () {
-                        uploadFile(file.name, folder);
-                    });
                     $('.open').click(function () {
-                        g_workingFolder.getFileAsync(file.name).done(function (file) {
-                            Windows.System.Launcher.launchFileAsync(file).done();
+                        g_workingFolder.getFileAsync(file.name).done(function (toOpen) {
+                            Windows.System.Launcher.launchFileAsync(toOpen).done();
                         });
                     });
                     $('.local-delete').click(function () {
-                        g_workingFolder.getFileAsync(file.name).then(function (f) {
-                            f.deleteAsync().then(function () {
+                        g_workingFolder.getFileAsync(file.name).then(function (toDelete) {
+                            toDelete.deleteAsync().then(function () {
                                 WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
                             });
                         });
                     });
                     f.getBasicPropertiesAsync().done(function (props) {
-                        if (props.size == f.size) {
+                        if (props.size == file.size) {
                             status.html('On the Local Drive');
                         } else {
                             status.html('To Be Upload');

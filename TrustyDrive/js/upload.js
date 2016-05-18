@@ -286,14 +286,6 @@ function uploadConfiguration() {
     }
 }
 
-function uploadFile(filename, folder) {
-    g_workingFolder.getFileAsync(filename).then(function (file) {
-        file.openReadAsync().done(function (readStream) {
-            uploadChunks(filename, folder, readStream);
-        });
-    });
-}
-
 function uploadNewFile(folder) {
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;
@@ -311,16 +303,43 @@ function uploadNewFile(folder) {
     filePicker.fileTypeFilter.replaceAll(['*']);
     // Open the picker for the user to pick a file
     filePicker.pickSingleFileAsync().then(function (file) {
+        var existing;
         if (file) {
             // Application now has read/write access to the picked file
-            file.openReadAsync().done(
-                function (readStream) {
-                    uploadChunks(file.name, folder, readStream);
-                },
-                function (error) {
-                    log('Failed to open read stream');
-                }
-            );
+            existing = g_files[file.name];
+            if (existing != undefined) {
+                var html = '<div class="interface-question">';
+                html += 'The file <b>' + file.name + '</b> already exists in <b>' + g_homeFolderName + existing.path + '</b>!<br>';
+                html += 'This action will overwrite the existing file. Would you like to upload a new version of this file?<br>';
+                html += '<br><br><div id="upload-button" class="interface-button">UPLOAD</div>' +
+                    '<div id="cancel-button" class="interface-button">CANCEL</div>';
+                html += '</div>';
+                $('.interface-body').empty();
+                $('.user-interface').show();
+                $('.interface-body').append(html);
+                $('#upload-button').click(function () {
+                    file.openReadAsync().done(
+                        function (readStream) {
+                            uploadChunks(file.name, folder, readStream);
+                        },
+                        function (error) {
+                            log('Failed to open read stream');
+                        }
+                    );
+                });
+                $('#cancel-button').click(function () {
+                    $('.user-interface').hide();
+                });
+            } else {
+                file.openReadAsync().done(
+                    function (readStream) {
+                        uploadChunks(file.name, folder, readStream);
+                    },
+                    function (error) {
+                        log('Failed to open read stream');
+                    }
+                );
+            }
         } else {
             // The picker was dismissed with no selected file
             log('No picked file');
