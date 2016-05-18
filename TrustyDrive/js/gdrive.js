@@ -144,11 +144,14 @@ function gdriveFolderExist(provider, func) {
     });
 }
 
-function gdriveUpload(file, chunkIdx, data, provider) {
+function gdriveUpload(file, chunkIdx, data, provider, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'multipart/related; boundary=trustydrive_separator');
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
@@ -158,16 +161,24 @@ function gdriveUpload(file, chunkIdx, data, provider) {
                 file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
             });
         } else {
-            log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('gDrive Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    gdriveUpload(chunk, data, provider, callNb + 1);
+                }, 1000);
+            }
         }
     });
 }
 
-function gdriveUpdate(file, chunkIdx, data, provider) {
+function gdriveUpdate(file, chunkIdx, data, provider, callNb) {
     // Update the content of an existing file from its ID
     var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + file.chunks[chunkIdx].id + '?uploadType=media';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.patch, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
@@ -177,15 +188,23 @@ function gdriveUpdate(file, chunkIdx, data, provider) {
             //success.content.readAsStringAsync().then(function (jsonInfo) {
             //});
         } else {
-            log('Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('gDrive Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    gdriveUpdate(file, chunkIdx, data, provider, callNb + 1);
+                }, 1000);
+            }
         }
     });
 }
 
-function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
+function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb) {
     var uri = 'https://www.googleapis.com/drive/v3/files/' + file.chunks[chunkIdx].id + '?alt=media';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
@@ -194,27 +213,42 @@ function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
                 downloadComplete(file, myProviders, folder, writer);
             });
         } else {
-            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('gDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb + 1);
+                }, 1000);
+            } else {
+                downloadComplete(file, myProviders, folder, writer);
+            }
         }
     });
 }
 
-function gdriveDelete(chunkId, provider, nbDelete, folder) {
+function gdriveDelete(chunkId, provider, nbDelete, folder, callNb) {
     var uri = 'https://www.googleapis.com/drive/v3/files/' + chunkId;
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     if (chunkId == undefined) {
         log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user);
     } else {
         requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
         httpClient.sendRequestAsync(requestMessage).then(function (response) {
-            if (response.isSuccessStatusCode) {
+            if (response.isSuccessStatusCode || response.statusCode == 404) {
                 deleteComplete(nbDelete, folder);
             } else {
                 log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
-                setTimeout(function () {
-                    gdriveDelete(chunkId, provider, nbDelete, folder);
-                }, 500);
+                if (callNb < 5) {
+                    setTimeout(function () {
+                        gdriveDelete(chunkId, provider, nbDelete, folder, callNb + 1);
+                    }, 500);
+                } else {
+                    // We delete the chunk later from the metadata editor
+                    deleteComplete(nbDelete, folder);
+                }
             }
         });
     }

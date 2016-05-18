@@ -110,7 +110,12 @@
             $('#file-upload').html(file.lastupload);
             // Display providers
             file.providers.forEach(function (p) {
-                var div = $('<div class="used-provider">' + p.user + '</div>');
+                var div;
+                if (p.provider == 'onedrive') {
+                    div = $('<div class="used-provider">' + p.username + '</div>');
+                } else {
+                    div = $('<div class="used-provider">' + p.user + '</div>');
+                }
                 div.css('background', 'url(../../images/style/' + p.provider + '-small.png) no-repeat');
                 // Display currently used accounts
                 $('.file-providers').append(div);
@@ -183,7 +188,7 @@ function cloudDelete(file, nbDelete, folder) {
 function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
     var providerIdx = chunkIdx % providers.length;
     if (chunkIdx < file.chunks.length) {
-        switch (provider[providerIdx].provider) {
+        switch (providers[providerIdx].provider) {
             case 'dropbox':
                 setTimeout(function () {
                     dropboxDelete(file.chunks[chunkIdx]['name'], providers[providerIdx], nbDelete, folder);

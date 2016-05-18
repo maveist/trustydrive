@@ -130,11 +130,14 @@ function oneDriveFolderExist(provider, func) {
     });
 }
 
-function oneDriveUpload(file, chunkIdx, data, provider) {
+function oneDriveUpload(file, chunkIdx, data, provider, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + ':/' + file.chunks[chunkIdx].name + ':/content?select=id';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
@@ -145,14 +148,24 @@ function oneDriveUpload(file, chunkIdx, data, provider) {
             });
         } else {
             log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveUpload(file, chunkIdx, data, provider, callNb + 1);
+                }, 1000);
+            } else {
+                // Fail to upload
+            }
         }
     });
 }
 
-function oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer) {
+function oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb) {
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + ':/' + file.chunks[chunkIdx].name + ':/content';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
@@ -161,7 +174,14 @@ function oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer)
                 downloadComplete(file, myProviders, folder, writer);
             });
         } else {
-            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('OneDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb + 1);
+                }, 1000);
+            } else {
+                downloadComplete(file, myProviders, folder, writer);
+            }
         }
     });
 }
@@ -220,19 +240,27 @@ function oneDriveSync(chunks, provider, orphans) {
     });
 }
 
-function oneDriveDelete(chunkId, provider, nbDelete, folder) {
+function oneDriveDelete(chunkId, provider, nbDelete, folder, callNb) {
     var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunkId;
+    if (callNb == undefined) {
+        callNb = 0;
+    }
     requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        if (response.isSuccessStatusCode) {
+        if (response.isSuccessStatusCode || response.statusCode == 404) {
             deleteComplete(nbDelete, folder);
         } else {
             log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
-            setTimeout(function () {
-                oneDriveDelete(chunkId, provider, nbDelete, folder);
-            }, 500);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveDelete(chunkId, provider, nbDelete, folder, callNb + 1);
+                }, 500);
+            } else {
+                // We delete the chunk later from the metadata editor
+                deleteComplete(nbDelete, folder);
+            }
         }
     });
 }

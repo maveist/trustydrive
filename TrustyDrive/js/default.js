@@ -1,5 +1,4 @@
-﻿//TODO Limit the number of consecutive automatic attempts when an operation fails
-//TODO Detect the end of a file upload: use an uploadComplete() function
+﻿//TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
 
 //BUG Login without loading a configuration file must not be allowed - Login with wrong login/password must be an error

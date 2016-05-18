@@ -123,10 +123,6 @@
         $.each(folder.files, function (useless, file) {
             if (file.name != g_configName) {
                 div = $('<div id="' + file.name + '" class="file ' + file.type + '">' + longName(file.name) + '</div>');
-                // Get ids of chunk to test the Google Drive driver
-                //file.chunks.forEach(function (c) {
-                //    $('body').append('ID: ' + c.id);
-                //});
                 div.click(function () {
                     WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
                 });

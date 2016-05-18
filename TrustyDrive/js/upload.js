@@ -212,7 +212,7 @@ function uploadChunks(filename, folder, readStream) {
     }
     g_providers.forEach(function (p) {
         var index;
-        file.providers.push({ 'provider': p.provider, 'user': p.user });
+        file.providers.push({ 'provider': p.provider, 'user': p.user, 'username': p.username });
         if (filename == g_configName) {
             index = indexOfChunk(existingChunks, configurationChunkName(p));
             // Generate chunk names for the configuration
