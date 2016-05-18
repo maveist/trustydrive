@@ -2,8 +2,6 @@
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
 //TODO Always use the g_providers object, do not create fake providers (deleteProviders)
 
-//BUG After configuring 3 providers, delete the last provider does not work
-
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 //TEST Delete deleted chunks
 

@@ -4,9 +4,6 @@
         $('.upper-back').click(function () {
             WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
-        $('.upper-settings').click(function () {
-            WinJS.Navigation.navigate('/pages/settings/settings.html');
-        });
         $('.signin-link').click(function () {
             WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
