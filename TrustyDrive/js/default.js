@@ -1,8 +1,7 @@
 ﻿//TODO Detect the end of a file upload: use an uploadComplete() function
 //TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
+//TODO Always use the g_providers object, do not create fake providers (deleteProviders)
 
-//BUG Login without loading a configuration file must not be allowed - Login with wrong login/password must be an error
-//BUG Start with a provider that has not a metadata chunk, check in the metadata editor
 //BUG After configuring 3 providers, delete the last provider does not work
 
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
@@ -13,16 +12,16 @@
 // Global variables
 // Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
-const g_configName = 'config1983stuff';
+const g_configName = 'trustydrive_metadata';
 // The maximum size in bytes of one chunk, 100 kB
 const g_maxChunkSize = 100000;
 const g_td_version = '0.1.0';
-var g_chunks = [];
-// The cloud folder id for Google Drive
+var g_chunks;
+// The cloud folder id for GoogleDrive and OneDrive
 var g_cloudFolderId;
 var g_complete;
 var g_files = {};
-var g_folders = {};
+var g_folders;
 var g_homeFolderName = 'Home';
 var g_providers = [];
 var g_workingFolder;

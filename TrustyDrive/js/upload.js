@@ -266,18 +266,24 @@ function uploadChunks(filename, folder, readStream) {
 
 // Configuration management
 function uploadConfiguration() {
-    var config = JSON.stringify(g_files);
-    var crypto = Windows.Security.Cryptography;
-    var cBuffer = crypto.CryptographicBuffer;
-    // Convert to buffer
-    var buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
-    // Encrypt configuration data
-    config = cBuffer.encodeToBase64String(buffer);
-    buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
-    // Save the configuration to the cloud
-    var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-    writer.writeAsync(buffer);
-    uploadChunks(g_configName, undefined, writer);
+    // Check the number of providers
+    if (g_providers.length < 2) {
+        WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+    } else {
+        // Upload the metadata
+        var config = JSON.stringify(g_files);
+        var crypto = Windows.Security.Cryptography;
+        var cBuffer = crypto.CryptographicBuffer;
+        // Convert to buffer
+        var buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
+        // Encrypt configuration data
+        config = cBuffer.encodeToBase64String(buffer);
+        buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
+        // Save the configuration to the cloud
+        var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+        writer.writeAsync(buffer);
+        uploadChunks(g_configName, undefined, writer);
+    }
 }
 
 function uploadFile(filename, folder) {

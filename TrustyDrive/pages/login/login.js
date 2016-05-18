@@ -11,19 +11,11 @@
         //});
         // Create the default metadata
         if (g_files[g_configName] == undefined) {
-            // Create the home folder
-            home = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
-            g_folders[g_homeFolderName] = home;
-            // Initialize the metadata of files
-            g_files = {};
-            g_files[g_configName] = { 'name': g_configName, 'user': '', 'password': '', 'chunks': [], 'providers': [] };
+            metadataInit('', '');
         }
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
-        } else if (credentials.length < 2) {
-            // There are not enough providers
-            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
         } else {
             if (g_files[g_configName].user.length == 0 && g_files[g_configName].chunks.length == 0) {
                 // Connect to existing providers
@@ -32,18 +24,32 @@
                     connect(credentials, 0, passwordVault);
                 }, 300);
             } else {
-                showConnectFields(logError);
+                if (g_providers.length < 2) {
+                    // There are not enough providers
+                    WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                } else {
+                    showConnectFields(logError);
+                }
             }
         }
     }
 })
+
+function metadataInit(user, password) {
+    // Initialize the metadata of folders
+    g_folders = {};
+    g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
+    // Initialize the metadata of files
+    g_files = {};
+    g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': password, 'chunks': [], 'providers': [] };
+}
 
 function connectToFilesystem() {
     var user = $('#connect-login').val(), pwd = $('#connect-pwd').val();
     if (user.length == 0 || pwd.length == 0) {
         $('#connect-error').html('<b>Wrong login or password!</b>');
     } else {
-        g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'chunks': [], 'providers': [] };
+        metadataInit(user, pwd);
         g_providers.forEach(function (p) {
             g_files[g_configName].chunks.push({ 'name': configurationChunkName(p) });
         });
@@ -74,7 +80,7 @@ function connect(credentials, idx, vault) {
                 Windows.Storage.ApplicationData.current.localFolder.getFileAsync(user + '.name').then(function (file) {
                     Windows.Storage.FileIO.readTextAsync(file).then(function (userName) {
                         progressBar(idx + 1, credentials.length + 1, 'Connecting to ' + provider + ' with ' + userName);
-                        oneDriveUserInfo(vault.retrieve(provider, user).password, true,function () {
+                        oneDriveUserInfo(vault.retrieve(provider, user).password, true, function () {
                             connect(credentials, idx + 1, vault);
                         });
                     });

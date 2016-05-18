@@ -212,7 +212,6 @@ function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
 function deleteComplete(nbDelete, folder) {
     g_complete++;
     if (g_complete == nbDelete) {
-        //NOTE If no file in the folder, do I delete the folder ?
         uploadConfiguration();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);

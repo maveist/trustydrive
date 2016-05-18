@@ -52,6 +52,7 @@ function downloadComplete(file, myProviders, folder, writer) {
                         var crypto = Windows.Security.Cryptography;
                         var cBuffer = crypto.CryptographicBuffer;
                         if (file.name == g_configName) {
+                            $('body').append('reading the configuration');
                             stream = writer.detachStream();
                             stream.seek(0);
                             reader = new Windows.Storage.Streams.DataReader(stream);
@@ -132,13 +133,17 @@ function downloadConfiguration(args) {
                 break;
         }
     } else {
-        file['chunks'] = args.chunks;
-        writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
-        g_complete = 0;
-        if (file['chunks'].length == 0) {
+        $('body').append('download configuration');
+        if (args['chunks'].length == 0) {
             WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + file.user + '" does not exist or the password is incorrect.');
+        } else if (args['chunks'].length == 1) {
+            WinJS.Navigation.navigate('/pages/login/login.html', 'There is only one chunk for metadata. The metadata are illegible!'
+                + 'You have to re-create your user.');
         } else {
-            progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the Configuration');
+            file.chunks = args.chunks;
+            writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
+            g_complete = 0;
+            progressBar(0, file.chunks.length + 1, 'Initialization', 'Downloading the Configuration');
             downloadChunks(file, args.providers, undefined, g_complete, writer);
         }
     }
