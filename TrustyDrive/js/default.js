@@ -1,5 +1,6 @@
-﻿//TODO Detect the end of a file upload: use an uploadComplete() function
-//TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...)
+﻿//TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...), remove private part of provider data before uploading and load them after downloading metadata
+//TODO Detect the end of a file upload: use an uploadComplete() function
+//TODO Refactoring: rename configuration to metadata
 
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 

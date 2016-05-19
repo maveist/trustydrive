@@ -175,23 +175,23 @@ function uploadChunks(filename, folder, readStream) {
             }
         } else {
             // Check the providers of the file are the same that the current providers
-            for (i = 0; i < g_providers.length; i++) {
-                if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
-                    for (j = 0; j < file.chunks.length; j += file.providers.length) {
-                        switch (provider.provider) {
-                            case 'dropbox':
-                                dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                            case 'gdrive':
-                                gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                            case 'onedrive':
-                                oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-                                break;
-                        }
-                    }
-                }
-            }
+        //    for (i = 0; i < g_providers.length; i++) {
+        //        if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
+        //            for (j = 0; j < file.chunks.length; j += file.providers.length) {
+        //                switch (provider.provider) {
+        //                    case 'dropbox':
+        //                        dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+        //                        break;
+        //                    case 'gdrive':
+        //                        gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+        //                        break;
+        //                    case 'onedrive':
+        //                        oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+        //                        break;
+        //                }
+        //            }
+        //        }
+        //    }
         }
     }
     // Set the providers of the file to the current providers
@@ -260,8 +260,22 @@ function uploadConfiguration() {
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
     } else {
-        // Upload the metadata
-        var config = JSON.stringify(g_files);
+        // Remove tokens from providers
+        var config = $.extend(true, {}, g_files);
+        $.each(config, function (useless, file) {
+            var minimize = [];
+            file.providers.forEach(function (p) {
+                minimize.push({ 'user': p.user, 'provider': p.provider });
+            });
+            file.providers = minimize;
+        });
+        // Build the JSON
+        config = JSON.stringify(config);
+        // TEST
+        Windows.Storage.ApplicationData.current.localFolder.createFileAsync('metadata.txt', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+            Windows.Storage.FileIO.writeTextAsync(file, JSON.stringify(config)).done();
+        });
+        // TEST END
         var crypto = Windows.Security.Cryptography;
         var cBuffer = crypto.CryptographicBuffer;
         // Convert to buffer

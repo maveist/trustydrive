@@ -70,6 +70,18 @@ function downloadComplete(file, myProviders, folder, writer) {
                                     });
                                     if (pwd == g_files[g_configName].password) {
                                         buildFolderStructure();
+                                        // Add provider information to the metadata
+                                        $.each(g_files, function (useless, file) {
+                                            var oldProviders = file.providers.slice(0);
+                                            file.providers = [];
+                                            oldProviders.forEach(function (p) {
+                                                g_providers.forEach(function (fullp) {
+                                                    if (p.user == fullp.user && p.provider == fullp.provider) {
+                                                        file.providers.push(fullp);
+                                                    }
+                                                });
+                                            });
+                                        });
                                     } else {
                                         // Delete the metadata
                                         g_files = { [g_configName]: g_files[g_configName] };
