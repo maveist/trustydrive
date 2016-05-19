@@ -8,11 +8,11 @@ function allChunkNames() {
 }
 
 // Compute the chunk name for one piece of metadata
-function configurationChunkName(provider) {
+function metadataChunkName(provider) {
     var crypto = Windows.Security.Cryptography;
     var algo = crypto.Core.HashAlgorithmNames.sha1;
     var hasher = crypto.Core.HashAlgorithmProvider.openAlgorithm(algo).createHash();
-    var chunkName = provider.user + g_files[g_configName].user + provider.provider;
+    var chunkName = provider.user + g_files[g_metadataName].user + provider.provider;
     hasher.append(crypto.CryptographicBuffer.convertStringToBinary(chunkName, crypto.BinaryStringEncoding.utf8));
     return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
 }
@@ -46,7 +46,7 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
             return a.user.localeCompare(b.user);
         });
         // Add one chunk to notify the update of the provider list
-        g_files[g_configName].chunks.push(provider.user);
+        g_files[g_metadataName].chunks.push(provider.user);
         return provider;
     } else {
         found.token = token;
@@ -58,21 +58,21 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
 }
 
 // Remove this provider of the provider list then spread the metadata between the remaining providers
-// The configuration chunk on this provider is deleted
+// The metadata chunk on this provider is deleted
 function deleteProvider(provider) {
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
-    var chunkName = configurationChunkName(provider);
+    var chunkName = metadataChunkName(provider);
     var index = g_providers.indexOf(provider);
     var myprovider, message, errorFiles = [];
-    var metadata = g_files[g_configName];
+    var metadata = g_files[g_metadataName];
     var chunksToDelete = [];
     log('Try to Delete the provider ' + provider.provider + '/' + provider.user);
     if (index > -1) {
         myprovider = g_providers[index];
         // Check that all files using this provider are downloaded
         $.each(g_files, function (useless, f) {
-            if (f.name != g_configName) {
+            if (f.name != g_metadataName) {
                 f.providers.forEach(function (p) {
                     if (p.provider == provider.provider && p.user == provider.user) {
                         errorFiles.push(f);
@@ -100,7 +100,7 @@ function deleteProvider(provider) {
                     passwordVault.remove(c);
                 }
             });
-            // Delete the chunk related to the configuration
+            // Delete the chunk related to the metadata
             if (metadata.chunks.length > 0) {
                 if (metadata.chunks.length == 2) {
                     // Delete the last two chunks because we can not keep metadata in one single file

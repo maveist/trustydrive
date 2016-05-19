@@ -10,14 +10,14 @@
         //    passwordVault.remove(c);
         //});
         // Create the default metadata
-        if (g_files[g_configName] == undefined) {
+        if (g_files[g_metadataName] == undefined) {
             metadataInit('', '');
         }
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
         } else {
-            if (g_files[g_configName].user.length == 0 && g_files[g_configName].chunks.length == 0) {
+            if (g_files[g_metadataName].user.length == 0 && g_files[g_metadataName].chunks.length == 0) {
                 // Connect to existing providers
                 progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
                 setTimeout(function () {
@@ -41,7 +41,7 @@ function metadataInit(user, password) {
     g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
     // Initialize the metadata of files
     g_files = {};
-    g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': password, 'chunks': [], 'providers': [] };
+    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [], 'providers': [] };
 }
 
 function connectToFilesystem() {
@@ -51,9 +51,9 @@ function connectToFilesystem() {
     } else {
         metadataInit(user, pwd);
         g_providers.forEach(function (p) {
-            g_files[g_configName].chunks.push({ 'name': configurationChunkName(p) });
+            g_files[g_metadataName].chunks.push({ 'name': metadataChunkName(p) });
         });
-        downloadConfiguration();
+        downloadMetadata();
     }
 }
 
@@ -108,11 +108,11 @@ function createAccount() {
         if (pwd != pwdbis) {
             $('#new-error').html('<b>Passwords do not match!</b>');
         } else {
-            g_files[g_configName] = { 'name': g_configName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
+            g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
             g_providers.forEach(function (p) {
-                g_files[g_configName].chunks.push({ 'name': configurationChunkName(p) });
+                g_files[g_metadataName].chunks.push({ 'name': metadataChunkName(p) });
             });
-            uploadConfiguration();
+            uploadMetadata();
         }
     }
 }
@@ -188,7 +188,7 @@ function showConnectFields(logError) {
             if ($._data($('#lost-confirm').get(0), 'events') == undefined) {
                 // Define click listeners
                 $('#lost-confirm').click(function () {
-                    if ($('#lost-ans').val() == g_files[g_configName].answer) {
+                    if ($('#lost-ans').val() == g_files[g_metadataName].answer) {
                     } else {
                         $('#lost-error').html('Wrong answer!');
                     }

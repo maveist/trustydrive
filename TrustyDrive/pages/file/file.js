@@ -8,7 +8,7 @@
         var status = $('#file-status');
         // Menu location
         var height = $('#content').innerHeight();
-        if (file.name == g_configName) {
+        if (file.name == g_metadataName) {
             WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
         } else {
             // Add click listeners
@@ -90,7 +90,7 @@
                                 folder.files.splice(index, 1);
                             }
                             addToFolder(dest, file);
-                            uploadConfiguration();
+                            uploadMetadata();
                         });
                     }
                 });
@@ -193,7 +193,7 @@ function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
 function deleteComplete(nbDelete, folder) {
     g_complete++;
     if (g_complete == nbDelete) {
-        uploadConfiguration();
+        uploadMetadata();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
     }
@@ -211,7 +211,7 @@ function renameFile(file, newName, folder) {
         delete g_files[file.name];
         file.name = newName;
         g_files[newName] = file;
-        uploadConfiguration();
+        uploadMetadata();
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
     }

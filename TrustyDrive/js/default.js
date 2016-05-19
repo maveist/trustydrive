@@ -1,6 +1,4 @@
-﻿//TODO Minimize the saved configuration/metadata (remove config?, exist, created properties...), remove private part of provider data before uploading and load them after downloading metadata
-//TODO Detect the end of a file upload: use an uploadComplete() function
-//TODO Refactoring: rename configuration to metadata
+﻿//TODO Detect the end of a file upload: use an uploadComplete() function
 
 //TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 
@@ -9,7 +7,7 @@
 // Global variables
 // Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
-const g_configName = 'trustydrive_metadata';
+const g_metadataName = 'trustydrive_metadata';
 // The maximum size in bytes of one chunk, 100 kB
 const g_maxChunkSize = 100000;
 const g_td_version = '0.1.0';

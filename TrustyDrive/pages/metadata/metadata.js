@@ -26,7 +26,7 @@
                     $(this).text('Hide');
                     for (i = 0; i < file.chunks.length; i++) {
                         chunkName = file.chunks[i]['name'];
-                        if (file.name == g_configName) {
+                        if (file.name == g_metadataName) {
                             provider = g_providers[i % g_providers.length];
                         } else {
                             provider = file.providers[i % file.providers.length];

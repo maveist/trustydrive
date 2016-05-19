@@ -66,7 +66,7 @@
         } else {
             // Upload is complete
             reader.close();
-            if (file.name == g_configName) {
+            if (file.name == g_metadataName) {
                 setTimeout(function () {
                     WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
                 }, 1000);
@@ -137,7 +137,7 @@
                 }
                 // End of the file type definition
                 file['type'] = filetype;
-                setTimeout(uploadConfiguration, 1000);
+                setTimeout(uploadMetadata, 1000);
             }
         }
     });
@@ -153,8 +153,8 @@ function uploadChunks(filename, folder, readStream) {
     } else {
         file = g_files[filename];
     }
-    if (filename != g_configName) {
-        // Check the provider configuration, an old provider must be in the same place in the current provider list
+    if (filename != g_metadataName) {
+        // Check the provider metadata, an old provider must be in the same place in the current provider list
         if (file.providers.length != g_providers.length) {
             // Delete every chunk of all providers from the file metadata
             for (i = 0; i < file.providers.length; i++) {
@@ -196,18 +196,18 @@ function uploadChunks(filename, folder, readStream) {
     }
     // Set the providers of the file to the current providers
     file.providers = [];
-    if (filename == g_configName) {
+    if (filename == g_metadataName) {
         existingChunks = file.chunks.slice(0);
         file.chunks = [];
     }
     g_providers.forEach(function (p) {
         var index;
         file.providers.push(p);
-        if (filename == g_configName) {
-            index = indexOfChunk(existingChunks, configurationChunkName(p));
-            // Generate chunk names for the configuration
+        if (filename == g_metadataName) {
+            index = indexOfChunk(existingChunks, metadataChunkName(p));
+            // Generate chunk names for the metadata
             if (index == -1) {
-                file.chunks.push({ 'name': configurationChunkName(p) });
+                file.chunks.push({ 'name': metadataChunkName(p) });
             } else {
                 file.chunks.push(existingChunks[index]);
             }
@@ -254,15 +254,15 @@ function uploadChunks(filename, folder, readStream) {
     }, 100);
 }
 
-// Configuration management
-function uploadConfiguration() {
+// Metadata management
+function uploadMetadata() {
     // Check the number of providers
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
     } else {
         // Remove tokens from providers
-        var config = $.extend(true, {}, g_files);
-        $.each(config, function (useless, file) {
+        var metadata = $.extend(true, {}, g_files);
+        $.each(metadata, function (useless, file) {
             var minimize = [];
             file.providers.forEach(function (p) {
                 minimize.push({ 'user': p.user, 'provider': p.provider });
@@ -270,23 +270,23 @@ function uploadConfiguration() {
             file.providers = minimize;
         });
         // Build the JSON
-        config = JSON.stringify(config);
+        metadata = JSON.stringify(metadata);
         // TEST
         Windows.Storage.ApplicationData.current.localFolder.createFileAsync('metadata.txt', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-            Windows.Storage.FileIO.writeTextAsync(file, JSON.stringify(config)).done();
+            Windows.Storage.FileIO.writeTextAsync(file, JSON.stringify(metadata)).done();
         });
         // TEST END
         var crypto = Windows.Security.Cryptography;
         var cBuffer = crypto.CryptographicBuffer;
         // Convert to buffer
-        var buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
-        // Encrypt configuration data
-        config = cBuffer.encodeToBase64String(buffer);
-        buffer = cBuffer.convertStringToBinary(config, crypto.BinaryStringEncoding.utf8);
-        // Save the configuration to the cloud
+        var buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
+        // Encrypt metadata data
+        metadata = cBuffer.encodeToBase64String(buffer);
+        buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
+        // Save the metadata to the cloud
         var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
         writer.writeAsync(buffer);
-        uploadChunks(g_configName, undefined, writer);
+        uploadChunks(g_metadataName, undefined, writer);
     }
 }
 

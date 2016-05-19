@@ -48,27 +48,27 @@ function downloadComplete(file, myProviders, folder, writer) {
                 log('Download ' + file.name + ' complete');
                 writer.storeAsync().done(function () {
                     writer.flushAsync().done(function () {
-                        var stream, config, reader, error = '', pwd;
+                        var stream, metadata, reader, error = '', pwd;
                         var crypto = Windows.Security.Cryptography;
                         var cBuffer = crypto.CryptographicBuffer;
-                        if (file.name == g_configName) {
+                        if (file.name == g_metadataName) {
                             stream = writer.detachStream();
                             stream.seek(0);
                             reader = new Windows.Storage.Streams.DataReader(stream);
                             reader.loadAsync(stream.size).then(function () {
                                 try {
-                                    config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(stream.size));
-                                    config = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, cBuffer.decodeFromBase64String(config));
-                                    g_files = JSON.parse(config, function (k, v) {
-                                        if (k == g_configName) {
-                                            // Do not modify the metadata of the configuration
+                                    metadata = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, reader.readBuffer(stream.size));
+                                    metadata = cBuffer.convertBinaryToString(crypto.BinaryStringEncoding.utf8, cBuffer.decodeFromBase64String(metadata));
+                                    g_files = JSON.parse(metadata, function (k, v) {
+                                        if (k == g_metadataName) {
+                                            // Do not modify the information of the metadata
                                             pwd = v.password;
-                                            return g_files[g_configName];
+                                            return g_files[g_metadataName];
                                         } else {
                                             return v;
                                         }
                                     });
-                                    if (pwd == g_files[g_configName].password) {
+                                    if (pwd == g_files[g_metadataName].password) {
                                         buildFolderStructure();
                                         // Add provider information to the metadata
                                         $.each(g_files, function (useless, file) {
@@ -84,14 +84,14 @@ function downloadComplete(file, myProviders, folder, writer) {
                                         });
                                     } else {
                                         // Delete the metadata
-                                        g_files = { [g_configName]: g_files[g_configName] };
-                                        error = 'The user "' + g_files[g_configName].user + '" does not exist or the password is incorrect.';
+                                        g_files = { [g_metadataName]: g_files[g_metadataName] };
+                                        error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
                                     }
                                 } catch (ex) {
-                                    log('error when parsing configuration: ' + ex);
-                                    error = 'The configuration file is malformed. Please check your cloud accounts configuration in Settings'
+                                    log('error when parsing metadata: ' + ex);
+                                    error = 'The metadata file is malformed. Please check your cloud accounts configuration in Settings'
                                         + ', maybe some providers are missing!'
-                                        + '<br>To reset your configuration (<b>all files stored in TrustyDrive will be lost</b>),'
+                                        + '<br>To reset your metadata (<b>all files stored in TrustyDrive will be lost</b>),'
                                         + ' delete the trustydrive folder on the following accounts:<div>';
                                     g_providers.forEach(function (p) {
                                         error += p.provider + ' - ' + p.user + '<br>';
@@ -122,25 +122,25 @@ function downloadComplete(file, myProviders, folder, writer) {
     }
 }
 
-function downloadConfiguration(args) {
-    var file = g_files[g_configName];
+function downloadMetadata(args) {
+    var file = g_files[g_metadataName];
     var writer;
     if (args == undefined) {
         // Fill args with both valid chunks and valid providers
         args = { 'providers': [], 'chunks': [], 'exists': false, 'all': [], 'idx': -1 };
     }
     args.idx++;
-    // Check if configuration chunks exist, configuration = 1 chunk per provider
+    // Check if metadata chunks exist, metadata = 1 chunk per provider
     if (args.idx < g_providers.length) {
         switch (g_providers[args.idx].provider) {
             case 'dropbox':
-                dropboxExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                dropboxExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
                 break;
             case 'gdrive':
-                gdriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                gdriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
                 break;
             case 'onedrive':
-                oneDriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadConfiguration, args);
+                oneDriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
                 break;
         }
     } else {
@@ -153,7 +153,7 @@ function downloadConfiguration(args) {
             file.chunks = args.chunks;
             writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
             g_complete = 0;
-            progressBar(0, file.chunks.length + 1, 'Initialization', 'Downloading the Configuration');
+            progressBar(0, file.chunks.length + 1, 'Initialization', 'Downloading the Metadata');
             downloadChunks(file, args.providers, undefined, g_complete, writer);
         }
     }

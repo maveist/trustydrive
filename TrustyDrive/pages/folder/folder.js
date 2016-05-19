@@ -107,7 +107,7 @@
         }
         folder.folders.sort(alphabetic);
         $.each(folder.folders, function (useless, file) {
-            if (file.name != g_configName) {
+            if (file.name != g_metadataName) {
                 div = $('<div id="' + file.name + '" class="file folder">' + longName(file.name) + '</div>');
                 div.click(function () {
                     WinJS.Navigation.navigate('/pages/folder/folder.html', file);
@@ -121,7 +121,7 @@
             folder.files.sort(alphabetic);
         }
         $.each(folder.files, function (useless, file) {
-            if (file.name != g_configName) {
+            if (file.name != g_metadataName) {
                 div = $('<div id="' + file.name + '" class="file ' + file.type + '">' + longName(file.name) + '</div>');
                 div.click(function () {
                     WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
@@ -209,7 +209,7 @@ function renameFolder(folder, newName) {
         }
     }
     if (modify) {
-        uploadConfiguration();
+        uploadMetadata();
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
     }
