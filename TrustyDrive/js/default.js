@@ -1,4 +1,4 @@
-﻿//TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
+﻿//TODO Modify the chunk representation in metadata
 
 //LOGIN remy / toto
 

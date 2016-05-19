@@ -38,7 +38,7 @@
 function metadataInit(user, password) {
     // Initialize the metadata of folders
     g_folders = {};
-    g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'kind': 'folder', 'files': [], 'folders': [] };
+    g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'files': [], 'folders': [] };
     // Initialize the metadata of files
     g_files = {};
     g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [], 'providers': [] };

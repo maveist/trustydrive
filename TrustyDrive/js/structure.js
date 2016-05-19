@@ -1,7 +1,7 @@
 ﻿function addToFolder(parent, child) {
     var index, path = '';
-    if (parent != undefined && child['kind'] != undefined) {
-        if (child['kind'] == 'folder') {
+    if (parent != undefined) {
+        if (child.folders != undefined) {
             if (child['father'] != undefined) {
                 index = child.father.folders.indexOf(child);
                 if (index > -1) {
@@ -22,7 +22,6 @@ function buildFolderStructure() {
     $.each(g_files, function (name, file) {
         current = g_folders[g_homeFolderName];
         if (file['path'] == undefined || file.path == '/') {
-            file['kind'] = 'file';
             addToFolder(g_folders[g_homeFolderName], file);
         } else {
             path = file.path.split('/');
@@ -50,15 +49,15 @@ function createElement(name, kind) {
     var element;
     if (kind == 'file') {
         if (g_files[name] == undefined) {
-            element = { 'name': name, 'kind': 'file', 'chunks': [], 'providers': [] };
+            element = { 'name': name, 'chunks': [], 'providers': []};
             g_files[name] = element;
             return element;
         } else {
             return g_files[name];
         }
-    } else if (kind = 'folder') {
+    } else if (kind == 'folder') {
         if (g_folders[name] == undefined) {
-            element = { 'name': name, 'kind': 'folder', 'files': [], 'folders': [] };
+            element = { 'name': name, 'files': [], 'folders': [] };
             g_folders[name] = element;
             return element;
         } else {
