@@ -1,6 +1,4 @@
-﻿//TODO Detect the end of a file upload: use an uploadComplete() function
-
-//TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
+﻿//TEST Upload an existing file spread between 2 providers to 3 providers (check chunks are deleted and new chunks)
 
 //LOGIN remy / toto
 

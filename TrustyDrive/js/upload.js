@@ -14,8 +14,7 @@
     }
     temp = new Uint8Array(tempSize);
     reader.loadAsync(temp.byteLength).done(function () {
-        var i, idx, d = new Date(), filetype = 'unknown';
-        var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
+        var i;
         reader.readBytes(temp);
         for (i = 0; i < temp.byteLength;) {
             for (p = 0; p < g_providers.length; p++) {
@@ -39,19 +38,19 @@
             }
             switch (g_providers[p].provider) {
                 case 'dropbox':
-                    dropboxUpload(file['chunks'][nbCreatedChunks + p], chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                    dropboxUpload(reader, file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     break;
                 case 'gdrive':
                     if (file.chunks[nbCreatedChunks + p].id == undefined) {
                         // Create a new file for the chunk
-                        gdriveUpload(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                        gdriveUpload(reader, file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     } else {
                         // Update the content of an existing chunk
-                        gdriveUpdate(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                        gdriveUpdate(reader, file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     }
                     break;
                 case 'onedrive':
-                    oneDriveUpload(file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
+                    oneDriveUpload(reader, file, nbCreatedChunks + p, chunkBuffers[p].stream.detachBuffer(), g_providers[p]);
                     break;
             }
             chunkBuffers[p].stream.close();
@@ -63,84 +62,91 @@
             setTimeout(function () {
                 createChunks(file, folder, reader, chunkSize, remainSize, nbCreatedChunks);
             }, 100);
-        } else {
-            // Upload is complete
-            reader.close();
-            if (file.name == g_metadataName) {
-                setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
-                }, 1000);
-            } else {
-                // Update the last upload date
-                file['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
-                if (d.getMinutes() > 9) {
-                    file['lastupload'] += d.getHours() + ':' + d.getMinutes();
-                } else {
-                    file['lastupload'] += d.getHours() + ':0' + d.getMinutes();
-                }
-                // Compute the file type
-                idx = file.name.indexOf('.');
-                if (idx > -1) {
-                    switch (file.name.substr(idx + 1)) {
-                        case '7z':
-                        case 'tar':
-                        case 'tar.gz':
-                        case 'zip':
-                            filetype = 'archive';
-                            break;
-                        case 'mp3':
-                        case 'wav':
-                        case 'ogg':
-                        case 'flac':
-                            filetype = 'music';
-                            break;
-                        case 'pdf':
-                            filetype = 'pdf';
-                            break;
-                        case 'bmp':
-                        case 'gif':
-                        case 'ico':
-                        case 'jpg':
-                        case 'nef':
-                        case 'png':
-                            filetype = 'picture';
-                            break;
-                        case 'c':
-                        case 'js':
-                        case 'py':
-                        case 'sh':
-                        case 'bat':
-                            filetype = 'script';
-                            break;
-                        case 'odp':
-                        case 'ods':
-                        case 'odt':
-                        case 'ppt':
-                        case 'txt':
-                        case 'xls':
-                            filetype = 'text';
-                            break;
-                        case 'avi':
-                        case 'mp4':
-                            filetype = 'video';
-                            break;
-                        case 'html':
-                        case 'htm':
-                        case 'php':
-                            filetype = 'web';
-                            break;
-                        case 'dll':
-                        case 'exe':
-                            filetype = 'system';
-                            break;
-                    }
-                }
-                // End of the file type definition
-                file['type'] = filetype;
-                setTimeout(uploadMetadata, 1000);
-            }
         }
     });
+}
+
+function uploadComplete(reader, file) {
+    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
+    var idx, d = new Date(), filetype = 'unknown';
+    g_complete++;
+    if (g_complete == file.chunks.length) {
+        // Upload is complete
+        reader.close();
+        if (file.name == g_metadataName) {
+            setTimeout(function () {
+                WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            }, 1000);
+        } else {
+            // Update the last upload date
+            file['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
+            if (d.getMinutes() > 9) {
+                file['lastupload'] += d.getHours() + ':' + d.getMinutes();
+            } else {
+                file['lastupload'] += d.getHours() + ':0' + d.getMinutes();
+            }
+            // Compute the file type
+            idx = file.name.indexOf('.');
+            if (idx > -1) {
+                switch (file.name.substr(idx + 1)) {
+                    case '7z':
+                    case 'tar':
+                    case 'tar.gz':
+                    case 'zip':
+                        filetype = 'archive';
+                        break;
+                    case 'mp3':
+                    case 'wav':
+                    case 'ogg':
+                    case 'flac':
+                        filetype = 'music';
+                        break;
+                    case 'pdf':
+                        filetype = 'pdf';
+                        break;
+                    case 'bmp':
+                    case 'gif':
+                    case 'ico':
+                    case 'jpg':
+                    case 'nef':
+                    case 'png':
+                        filetype = 'picture';
+                        break;
+                    case 'c':
+                    case 'js':
+                    case 'py':
+                    case 'sh':
+                    case 'bat':
+                        filetype = 'script';
+                        break;
+                    case 'odp':
+                    case 'ods':
+                    case 'odt':
+                    case 'ppt':
+                    case 'txt':
+                    case 'xls':
+                        filetype = 'text';
+                        break;
+                    case 'avi':
+                    case 'mp4':
+                        filetype = 'video';
+                        break;
+                    case 'html':
+                    case 'htm':
+                    case 'php':
+                        filetype = 'web';
+                        break;
+                    case 'dll':
+                    case 'exe':
+                        filetype = 'system';
+                        break;
+                }
+            }
+            // End of the file type definition
+            file['type'] = filetype;
+            setTimeout(uploadMetadata, 1000);
+        }
+    }
 }
 
 function uploadChunks(filename, folder, readStream) {
@@ -175,23 +181,23 @@ function uploadChunks(filename, folder, readStream) {
             }
         } else {
             // Check the providers of the file are the same that the current providers
-        //    for (i = 0; i < g_providers.length; i++) {
-        //        if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
-        //            for (j = 0; j < file.chunks.length; j += file.providers.length) {
-        //                switch (provider.provider) {
-        //                    case 'dropbox':
-        //                        dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-        //                        break;
-        //                    case 'gdrive':
-        //                        gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-        //                        break;
-        //                    case 'onedrive':
-        //                        oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
-        //                        break;
-        //                }
-        //            }
-        //        }
-        //    }
+            //    for (i = 0; i < g_providers.length; i++) {
+            //        if (file.providers[i].user != g_providers[i].user || file.providers[i].provider != g_providers[i].provider) {
+            //            for (j = 0; j < file.chunks.length; j += file.providers.length) {
+            //                switch (provider.provider) {
+            //                    case 'dropbox':
+            //                        dropboxDelete(file.chunks[i + j]['name'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+            //                        break;
+            //                    case 'gdrive':
+            //                        gdriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+            //                        break;
+            //                    case 'onedrive':
+            //                        oneDriveDelete(file.chunks[i + j]['id'], file.providers[i], file.chunks.length, g_folders[g_homeFolderName]);
+            //                        break;
+            //                }
+            //            }
+            //        }
+            //    }
         }
     }
     // Set the providers of the file to the current providers
@@ -248,6 +254,8 @@ function uploadChunks(filename, folder, readStream) {
     }
     log('Nb. of Chunks: ' + mychunks.length + ', chunksize=' + Math.floor(readStream.size / mychunks.length));
     reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
+    // Counter for the number of upload chunks
+    g_complete = 0;
     // Delay the chunk creation to display the progress bar
     setTimeout(function () {
         createChunks(file, folder, reader, Math.floor(readStream.size / mychunks.length), readStream.size % mychunks.length, 0);

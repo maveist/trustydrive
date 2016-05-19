@@ -144,7 +144,7 @@ function gdriveFolderExist(provider, func) {
     });
 }
 
-function gdriveUpload(file, chunkIdx, data, provider, callNb) {
+function gdriveUpload(reader, file, chunkIdx, data, provider, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
@@ -159,6 +159,7 @@ function gdriveUpload(file, chunkIdx, data, provider, callNb) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
                 file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+                uploadComplete(reader, file);
             });
         } else {
             log('gDrive Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
@@ -171,7 +172,7 @@ function gdriveUpload(file, chunkIdx, data, provider, callNb) {
     });
 }
 
-function gdriveUpdate(file, chunkIdx, data, provider, callNb) {
+function gdriveUpdate(reader, file, chunkIdx, data, provider, callNb) {
     // Update the content of an existing file from its ID
     var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + file.chunks[chunkIdx].id + '?uploadType=media';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.patch, new Windows.Foundation.Uri(uri));
@@ -184,14 +185,12 @@ function gdriveUpdate(file, chunkIdx, data, provider, callNb) {
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
-            // Information about the uploaded chunk
-            //success.content.readAsStringAsync().then(function (jsonInfo) {
-            //});
+            uploadComplete(reader, file);
         } else {
             log('gDrive Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    gdriveUpdate(file, chunkIdx, data, provider, callNb + 1);
+                    gdriveUpdate(reader, file, chunkIdx, data, provider, callNb + 1);
                 }, 1000);
             }
         }

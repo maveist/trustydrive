@@ -155,9 +155,9 @@ function dropboxSync(chunks, provider, orphans) {
     });
 }
 
-function dropboxUpload(chunk, data, provider, callNb) {
+function dropboxUpload(reader, file, chunkIdx, data, provider, callNb) {
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://content.dropboxapi.com/1/files_put/auto/' + g_cloudFolder + chunk.name;
+    var uri = 'https://content.dropboxapi.com/1/files_put/auto/' + g_cloudFolder + file.chunks[chunkIdx].name;
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
     if (callNb == undefined) {
         // Number of call with erros
@@ -166,11 +166,13 @@ function dropboxUpload(chunk, data, provider, callNb) {
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     httpClient.sendRequestAsync(requestMessage).done(function (response) {
-        if (!response.isSuccessStatusCode) {
-            log('ERROR uploading again: ' + chunk.name);
+        if (response.isSuccessStatusCode) {
+            uploadComplete(reader, file);
+        } else {
+            log('ERROR uploading again: ' + file.chunks[chunkIdx].name);
             if (callNb < 5) {
                 setTimeout(function () {
-                    dropboxUpload(chunk, data, provider, callNb + 1);
+                    dropboxUpload(reader, file, chunkIdx, data, provider, callNb + 1);
                 }, 1000);
             }
         }

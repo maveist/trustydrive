@@ -130,7 +130,7 @@ function oneDriveFolderExist(provider, func) {
     });
 }
 
-function oneDriveUpload(file, chunkIdx, data, provider, callNb) {
+function oneDriveUpload(reader, file, chunkIdx, data, provider, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + ':/' + file.chunks[chunkIdx].name + ':/content?select=id';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
@@ -145,12 +145,13 @@ function oneDriveUpload(file, chunkIdx, data, provider, callNb) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
                 file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+                uploadComplete(reader, file);
             });
         } else {
             log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    oneDriveUpload(file, chunkIdx, data, provider, callNb + 1);
+                    oneDriveUpload(reader, file, chunkIdx, data, provider, callNb + 1);
                 }, 1000);
             } else {
                 // Fail to upload
