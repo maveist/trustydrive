@@ -1,49 +1,53 @@
-﻿function downloadChunks(file, myProviders, folder, chunkIdx, writer) {
+﻿function downloadChunks(file, chunkIdx, folder, writer) {
     var i;
     g_chunks = [];
-    for (i = 0; i < myProviders.length; i++) {
-        switch (myProviders[i].provider) {
+    $.each(file.chunks, function (idx, c) {
+        switch (c.provider.name) {
             case 'dropbox':
-                dropboxDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
+                dropboxDownload(file, c, chunkIdx, idx, folder, writer);
                 break;
             case 'gdrive':
-                gdriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
+                gdriveDownload(file, c, chunkIdx, idx, folder, writer);
                 break;
             case 'onedrive':
-                oneDriveDownload(file, myProviders, folder, chunkIdx + i, myProviders[i], writer);
+                oneDriveDownload(file, c, chunkIdx, idx, folder, writer);
                 break;
         }
-    }
+    });
 }
 
-function downloadComplete(file, myProviders, folder, writer) {
+function downloadComplete(file, folder, writer) {
     var i, nbRead = 0;
     g_complete++;
-    progressBar(g_complete, file['chunks'].length + 1, 'Number of Downloaded Chunks: ' + g_complete);
-    if (g_complete % myProviders.length == 0) {
-        if (g_chunks.length < myProviders.length) {
-            progressBar(g_complete, file['chunks'].length + 1, 'Download error: Try to download it again or check its state in the metadata editor.');
+    progressBar(g_complete, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + g_complete);
+    if (g_complete % file.chunks.length == 0) {
+        // Every buffer is downloaded
+        if (g_chunks.length < file.chunks.length) {
+            // Missing data
+            progressBar(g_complete, file.nb_chunks + 1, 'Download error: Try to download it again or check its state in the metadata editor.');
             setTimeout(function () {
                 WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
             }, 3000);
-
         } else {
             g_chunks.sort(function (a, b) {
                 return a.idx - b.idx;
             });
+            // Read the largest buffer
             while (nbRead < g_chunks[0].size) {
-                for (i = 0; i < myProviders.length; i++) {
+                for (i = 0; i < g_chunks.length; i++) {
                     if (nbRead < g_chunks[i].size) {
                         writer.writeByte(g_chunks[i].reader.readByte());
                     }
                 }
                 nbRead++;
             }
-            for (i = 0 ; i < myProviders.length; i++) {
+            // Close the readers
+            for (i = 0 ; i < g_chunks.length; i++) {
                 g_chunks[i].reader.close();
             }
-            if (g_complete < file['chunks'].length) {
-                downloadChunks(file, myProviders, folder, g_complete, writer);
+            if (g_complete < file.nb_chunks) {
+                // There are more chunks to download
+                downloadChunks(file, g_complete / file.chunks.length, folder, writer);
             } else {
                 log('Download ' + file.name + ' complete');
                 writer.storeAsync().done(function () {
@@ -72,12 +76,10 @@ function downloadComplete(file, myProviders, folder, writer) {
                                         buildFolderStructure();
                                         // Add provider information to the metadata
                                         $.each(g_files, function (useless, file) {
-                                            var oldProviders = file.providers.slice(0);
-                                            file.providers = [];
-                                            oldProviders.forEach(function (p) {
+                                            file.chunks.forEach(function (c) {
                                                 g_providers.forEach(function (fullp) {
-                                                    if (p.user == fullp.user && p.provider == fullp.provider) {
-                                                        file.providers.push(fullp);
+                                                    if (c.provider.user == fullp.user && c.provider.name == fullp.name) {
+                                                        c.provider = fullp;
                                                     }
                                                 });
                                             });
@@ -94,7 +96,7 @@ function downloadComplete(file, myProviders, folder, writer) {
                                         + '<br>To reset your metadata (<b>all files stored in TrustyDrive will be lost</b>),'
                                         + ' delete the trustydrive folder on the following accounts:<div>';
                                     g_providers.forEach(function (p) {
-                                        error += p.provider + ' - ' + p.user + '<br>';
+                                        error += p.name + ' - ' + p.user + '<br>';
                                     });
                                     error += '</div>';
                                 }
@@ -122,39 +124,45 @@ function downloadComplete(file, myProviders, folder, writer) {
     }
 }
 
-function downloadMetadata(args) {
-    var file = g_files[g_metadataName];
-    var writer;
-    if (args == undefined) {
-        // Fill args with both valid chunks and valid providers
-        args = { 'providers': [], 'chunks': [], 'exists': false, 'all': [], 'idx': -1 };
-    }
-    args.idx++;
-    // Check if metadata chunks exist, metadata = 1 chunk per provider
-    if (args.idx < g_providers.length) {
-        switch (g_providers[args.idx].provider) {
+// Check if metadata chunks exist, metadata = 1 chunk per provider
+function downloadMetadata() {
+    g_complete = 0;
+    g_files[g_metadataName].chunks.forEach(function (c) {
+        switch (c.provider.name) {
             case 'dropbox':
-                dropboxExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
+                dropboxExists(c, 0, downloadMetadataComplete);
                 break;
             case 'gdrive':
-                gdriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
+                gdriveExists(c, 0, downloadMetadataComplete);
                 break;
             case 'onedrive':
-                oneDriveExists(file['chunks'][args.idx]['name'], g_providers[args.idx], downloadMetadata, args);
+                oneDriveExists(c, 0, downloadMetadataComplete);
                 break;
         }
-    } else {
-        if (args['chunks'].length == 0) {
-            WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + file.user + '" does not exist or the password is incorrect.');
-        } else if (args['chunks'].length == 1) {
+    });
+}
+
+function downloadMetadataComplete(chunk, chunkIdx) {
+    var metadata = g_files[g_metadataName];
+    var i, writer;
+    g_complete++;
+    if (g_complete == metadata.chunks.length) {
+        // Remove chunks that do not exist
+        for (i = metadata.chunks.length - 1; i > -1; i--) {
+            if (!metadata.chunks[i].info[0].exists) {
+                metadata.chunks.splice(i, 1);
+            }
+        }
+        if (metadata.chunks.length == 0) {
+            WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + metadata.user + '" does not exist or the password is incorrect.');
+        } else if (metadata.chunks.length == 1) {
             WinJS.Navigation.navigate('/pages/login/login.html', 'There is only one chunk for metadata. The metadata are illegible!'
                 + 'You have to re-create your user.');
         } else {
-            file.chunks = args.chunks;
             writer = new Windows.Storage.Streams.DataWriter(new Windows.Storage.Streams.InMemoryRandomAccessStream());
             g_complete = 0;
-            progressBar(0, file.chunks.length + 1, 'Initialization', 'Downloading the Metadata');
-            downloadChunks(file, args.providers, undefined, g_complete, writer);
+            progressBar(0, metadata.chunks.length + 1, 'Initialization', 'Downloading the Metadata');
+            downloadChunks(metadata, 0, undefined, writer);
         }
     }
 }
@@ -162,10 +170,10 @@ function downloadMetadata(args) {
 function downloadFile(file, folder) {
     log('Download the file ' + file.name + ' inside ' + folder.name);
     g_complete = 0;
-    progressBar(0, file['chunks'].length + 1, 'Initialization', 'Downloading the File ' + file.name);
+    progressBar(0, file.nb_chunks + 1, 'Initialization', 'Downloading the File ' + file.name);
     g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
         myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
-            downloadChunks(file, file.providers, folder, g_complete, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
+            downloadChunks(file, 0, folder, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
         });
     });
 }

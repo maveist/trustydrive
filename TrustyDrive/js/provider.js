@@ -12,7 +12,7 @@ function metadataChunkName(provider) {
     var crypto = Windows.Security.Cryptography;
     var algo = crypto.Core.HashAlgorithmNames.sha1;
     var hasher = crypto.Core.HashAlgorithmProvider.openAlgorithm(algo).createHash();
-    var chunkName = provider.user + g_files[g_metadataName].user + provider.provider;
+    var chunkName = provider.user + g_files[g_metadataName].user + provider.name;
     hasher.append(crypto.CryptographicBuffer.convertStringToBinary(chunkName, crypto.BinaryStringEncoding.utf8));
     return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
 }
@@ -24,7 +24,7 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
     var i, found = undefined;
     // Check if the provider exists
     for (i = 0; i < g_providers.length; i++) {
-        if (g_providers[i].provider == provider && g_providers[i].user == email) {
+        if (g_providers[i].name == provider && g_providers[i].user == email) {
             found = g_providers[i];
         }
     }
@@ -38,7 +38,7 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
         passwordVault.add(cred);
         log('Add the provider: ' + provider + '/' + email);
         provider = {
-            'provider': cred.resource, 'user': cred.userName, 'token': token, 'refresh': refreshToken,
+            'name': cred.resource, 'user': cred.userName, 'token': token, 'refresh': refreshToken,
             'free': freeStorage, 'total': totalStorage
         };
         g_providers.push(provider);
@@ -46,7 +46,6 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
             return a.user.localeCompare(b.user);
         });
         // Add one chunk to notify the update of the provider list
-        g_files[g_metadataName].chunks.push(provider.user);
         return provider;
     } else {
         found.token = token;
@@ -67,21 +66,21 @@ function deleteProvider(provider) {
     var myprovider, message, errorFiles = [];
     var metadata = g_files[g_metadataName];
     var chunksToDelete = [];
-    log('Try to Delete the provider ' + provider.provider + '/' + provider.user);
+    log('Try to Delete the provider ' + provider.name + '/' + provider.user);
     if (index > -1) {
         myprovider = g_providers[index];
         // Check that all files using this provider are downloaded
         $.each(g_files, function (useless, f) {
             if (f.name != g_metadataName) {
                 f.providers.forEach(function (p) {
-                    if (p.provider == provider.provider && p.user == provider.user) {
+                    if (p.name == provider.name && p.user == provider.user) {
                         errorFiles.push(f);
                     }
                 });
             }
         });
         if (errorFiles.length > 0) {
-            message = 'Delete Provider Error: Can Not Delete <b>' + myprovider.provider + '/' + myprovider.user +
+            message = 'Delete Provider Error: Can Not Delete <b>' + myprovider.name + '/' + myprovider.user +
                 '</b>. The following files must be deleted:<br>';
             errorFiles.forEach(function (f) {
                 if (f.path.length == 1) {
@@ -92,10 +91,10 @@ function deleteProvider(provider) {
             });
             WinJS.Navigation.navigate('/pages/folder/folder.html', message);
         } else {
-            log('Delete ' + provider.provider + '/' + provider.user);
+            log('Delete ' + provider.name + '/' + provider.user);
             // Remove credential for the provider
             credentials.forEach(function (c) {
-                if (c.userName == provider.user && c.resource == provider.provider) {
+                if (c.userName == provider.user && c.resource == provider.name) {
                     credentials.indexOf(c);
                     passwordVault.remove(c);
                 }
@@ -126,7 +125,7 @@ function deleteProvider(provider) {
                         metadata['chunks'].splice(c.idx, 1);
                     }
                     // Delete the chunk leads to upload the metadata
-                    switch (c.provider.provider) {
+                    switch (c.provider.name) {
                         case 'dropbox':
                             dropboxDelete(c.chunk.name, c.provider, chunksToDelete.length, g_folders[g_homeFolderName]);
                             break;
@@ -141,7 +140,7 @@ function deleteProvider(provider) {
             }
         }
     } else {
-        log('Can not delete ' + provider.provider + '/' + provider.user);
+        log('Can not delete ' + provider.name + '/' + provider.user);
     }
 }
 

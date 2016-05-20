@@ -11,7 +11,7 @@
             $('#registered').append('<b>none</b>');
         } else {
             g_providers.forEach(function (p) {
-                if (p.provider == 'onedrive') {
+                if (p.name == 'onedrive') {
                     $('#registered').append('<li>' + p.provider + ' - ' + p.username + '</li>');
                 } else {
                     $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');

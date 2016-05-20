@@ -32,8 +32,8 @@
                     // Count the number of deleted chunks
                     g_complete = 0;
                     // Display the progress bar
-                    progressBar(g_complete, file.chunks.length + 1, 'Initialization', 'Delete the Cloud Version of ' + file.name);
-                    cloudDelete(file, file.chunks.length, folder);
+                    progressBar(g_complete, file.nb_chunks + 1, 'Initialization', 'Delete the Cloud Version of ' + file.name);
+                    cloudDelete(file, file.nb_chunks, folder);
                 });
                 $('#cancel-button').click(function () {
                     $('.user-interface').hide();
@@ -109,14 +109,14 @@
             $('#file-size').html(size.value + ' ' + size.unit);
             $('#file-upload').html(file.lastupload);
             // Display providers
-            file.providers.forEach(function (p) {
+            file.chunks.forEach(function (c) {
                 var div;
-                if (p.provider == 'onedrive') {
-                    div = $('<div class="used-provider">' + p.username + '</div>');
+                if (c.provider.name == 'onedrive') {
+                    div = $('<div class="used-provider">' + c.provider.username + '</div>');
                 } else {
-                    div = $('<div class="used-provider">' + p.user + '</div>');
+                    div = $('<div class="used-provider">' + c.provider.user + '</div>');
                 }
-                div.css('background', 'url(../../images/style/' + p.provider + '-small.png) no-repeat');
+                div.css('background', 'url(../../images/style/' + c.provider.name + '-small.png) no-repeat');
                 // Display currently used accounts
                 $('.file-providers').append(div);
             });
@@ -169,7 +169,7 @@ function cloudDelete(file, nbDelete, folder) {
 function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
     var providerIdx = chunkIdx % providers.length;
     if (chunkIdx < file.chunks.length) {
-        switch (providers[providerIdx].provider) {
+        switch (providers[providerIdx].name) {
             case 'dropbox':
                 setTimeout(function () {
                     dropboxDelete(file.chunks[chunkIdx]['name'], providers[providerIdx], nbDelete, folder);

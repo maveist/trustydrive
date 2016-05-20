@@ -130,9 +130,9 @@ function oneDriveFolderExist(provider, func) {
     });
 }
 
-function oneDriveUpload(reader, file, chunkIdx, data, provider, callNb) {
+function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + ':/' + file.chunks[chunkIdx].name + ':/content?select=id';
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content?select=id';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
     if (callNb == undefined) {
@@ -140,18 +140,18 @@ function oneDriveUpload(reader, file, chunkIdx, data, provider, callNb) {
     }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
-                file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+                chunk.info[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
                 uploadComplete(reader, file);
             });
         } else {
             log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    oneDriveUpload(reader, file, chunkIdx, data, provider, callNb + 1);
+                    oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
                 }, 1000);
             } else {
                 // Fail to upload
@@ -160,59 +160,53 @@ function oneDriveUpload(reader, file, chunkIdx, data, provider, callNb) {
     });
 }
 
-function oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb) {
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + ':/' + file.chunks[chunkIdx].name + ':/content';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+function oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
     var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     if (callNb == undefined) {
         callNb = 0;
     }
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsBufferAsync().then(function (buffer) {
-                g_chunks.push({ 'idx': chunkIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
-                downloadComplete(file, myProviders, folder, writer);
+                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
+                downloadComplete(file, folder, writer);
             });
         } else {
             log('OneDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    oneDriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb + 1);
+                    oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
                 }, 1000);
             } else {
-                downloadComplete(file, myProviders, folder, writer);
+                downloadComplete(file, folder, writer);
             }
         }
     });
 }
 
-function oneDriveExists(chunkName, provider, func, args) {
+function oneDriveExists(chunk, chunkIdx, func) {
     var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + '/children?select=id,name';
-    if (args == undefined) {
-        args = { 'exists': false, 'chunks': [], 'providers': [], 'all': [] };
-    } else {
-        args.exists = false;
-    }
-    args.all.push(chunkName);
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + '/children?select=id,name';
     requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
+    chunk.info[chunkIdx].exists = false;
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
             response.content.readAsStringAsync().then(function (jsonInfo) {
                 $.parseJSON(jsonInfo)['value'].forEach(function (f) {
-                    if (f.name == chunkName) {
-                        args['exists'] = true;
-                        args.chunks.push({ 'name': chunkName, 'id': f.id });
-                        args.providers.push(provider);
+                    if (f.name == chunk.info[chunkIdx].name) {
+                        chunk.info[chunkIdx].exists = true;
+                        chunk.info[chunkIdx].id = f.id;
                     }
                 });
-                func(args);
+                func(chunk, chunkIdx);
             });
         } else {
             log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
-            func(args);
+            func(chunk, chunkIdx);
         }
     });
 }
@@ -227,8 +221,8 @@ function oneDriveSync(chunks, provider, orphans) {
             response.content.readAsStringAsync().then(function (jsonInfo) {
                 var data = $.parseJSON(jsonInfo)['value'], found = false;
                 data.forEach(function (f) {
-                    if (indexOfChunk(chunks, f['name']) == -1) {
-                        orphans.push({ 'name': f['name'], 'id': f['id'], 'provider': provider });
+                    if (chunks.indexOf(f.name) == -1) {
+                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
                     }
                 });
                 g_complete++;

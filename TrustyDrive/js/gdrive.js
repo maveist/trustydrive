@@ -74,33 +74,27 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
     });
 }
 
-function gdriveExists(chunkName, provider, func, args) {
+function gdriveExists(chunk, chunkIdx, func) {
     var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId
-        + '%22+in+parents+and+name+%3D+%22' + chunkName + '%22+and+trashed+%3D+false';
+        + '%22+in+parents+and+name+%3D+%22' + chunk.info[chunkIdx].name + '%22+and+trashed+%3D+false';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
     var myFiles;
-    if (args == undefined) {
-        args = { 'exists': false, 'chunks': [], 'providers': [], 'all': [] };
-    } else {
-        args.exists = false;
-    }
-    args.all.push(chunkName);
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    chunk.info[chunkIdx].exists = false;
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
                 myFiles = $.parseJSON(jsonInfo)['files'];
                 if (myFiles.length > 0) {
-                    args.exists = true;
                     // Register the file ID
-                    args.chunks.push({ 'name': chunkName, 'id': myFiles[0].id });
-                    args.providers.push(provider);
+                    chunk.info[chunkIdx].id = myFiles[0].id;
+                    chunk.info[chunkIdx].exists = true;
                 }
-                func(args);
+                func(chunk, chunkIdx);
             });
         } else {
-            func(args);
+            func(chunk, chunkIdx);
         }
     });
 }
@@ -144,7 +138,7 @@ function gdriveFolderExist(provider, func) {
     });
 }
 
-function gdriveUpload(reader, file, chunkIdx, data, provider, callNb) {
+function gdriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
@@ -154,27 +148,27 @@ function gdriveUpload(reader, file, chunkIdx, data, provider, callNb) {
     }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'multipart/related; boundary=trustydrive_separator');
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsStringAsync().then(function (jsonInfo) {
-                file.chunks[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+                chunk.info[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
                 uploadComplete(reader, file);
             });
         } else {
             log('gDrive Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    gdriveUpload(chunk, data, provider, callNb + 1);
+                    gdriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
                 }, 1000);
             }
         }
     });
 }
 
-function gdriveUpdate(reader, file, chunkIdx, data, provider, callNb) {
+function gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb) {
     // Update the content of an existing file from its ID
-    var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + file.chunks[chunkIdx].id + '?uploadType=media';
+    var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + chunk.info[chunkIdx].id + '?uploadType=media';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.patch, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
     if (callNb == undefined) {
@@ -182,7 +176,7 @@ function gdriveUpdate(reader, file, chunkIdx, data, provider, callNb) {
     }
     requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
     requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             uploadComplete(reader, file);
@@ -190,35 +184,35 @@ function gdriveUpdate(reader, file, chunkIdx, data, provider, callNb) {
             log('gDrive Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    gdriveUpdate(reader, file, chunkIdx, data, provider, callNb + 1);
+                    gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb + 1);
                 }, 1000);
             }
         }
     });
 }
 
-function gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb) {
-    var uri = 'https://www.googleapis.com/drive/v3/files/' + file.chunks[chunkIdx].id + '?alt=media';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+function gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
     var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunk.info[chunkIdx].id + '?alt=media';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     if (callNb == undefined) {
         callNb = 0;
     }
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
             success.content.readAsBufferAsync().then(function (buffer) {
-                g_chunks.push({ 'idx': chunkIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
-                downloadComplete(file, myProviders, folder, writer);
+                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
+                downloadComplete(file, folder, writer);
             });
         } else {
             log('gDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
-                    gdriveDownload(file, myProviders, folder, chunkIdx, provider, writer, callNb + 1);
+                    gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
                 }, 1000);
             } else {
-                downloadComplete(file, myProviders, folder, writer);
+                downloadComplete(file, folder, writer);
             }
         }
     });
@@ -263,8 +257,8 @@ function gdriveSync(chunks, provider, orphans) {
             data = $.parseJSON(jsonInfo);
             if (data['files'] != undefined) {
                 data.files.forEach(function (f) {
-                    if (indexOfChunk(chunks, f['name']) == -1) {
-                        orphans.push({ 'name': f['name'], 'id': f['id'], 'provider': provider });
+                    if (chunks.indexOf(f.name) == -1) {
+                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
                     }
                 });
                 g_complete++;

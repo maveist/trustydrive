@@ -52,7 +52,7 @@
             g_providers.forEach(function (p) {
                 var embed = $('<div class="remove-provider"></div>');
                 var div, username = p.user;
-                if (p.provider == 'onedrive') {
+                if (p.name == 'onedrive') {
                     username = p.username;
                 }
                 if (username.length > 26) {
@@ -61,7 +61,7 @@
                     div = $('<div class="used-account">' + username + '</div>');
                 }
                 div.append(embed);
-                div.css('background', 'url(../../images/style/' + p.provider + '.png) no-repeat');
+                div.css('background', 'url(../../images/style/' + p.name + '.png) no-repeat');
                 embed.click(function () {
                     deleteProvider(p);
                 });

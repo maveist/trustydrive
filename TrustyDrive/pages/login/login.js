@@ -10,14 +10,14 @@
         //    passwordVault.remove(c);
         //});
         // Create the default metadata
-        if (g_files[g_metadataName] == undefined) {
-            metadataInit('', '');
-        }
+        //if (g_files[g_metadataName] == undefined) {
+        //    metadataInit('', '');
+        //}
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
         } else {
-            if (g_files[g_metadataName].user.length == 0 && g_files[g_metadataName].chunks.length == 0) {
+            if (g_files[g_metadataName] == undefined) {
                 // Connect to existing providers
                 progressBar(0, credentials.length + 1, 'Initialization', 'Connecting to cloud accounts');
                 setTimeout(function () {
@@ -41,7 +41,11 @@ function metadataInit(user, password) {
     g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'files': [], 'folders': [] };
     // Initialize the metadata of files
     g_files = {};
-    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [], 'providers': [] };
+    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [] };
+    g_providers.forEach(function (p) {
+        g_files[g_metadataName].chunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+    });
+    g_files[g_metadataName]['nb_chunks'] = g_providers.length;
 }
 
 function connectToFilesystem() {
@@ -50,9 +54,6 @@ function connectToFilesystem() {
         $('#connect-error').html('<b>Wrong login or password!</b>');
     } else {
         metadataInit(user, pwd);
-        g_providers.forEach(function (p) {
-            g_files[g_metadataName].chunks.push({ 'name': metadataChunkName(p) });
-        });
         downloadMetadata();
     }
 }
@@ -93,6 +94,7 @@ function connect(credentials, idx, vault) {
                 break;
         }
     } else {
+        metadataInit('', '');
         // Enter the login/password to load metadata
         WinJS.Navigation.navigate('/pages/login/login.html', '');
     }
@@ -108,10 +110,7 @@ function createAccount() {
         if (pwd != pwdbis) {
             $('#new-error').html('<b>Passwords do not match!</b>');
         } else {
-            g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': pwd, 'question': question, 'answer': answer, 'chunks': [], 'providers': [] };
-            g_providers.forEach(function (p) {
-                g_files[g_metadataName].chunks.push({ 'name': metadataChunkName(p) });
-            });
+            metadataInit(user, pwd);
             uploadMetadata();
         }
     }

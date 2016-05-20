@@ -49,7 +49,7 @@ function createElement(name, kind) {
     var element;
     if (kind == 'file') {
         if (g_files[name] == undefined) {
-            element = { 'name': name, 'chunks': [], 'providers': []};
+            element = { 'name': name, 'nb_chunks': 0, 'chunks': []};
             g_files[name] = element;
             return element;
         } else {

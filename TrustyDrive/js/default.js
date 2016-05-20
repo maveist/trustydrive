@@ -1,4 +1,12 @@
-﻿//TODO Modify the chunk representation in metadata
+﻿//TODO Move a file from 2 providers to 3
+//TODO remove the exists property at file.chunks.info.exists
+//TODO When creating a new user, check if he already exists
+//TODO Write documentation (description of every function)
+
+/*** BUG when uploading
+Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
+0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.
+***/
 
 //LOGIN remy / toto
 
