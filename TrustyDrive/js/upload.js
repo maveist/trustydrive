@@ -188,7 +188,7 @@ function uploadChunks(filename, folder, readStream) {
         if (file.chunks.length < nbProviders) {
             g_providers.forEach(function (p) {
                 var notfound = file.chunks.every(function (c) {
-                    if (c.name == p.name && c.user == p.user) {
+                    if (c.provider.name == p.name && c.provider.user == p.user) {
                         return false;
                     } else {
                         return true;
