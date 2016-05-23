@@ -1,5 +1,4 @@
-﻿//TODO remove the exists property at file.chunks.info.exists when uploading the metadata
-//TODO When creating a new user, check if he already exists
+﻿//TODO When creating a new user, check if he already exists
 //TODO Write documentation (description of every function)
 
 /*** BUG when uploading
