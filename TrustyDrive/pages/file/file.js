@@ -158,35 +158,31 @@
 function cloudDelete(file, nbDelete, folder) {
     log('Delete the file ' + file.name + ' inside ' + folder.name);
     // Delete every chunks
-    deleteChunks(file, file.providers, 0, nbDelete, folder);
+    file.chunks.forEach(function (c) {
+        c.info.forEach(function(i) {
+            switch (c.provider.name) {
+                case 'dropbox':
+                    setTimeout(function () {
+                        dropboxDelete(i.name, c.provider, file.nb_chunks, uploadMetadata);
+                    }, 500);
+                    break;
+                case 'gdrive':
+                    setTimeout(function () {
+                        gdriveDelete(i.id, c.provider, file.nb_chunks, uploadMetadata);
+                    }, 500);
+                    break;
+                case 'onedrive':
+                    setTimeout(function () {
+                        oneDriveDelete(i.id, c.provider, file.nb_chunks, uploadMetadata);
+                    }, 500);
+                    break;
+            }
+        });
+    });
     delete g_files[file.name];
     index = folder.files.indexOf(file);
     if (index > -1) {
         folder.files.splice(index, 1);
-    }
-}
-
-function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
-    var providerIdx = chunkIdx % providers.length;
-    if (chunkIdx < file.chunks.length) {
-        switch (providers[providerIdx].name) {
-            case 'dropbox':
-                setTimeout(function () {
-                    dropboxDelete(file.chunks[chunkIdx]['name'], providers[providerIdx], nbDelete, folder);
-                }, 500);
-                break;
-            case 'gdrive':
-                setTimeout(function () {
-                    gdriveDelete(file.chunks[chunkIdx]['id'], providers[providerIdx], nbDelete, folder);
-                }, 500);
-                break;
-            case 'onedrive':
-                setTimeout(function () {
-                    oneDriveDelete(file.chunks[chunkIdx]['id'], providers[providerIdx], nbDelete, folder);
-                }, 500);
-                break;
-        }
-        deleteChunks(file, providers, chunkIdx + 1, nbDelete, folder);
     }
 }
 

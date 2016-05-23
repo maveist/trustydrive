@@ -2,9 +2,6 @@
 //TODO When creating a new user, check if he already exists
 //TODO Write documentation (description of every function)
 
-//BUG A new metadata chunk is upload on Google Drive, get ID from *Exists functions
-//BUG Re-implement cloudDelete
-
 /*** BUG when uploading
 Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
 0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.
