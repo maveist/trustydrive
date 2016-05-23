@@ -9,10 +9,7 @@
         //credentials.forEach(function (c) {
         //    passwordVault.remove(c);
         //});
-        // Create the default metadata
-        //if (g_files[g_metadataName] == undefined) {
-        //    metadataInit('', '');
-        //}
+        //TESTING END
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');

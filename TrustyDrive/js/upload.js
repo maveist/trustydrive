@@ -292,7 +292,7 @@ function startUpload(file, readStream, folder) {
 
 // Metadata management
 function uploadMetadata() {
-    var metadata, crypto, cBuffer, writer;
+    var metadata, crypto, cBuffer, writer, metadataChunks = g_files[g_metadataName].chunks;
     // Check the number of providers
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
@@ -322,9 +322,16 @@ function uploadMetadata() {
         // Save the metadata to the cloud
         writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
         writer.writeAsync(buffer);
-        g_files[g_metadataName].chunks = [];
-        g_providers.forEach(function (p) {
-            g_files[g_metadataName].chunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+        // Synchronize the provider list and the metadata chunks
+        $.each(g_providers, function (idx, p) {
+            if (idx == metadataChunks.length) {
+                metadataChunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+            } else {
+                if (!(metadataChunks[idx].provider.name == p.name && metadataChunks[idx].provider.user == p.user)) {
+                    // Insert a new chunk for this provider
+                    metadataChunks.splice(idx, 0, { 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+                }
+            }
         });
         uploadChunks(g_metadataName, undefined, writer);
     }
