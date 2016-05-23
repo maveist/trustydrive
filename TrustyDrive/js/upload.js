@@ -302,7 +302,7 @@ function uploadMetadata() {
         $.each(metadata, function (filename, file) {
             if (filename == g_metadataName) {
                 // Minimize the information about metadata
-                return { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'chunks': [] };
+                metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'chunks': [] };
             } else {
                 // Remove tokens from providers
                 file.chunks.forEach(function (c) {
@@ -311,7 +311,13 @@ function uploadMetadata() {
             }
         });
         // Build the JSON
+        var test = JSON.stringify(metadata);
         metadata = JSON.stringify(metadata);
+        // TESTING
+        Windows.Storage.ApplicationData.current.localFolder.createFileAsync('metadata.txt', Windows.Storage.CreationCollisionOption.replaceExisting).done(function (file) {
+            Windows.Storage.FileIO.writeTextAsync(file, test).done();
+        });
+        // TESTING END
         crypto = Windows.Security.Cryptography;
         cBuffer = crypto.CryptographicBuffer;
         // Convert to buffer
