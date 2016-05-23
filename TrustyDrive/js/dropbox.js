@@ -15,7 +15,7 @@ function dropboxCreateFolder(token, func) {
 }
 
 // nbDelete: number of chunks to delete to complete the operation
-function dropboxDelete(chunkName, provider, nbDelete, folder, callNb) {
+function dropboxDelete(chunkName, provider, nbDelete, func, callNb) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.dropboxapi.com/1/fileops/delete?root=auto&path=%2F' + g_cloudFolder + chunkName;
@@ -27,18 +27,18 @@ function dropboxDelete(chunkName, provider, nbDelete, folder, callNb) {
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode) {
-            deleteComplete(nbDelete, folder);
+            deleteComplete(nbDelete, func);
         } else {
             log('ERROR can not delete the chunk ' + chunkName + ' from ' + provider.user + ': ' + response.statusCode);
             if (response.statusCode == 404) {
-                deleteComplete(nbDelete, folder);
+                deleteComplete(nbDelete, func);
             } else if (callNb < 5) {
                 setTimeout(function () {
-                    dropboxDelete(chunkName, provider, nbDelete, folder, callNb + 1);
+                    dropboxDelete(chunkName, provider, nbDelete, func, callNb + 1);
                 }, 500);
             } else {
                 // We delete the chunk later from the metadata editor
-                deleteComplete(nbDelete, folder);
+                deleteComplete(nbDelete, func);
             }
         }
     });
@@ -59,11 +59,6 @@ function dropboxDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callN
         function (success) {
             if (success.isSuccessStatusCode) {
                 success.content.readAsBufferAsync().done(function (buffer) {
-                    // TEST
-                    Windows.Storage.ApplicationData.current.localFolder.createFileAsync(chunk.info[chunkIdx].name, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                        Windows.Storage.FileIO.writeBufferAsync(file, buffer).done();
-                    });
-                    // TEST END
                     reader = Windows.Storage.Streams.DataReader.fromBuffer(buffer);
                     g_chunks.push({ 'idx': bufferIdx, 'reader': reader, 'size': buffer.length });
                     downloadComplete(file, folder, writer);

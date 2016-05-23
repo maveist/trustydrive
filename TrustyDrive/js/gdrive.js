@@ -218,7 +218,7 @@ function gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb
     });
 }
 
-function gdriveDelete(chunkId, provider, nbDelete, folder, callNb) {
+function gdriveDelete(chunkId, provider, nbDelete, func, callNb) {
     var uri = 'https://www.googleapis.com/drive/v3/files/' + chunkId;
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -231,16 +231,16 @@ function gdriveDelete(chunkId, provider, nbDelete, folder, callNb) {
         requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
         httpClient.sendRequestAsync(requestMessage).then(function (response) {
             if (response.isSuccessStatusCode || response.statusCode == 404) {
-                deleteComplete(nbDelete, folder);
+                deleteComplete(nbDelete, func);
             } else {
                 log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
                 if (callNb < 5) {
                     setTimeout(function () {
-                        gdriveDelete(chunkId, provider, nbDelete, folder, callNb + 1);
+                        gdriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
                     }, 500);
                 } else {
                     // We delete the chunk later from the metadata editor
-                    deleteComplete(nbDelete, folder);
+                    deleteComplete(nbDelete, func);
                 }
             }
         });

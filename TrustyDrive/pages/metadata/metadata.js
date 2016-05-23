@@ -123,13 +123,19 @@ function deleteOrphansDialog(orphans) {
             orphans.forEach(function (o) {
                 switch (o.provider.name) {
                     case 'dropbox':
-                        dropboxDelete(o.name, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                        dropboxDelete(o.name, o.provider, orphans.length, function () {
+                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                        });
                         break;
                     case 'gdrive':
-                        gdriveDelete(o.id, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                        gdriveDelete(o.id, o.provider, orphans.length, function () {
+                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                        });
                         break;
                     case 'onedrive':
-                        oneDriveDelete(o.id, o.provider, orphans.length, g_folders[g_homeFolderName]);
+                        oneDriveDelete(o.id, o.provider, orphans.length, function () {
+                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                        });
                         break;
                 }
             });

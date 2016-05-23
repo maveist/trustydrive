@@ -41,37 +41,19 @@
             }
             switch (c.provider.name) {
                 case 'dropbox':
-                    // TEST
-                    var buffer = chunkBuffers[idx].stream.detachBuffer();
-                    Windows.Storage.ApplicationData.current.localFolder.createFileAsync(c.info[chunkIdx].name, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                        Windows.Storage.FileIO.writeBufferAsync(file, buffer).done();
-                    });
-                    // TEST END
-                    dropboxUpload(reader, file, c, chunkIdx, buffer);
+                    dropboxUpload(reader, file, c, chunkIdx, chunkBuffers[idx].stream.detachBuffer());
                     break;
                 case 'gdrive':
-                    // TEST
-                    var buffer = chunkBuffers[idx].stream.detachBuffer();
-                    Windows.Storage.ApplicationData.current.localFolder.createFileAsync(c.info[chunkIdx].name, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                        Windows.Storage.FileIO.writeBufferAsync(file, buffer).done();
-                    });
-                    // TEST END
                     if (c.info[chunkIdx].id == undefined) {
                         // Create a new file for the chunk
-                        gdriveUpload(reader, file, c, chunkIdx, buffer);
+                        gdriveUpload(reader, file, c, chunkIdx, chunkBuffers[idx].stream.detachBuffer());
                     } else {
                         // Update the content of an existing chunk
-                        gdriveUpdate(reader, file, c, chunkIdx, buffer);
+                        gdriveUpdate(reader, file, c, chunkIdx, chunkBuffers[idx].stream.detachBuffer());
                     }
                     break;
                 case 'onedrive':
-                    // TEST
-                    var buffer = chunkBuffers[idx].stream.detachBuffer();
-                    Windows.Storage.ApplicationData.current.localFolder.createFileAsync(c.info[chunkIdx].name, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-                        Windows.Storage.FileIO.writeBufferAsync(file, buffer).done();
-                    });
-                    // TEST END
-                    oneDriveUpload(reader, file, c, chunkIdx, buffer);
+                    oneDriveUpload(reader, file, c, chunkIdx, chunkBuffers[idx].stream.detachBuffer());
                     break;
             }
             chunkBuffers[idx].stream.close();
@@ -171,7 +153,7 @@ function uploadComplete(reader, file) {
 }
 
 function uploadChunks(filename, folder, readStream) {
-    var i, j, provider, file, nbChunks, chunkSize, oldChunks, chunkName, existingChunks, reader, nbProviders = g_providers.length;
+    var file, nbChunks, nbProviders = g_providers.length;
     log('File to Upload: ' + filename + ', size=' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
@@ -200,6 +182,7 @@ function uploadChunks(filename, folder, readStream) {
             readStream.close();
             throw 'The maximum number of files is reached. You can not upload new files!'
         }
+        startUpload(file, readStream, folder);
     } else {
         // Check the number of providers
         if (file.chunks.length < nbProviders) {
@@ -216,38 +199,89 @@ function uploadChunks(filename, folder, readStream) {
                 }
             });
         }
-        // Compute all existing chunk names
-        existingChunks = [];
-        $.each(g_files, function (useless, file) {
-            file.chunks.forEach(function (c) {
-                c.info.forEach(function (i) {
-                    existingChunks.push(i.name);
-                });
+        // Fill the file structure with the right number of chunks
+        removeChunks(file, readStream, nbChunks, folder);
+    }
+}
+
+function removeChunks(file, readStream, nbChunks, folder) {
+    var removed = [];
+    file.chunks.forEach(function (c) {
+        var temp;
+        if (c.info.length > nbChunks) {
+            temp = c.info.splice(nbChunks, c.info.length - nbChunks);
+            temp.forEach(function (t) {
+                removed.push({ 'provider': c.provider, 'name': t.name, 'id': t.id });
             });
-        });
-        // Check the number of chunks for every provider
-        file.chunks.forEach(function (c) {
-            if (c.info.length > nbChunks) {
-                c.info.splice(nbChunks, c.info.length - nbChunks);
-            } else {
-                // Generate chunk names that look like a SHA1, i.e., 40 random hexa chars
-                while (c.info.length < nbChunks) {
-                    do {
-                        chunkName = '';
-                        for (j = 0; j < 40; j++) {
-                            chunkName += Math.floor(Math.random() * 16).toString(16);
-                        }
-                    } while (existingChunks.indexOf(chunkName) > -1);
-                    c.info.push({ 'name': chunkName });
-                    existingChunks.push(chunkName);
-                }
+        }
+    });
+    if (removed.length == 0) {
+        // No chunk to delete
+        addChunks(file, readStream, nbChunks, folder);
+    } else {
+        // Delete useless chunks
+        g_complete = 0;
+        progressBar(g_complete, removed.length + 1, 'Initialization', 'Delete Outdated Chunks');
+        removed.forEach(function (r) {
+            switch (r.provider.name) {
+                case 'dropbox':
+                    setTimeout(function () {
+                        dropboxDelete(r.name, r.provider, removed.length, function () {
+                            addChunks(file, readStream, nbChunks, folder);
+                        });
+                    }, 500);
+                    break;
+                case 'gdrive':
+                    setTimeout(function () {
+                        gdriveDelete(r.id, r.provider, removed.length, function () {
+                            addChunks(file, readStream, nbChunks, folder);
+                        });
+                    }, 500);
+                    break;
+                case 'onedrive':
+                    setTimeout(function () {
+                        oneDriveDelete(r.id, r.provider, removed.length, function () {
+                            addChunks(file, readStream, nbChunks, folder);
+                        });
+                    }, 500);
+                    break;
             }
         });
     }
-    progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + filename);
-    chunkSize = Math.floor(readStream.size / file.nb_chunks);
+}
+
+function addChunks(file, readStream, nbChunks, folder) {
+    // Compute all existing chunk names
+    var existingChunks = [];
+    $.each(g_files, function (useless, file) {
+        file.chunks.forEach(function (c) {
+            c.info.forEach(function (i) {
+                existingChunks.push(i.name);
+            });
+        });
+    });
+    // Generate chunk names that look like a SHA1, i.e., 40 random hexa chars
+    file.chunks.forEach(function (c) {
+        var j, chunkName;
+        while (c.info.length < nbChunks) {
+            do {
+                chunkName = '';
+                for (j = 0; j < 40; j++) {
+                    chunkName += Math.floor(Math.random() * 16).toString(16);
+                }
+            } while (existingChunks.indexOf(chunkName) > -1);
+            c.info.push({ 'name': chunkName });
+            existingChunks.push(chunkName);
+        }
+    });
+    startUpload(file, readStream, folder);
+}
+
+function startUpload(file, readStream, folder) {
+    var reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
+    var chunkSize = Math.floor(readStream.size / file.nb_chunks);
+    progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
     log('Nb. of Chunks: ' + file.nb_chunks + ', chunksize=' + chunkSize);
-    reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
     // Counter for the number of upload chunks
     g_complete = 0;
     // Delay the chunk creation to display the progress bar
@@ -258,12 +292,13 @@ function uploadChunks(filename, folder, readStream) {
 
 // Metadata management
 function uploadMetadata() {
+    var metadata, crypto, cBuffer, writer;
     // Check the number of providers
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
     } else {
         // Build data from the metadata
-        var metadata = $.extend(true, {}, g_files);
+        metadata = $.extend(true, {}, g_files);
         $.each(metadata, function (filename, file) {
             if (filename == g_metadataName) {
                 // Minimize the information about metadata
@@ -277,20 +312,15 @@ function uploadMetadata() {
         });
         // Build the JSON
         metadata = JSON.stringify(metadata);
-        // TEST
-        Windows.Storage.ApplicationData.current.localFolder.createFileAsync('metadata.txt', Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
-            Windows.Storage.FileIO.writeTextAsync(file, JSON.stringify(metadata)).done();
-        });
-        // TEST END
-        var crypto = Windows.Security.Cryptography;
-        var cBuffer = crypto.CryptographicBuffer;
+        crypto = Windows.Security.Cryptography;
+        cBuffer = crypto.CryptographicBuffer;
         // Convert to buffer
-        var buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
+        buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
         // Encrypt metadata data
         metadata = cBuffer.encodeToBase64String(buffer);
         buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
         // Save the metadata to the cloud
-        var writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+        writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
         writer.writeAsync(buffer);
         g_files[g_metadataName].chunks = [];
         g_providers.forEach(function (p) {

@@ -235,7 +235,7 @@ function oneDriveSync(chunks, provider, orphans) {
     });
 }
 
-function oneDriveDelete(chunkId, provider, nbDelete, folder, callNb) {
+function oneDriveDelete(chunkId, provider, nbDelete, func, callNb) {
     var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunkId;
     if (callNb == undefined) {
@@ -245,16 +245,16 @@ function oneDriveDelete(chunkId, provider, nbDelete, folder, callNb) {
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {
         if (response.isSuccessStatusCode || response.statusCode == 404) {
-            deleteComplete(nbDelete, folder);
+            deleteComplete(nbDelete, func);
         } else {
             log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
             if (callNb < 5) {
                 setTimeout(function () {
-                    oneDriveDelete(chunkId, provider, nbDelete, folder, callNb + 1);
+                    oneDriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
                 }, 500);
             } else {
                 // We delete the chunk later from the metadata editor
-                deleteComplete(nbDelete, folder);
+                deleteComplete(nbDelete, func);
             }
         }
     });

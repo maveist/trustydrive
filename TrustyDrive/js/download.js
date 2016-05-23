@@ -151,6 +151,7 @@ function downloadMetadataComplete(chunk, chunkIdx) {
         for (i = metadata.chunks.length - 1; i > -1; i--) {
             if (!metadata.chunks[i].info[0].exists) {
                 metadata.chunks.splice(i, 1);
+                metadata.nb_chunks--;
             }
         }
         if (metadata.chunks.length == 0) {

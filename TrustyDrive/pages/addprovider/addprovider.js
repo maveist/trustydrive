@@ -12,9 +12,9 @@
         } else {
             g_providers.forEach(function (p) {
                 if (p.name == 'onedrive') {
-                    $('#registered').append('<li>' + p.provider + ' - ' + p.username + '</li>');
+                    $('#registered').append('<li>' + p.name + ' - ' + p.username + '</li>');
                 } else {
-                    $('#registered').append('<li>' + p.provider + ' - ' + p.user + '</li>');
+                    $('#registered').append('<li>' + p.name + ' - ' + p.user + '</li>');
                 }
             });
         }

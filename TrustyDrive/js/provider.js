@@ -61,26 +61,24 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
 function deleteProvider(provider) {
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
-    var chunkName = metadataChunkName(provider);
-    var index = g_providers.indexOf(provider);
-    var myprovider, message, errorFiles = [];
+    var index = g_providers.indexOf(provider), chunkIdx;
+    var message, errorFiles = [];
     var metadata = g_files[g_metadataName];
     var chunksToDelete = [];
     log('Try to Delete the provider ' + provider.name + '/' + provider.user);
     if (index > -1) {
-        myprovider = g_providers[index];
         // Check that all files using this provider are downloaded
         $.each(g_files, function (useless, f) {
             if (f.name != g_metadataName) {
-                f.providers.forEach(function (p) {
-                    if (p.name == provider.name && p.user == provider.user) {
+                f.chunks.forEach(function (c) {
+                    if (c.provider.name == provider.name && c.provider.user == provider.user) {
                         errorFiles.push(f);
                     }
                 });
             }
         });
         if (errorFiles.length > 0) {
-            message = 'Delete Provider Error: Can Not Delete <b>' + myprovider.name + '/' + myprovider.user +
+            message = 'Delete Provider Error: Can Not Delete <b>' + provider.name + '/' + provider.user +
                 '</b>. The following files must be deleted:<br>';
             errorFiles.forEach(function (f) {
                 if (f.path.length == 1) {
@@ -99,45 +97,47 @@ function deleteProvider(provider) {
                     passwordVault.remove(c);
                 }
             });
-            // Delete the chunk related to the metadata
-            if (metadata.chunks.length > 0) {
-                if (metadata.chunks.length == 2) {
-                    // Delete the last two chunks because we can not keep metadata in one single file
-                    $.each(metadata.chunks, function (idx, c) {
-                        chunksToDelete.push({ 'idx': idx, 'chunk': c, 'provider': g_providers[idx] });
-                    });
-                } else {
-                    $.each(metadata.chunks, function (idx, c) {
-                        if (c.name == chunkName) {
-                            chunksToDelete.push({ 'idx': idx, 'chunk': c, 'provider': provider });
-                        }
-                    });
-                }
-                // Remove the provider from the current provider list
-                g_providers.splice(index, 1);
-                // Delete chunk(s)
-                g_complete = 0;
-                progressBar(g_complete, chunksToDelete.length + 1, 'Initialization', 'Delete Metadata Chunks');
-                chunksToDelete.forEach(function (c) {
-                    if (chunksToDelete.length > 1) {
-                        metadata['chunks'] = [];
-                    } else {
-                        metadata['chunks'].splice(c.idx, 1);
-                    }
-                    // Delete the chunk leads to upload the metadata
-                    switch (c.provider.name) {
-                        case 'dropbox':
-                            dropboxDelete(c.chunk.name, c.provider, chunksToDelete.length, g_folders[g_homeFolderName]);
-                            break;
-                        case 'gdrive':
-                            gdriveDelete(c.chunk.id, c.provider, chunksToDelete.length, g_folders[g_homeFolderName]);
-                            break;
-                        case 'onedrive':
-                            oneDriveDelete(c.chunk.id, c.provider, chunksToDelete.length, g_folders[g_homeFolderName]);
-                            break;
+            // Delete chunks related to the metadata
+            if (metadata.chunks.length == 2) {
+                // Delete the last two chunks because we can not keep metadata in one single file
+                metadata.chunks.forEach(function (c) {
+                    chunksToDelete.push({ 'provider': c.provider, 'name': c.info[0].name, 'id': c.info[0].id });
+                });
+                metadata.chunks = [];
+            } else {
+                $.each(metadata.chunks, function (idx, c) {
+                    if (c.provider.name == provider.name && c.provider.user == provider.user) {
+                        chunkIdx = idx;
+                        chunksToDelete.push({ 'provider': c.provider, 'name': c.info[0].name, 'id': c.info[0].id });
                     }
                 });
+                metadata.chunks.splice(chunkIdx, 1);
             }
+            // Remove the provider from the current provider list
+            g_providers.splice(index, 1);
+            // Delete chunk(s)
+            g_complete = 0;
+            progressBar(g_complete, chunksToDelete.length + 1, 'Initialization', 'Delete Metadata Chunks');
+            chunksToDelete.forEach(function (c) {
+                // Delete the chunk leads to upload the metadata
+                switch (c.provider.name) {
+                    case 'dropbox':
+                        dropboxDelete(c.name, c.provider, chunksToDelete.length, function () {
+                            uploadMetadata();
+                        });
+                        break;
+                    case 'gdrive':
+                        gdriveDelete(c.id, c.provider, chunksToDelete.length, function () {
+                            uploadMetadata();
+                        });
+                        break;
+                    case 'onedrive':
+                        oneDriveDelete(c.id, c.provider, chunksToDelete.length, function () {
+                            uploadMetadata();
+                        });
+                        break;
+                }
+            });
         }
     } else {
         log('Can not delete ' + provider.name + '/' + provider.user);

@@ -190,10 +190,10 @@ function deleteChunks(file, providers, chunkIdx, nbDelete, folder) {
     }
 }
 
-function deleteComplete(nbDelete, folder) {
+function deleteComplete(nbDelete, func) {
     g_complete++;
     if (g_complete == nbDelete) {
-        uploadMetadata();
+        func();
     } else {
         progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
     }
