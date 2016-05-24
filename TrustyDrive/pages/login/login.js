@@ -1,4 +1,8 @@
-﻿WinJS.UI.Pages.define('/pages/login/login.html', {
+﻿/***
+*   login scope: the entry point of TrustyDrive. Check precondition about the working folder and the number of providers
+*       and download the metadata
+***/
+WinJS.UI.Pages.define('/pages/login/login.html', {
     ready: function () {
         // Do not forget to provider the string argument
         var logError = WinJS.Navigation.state;
@@ -32,6 +36,11 @@
     }
 })
 
+/***
+*   metadataInit: create an empty metadata for the user and clear both the folder list and the file list
+*       user: the user name
+*       password: the password to protect the account
+***/
 function metadataInit(user, password) {
     // Initialize the metadata of folders
     g_folders = {};
@@ -45,6 +54,9 @@ function metadataInit(user, password) {
     g_files[g_metadataName]['nb_chunks'] = g_providers.length;
 }
 
+/***
+*   connectToFilesystem: fill the metadata with password and download the metadata
+***/
 function connectToFilesystem() {
     var user = $('#connect-login').val(), pwd = $('#connect-pwd').val();
     if (user.length == 0 || pwd.length == 0) {
@@ -55,6 +67,12 @@ function connectToFilesystem() {
     }
 }
 
+/***
+*   connect: connect to one registered provider
+*       credentials: the credentials of the TrustyDrive
+*       idx: the index of the provider credentials
+*       vault: the utility to read credentials
+***/
 function connect(credentials, idx, vault) {
     var provider, user;
     if (idx < credentials.length) {
@@ -97,6 +115,9 @@ function connect(credentials, idx, vault) {
     }
 }
 
+/***
+*   createAccount: create an account to a new TrustyDrive user
+***/
 function createAccount() {
     var user = $('#new-login').val(), pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val(),
         question = $('#new-que').val(), answer = $('#new-ans').val();
@@ -113,6 +134,13 @@ function createAccount() {
     }
 }
 
+/***
+*   progressBar: display a nice progress bar
+*       current: the current step of the operation
+*       max: the number of steps to complete the operation
+*       legend: the message to update at every step
+*       title: the title of the operation
+***/
 function progressBar(current, max, legend, title) {
     var bar, barLegend, body, step;
     if (current == 0) {
@@ -138,6 +166,10 @@ function progressBar(current, max, legend, title) {
     }
 }
 
+/***
+*   showConnectFields: show fields to allow the login of an existing user
+*       logError: display why the login failed
+***/
 function showConnectFields(logError) {
     $('#lost-form').hide();
     $('#new-form').hide();

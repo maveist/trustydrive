@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/addprovider/addprovider.html', {
+﻿/***
+*   addprovider scope: display already registered accounts and register new providers
+***/
+WinJS.UI.Pages.define('/pages/addprovider/addprovider.html', {
     ready: function () {
         // Add click listeners
         $('.upper-back').click(function () {

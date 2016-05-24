@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/changepwd/changepwd.html', {
+﻿/***
+*   changepwd scope: change the user password
+***/
+WinJS.UI.Pages.define('/pages/changepwd/changepwd.html', {
     ready: function () {
         $('#password-confirm').click(function () {
             var current = $('#password-cur').val(), newp = $('#password-new').val(), newpbis = $('#password-newbis').val();

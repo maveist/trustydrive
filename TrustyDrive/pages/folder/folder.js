@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/folder/folder.html', {
+﻿/***
+*   folder scope: display folders and manage them
+***/
+WinJS.UI.Pages.define('/pages/folder/folder.html', {
     ready: function () {
         var folder = WinJS.Navigation.state;
         var height = $('#content').innerHeight();
@@ -87,11 +90,11 @@
             fname.focus();
             fname.keypress(function (e) {
                 if (e.which == 13) {
-                    createDir(fname.val(), folder);
+                    createFolder(fname.val(), folder);
                 }
             });
             $('#create-button').click(function () {
-                createDir(fname.val(), folder);
+                createFolder(fname.val(), folder);
             });
             $('#cancel-button').click(function () {
                 $('.user-interface').hide();
@@ -132,10 +135,20 @@
     }
 })
 
+/***
+*   alphabetic: sort alphabetically the files of a folder
+*       a: one file
+*       b: another file
+***/
 function alphabetic(a, b) {
     return a.name.localeCompare(b.name);
 }
 
+/***
+*   byType: sort the files of a folder from their type
+*       a: one file
+*       b: another file
+***/
 function byType(a, b) {
     if (a.type == b.type) {
         return a.name.localeCompare(b.name);
@@ -148,7 +161,12 @@ function byType(a, b) {
     }
 }
 
-function createDir(fname, folder) {
+/***
+*   createFolder: create a folder
+*       fname: the name of the folder
+*       folder: the parent of the folder
+***/
+function createFolder(fname, folder) {
     if (fname.length > 0 && g_folders[fname] == undefined) {
         // Create the new folder
         var newfolder = createElement(fname, 'folder');
@@ -159,6 +177,10 @@ function createDir(fname, folder) {
     }
 }
 
+/***
+*   deleteFolder: delete a folder and every chunk associated to the files inside this folder
+*       folder: the folder to delete
+***/
 function deleteFolder(folder) {
     var current = [], future = [], allFiles = [], nbChunks = 0;
     current.push(folder);
@@ -180,6 +202,11 @@ function deleteFolder(folder) {
     });
 }
 
+/***
+*   renameFolder: rename a folder
+*       folder: the folder to rename
+*       newName: the new name of the folder
+***/
 function renameFolder(folder, newName) {
     var current = [], future = [], modify = false;
     if (newName.length == 0 || g_folders[newName] != undefined) {

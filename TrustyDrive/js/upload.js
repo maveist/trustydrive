@@ -1,4 +1,12 @@
-﻿function createChunks(file, folder, reader, chunkSize, remainSize, chunkIdx) {
+﻿/***
+*   createChunks: create chunks on cloud providers
+*       file: the file metadata
+*       reader: the reader to read the data to upload
+*       chunkSize: the minimum size of one chunk
+*       remainSize: increase the chunkSize of one byte if remainSize > 0
+*       chunkIdx: the index of the chunk to upload
+***/
+function createChunks(file, reader, chunkSize, remainSize, chunkIdx) {
     var i, temp, tempSize = 0;
     var chunkBuffers = [];
     // One chunk buffer per provider
@@ -62,12 +70,17 @@
         if (chunkIdx * file.chunks.length < file.nb_chunks) {
             // Keep creating chunks, delay the chunk creation to update the progress bar
             setTimeout(function () {
-                createChunks(file, folder, reader, chunkSize, remainSize, chunkIdx);
+                createChunks(file, reader, chunkSize, remainSize, chunkIdx);
             }, 100);
         }
     });
 }
 
+/***
+*   uploadComplete: call this function after uploading one chunk
+*       reader: the reader to read the data to upload
+*       file: the file metadata
+***/
 function uploadComplete(reader, file) {
     const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
     var idx, d = new Date(), filetype = 'unknown';
@@ -152,6 +165,12 @@ function uploadComplete(reader, file) {
     }
 }
 
+/***
+*   uploadChunks: compute the number of chunks required to upload one file
+*       filename: the name of the file
+*       folder: the folder that will contain the file in TrustyDrive
+*       readStream: the stream opened from the file to upload
+***/
 function uploadChunks(filename, folder, readStream) {
     var file, nbChunks, nbProviders = g_providers.length;
     log('File to Upload: ' + filename + ', size=' + readStream.size);
@@ -204,6 +223,13 @@ function uploadChunks(filename, folder, readStream) {
     }
 }
 
+/***
+*   removeChunks: remove the chunks that are no longer required
+*       file: the file metadata
+*       readStream: the stream opened from the file to upload
+*       nbChunks: the number of chunks required per provider
+*       folder: the folder to display after uploading the file
+***/
 function removeChunks(file, readStream, nbChunks, folder) {
     var removed = [];
     file.chunks.forEach(function (c) {
@@ -250,6 +276,13 @@ function removeChunks(file, readStream, nbChunks, folder) {
     }
 }
 
+/***
+*   addChunks: create chunk information to upload the file
+*       file: the file metadata
+*       readStream: the stream opened from the file to upload
+*       nbChunks: the number of chunks required per provider
+*       folder: the folder to display after uploading the file
+***/
 function addChunks(file, readStream, nbChunks, folder) {
     // Compute all existing chunk names
     var existingChunks = [];
@@ -277,6 +310,12 @@ function addChunks(file, readStream, nbChunks, folder) {
     startUpload(file, readStream, folder);
 }
 
+/***
+*   startUpoad: start to upload chunks to cloud providers
+*       file: the file metadata
+*       readStream: the stream opened from the file to upload
+*       folder: the folder to display after uploading the file
+***/
 function startUpload(file, readStream, folder) {
     var reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
     var chunkSize = Math.floor(readStream.size / file.nb_chunks);
@@ -290,7 +329,9 @@ function startUpload(file, readStream, folder) {
     }, 100);
 }
 
-// Metadata management
+/***
+*   uploadMetadata: build, encrypt and upload the metadata
+***/
 function uploadMetadata() {
     var metadata, crypto, cBuffer, writer, metadataChunks = g_files[g_metadataName].chunks;
     // Check the number of providers
@@ -340,6 +381,9 @@ function uploadMetadata() {
     }
 }
 
+/***
+*   metadataExists: check if metadata chunks exist
+***/
 function metadataExists() {
     g_complete = 0;
     g_files[g_metadataName].chunks.forEach(function (c) {
@@ -357,6 +401,10 @@ function metadataExists() {
     });
 }
 
+
+/***
+*   metadataExistsComplete: upload the metadata only if every chunks do not exist
+***/
 function metadataExistsComplete() {
     var metadata = g_files[g_metadataName];
     var exists = false;
@@ -373,6 +421,11 @@ function metadataExistsComplete() {
     }
 }
 
+
+/***
+*   uploadNewFile: select and upload a new file
+*       folder: the folder that will contain the file
+***/
 function uploadNewFile(folder) {
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;

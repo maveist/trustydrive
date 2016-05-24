@@ -1,4 +1,157 @@
-﻿// OneDrive connector
+﻿/***
+**  ONEDRIVE CONNECTOR
+***/
+
+/***
+*   oneDriveDelete: Delete one chunk
+*       chunkName: the name of the chunk
+*       provider: the provider information to the authentication process
+*       nbDelete: the number of chunks to delete to complete the whole operation
+*       func: the function to execute after the folder creation
+*       callNb: counter to limit the number of attempts
+***/
+function oneDriveDelete(chunkId, provider, nbDelete, func, callNb) {
+    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunkId;
+    if (callNb == undefined) {
+        callNb = 0;
+    }
+    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        if (response.isSuccessStatusCode || response.statusCode == 404) {
+            deleteComplete(nbDelete, func);
+        } else {
+            log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
+                }, 500);
+            } else {
+                // We delete the chunk later from the metadata editor
+                deleteComplete(nbDelete, func);
+            }
+        }
+    });
+}
+
+/***
+*   oneDriveDownload: Download one chunk
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       bufferIdx: the index of the buffer to fill with the chunk data
+*       folder: the folder to display when the download is completed
+*       writer: the writer to a file located in the working folder
+*       callNb: counter to limit the number of attempts
+***/
+function oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    if (callNb == undefined) {
+        callNb = 0;
+    }
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsBufferAsync().then(function (buffer) {
+                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
+                downloadComplete(file, folder, writer);
+            });
+        } else {
+            log('OneDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
+                }, 1000);
+            } else {
+                downloadComplete(file, folder, writer);
+            }
+        }
+    });
+}
+
+/***
+*   oneDriveExists: Check if the chunk exists
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       func: the function to execute after the checking
+***/
+function oneDriveExists(chunk, chunkIdx, func) {
+    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + '/children?select=id,name';
+    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
+    chunk.info[chunkIdx].exists = false;
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        if (response.isSuccessStatusCode) {
+            response.content.readAsStringAsync().then(function (jsonInfo) {
+                $.parseJSON(jsonInfo)['value'].forEach(function (f) {
+                    if (f.name == chunk.info[chunkIdx].name) {
+                        chunk.info[chunkIdx].exists = true;
+                        chunk.info[chunkIdx].id = f.id;
+                    }
+                });
+                func(chunk, chunkIdx);
+            });
+        } else {
+            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
+            func(chunk, chunkIdx);
+        }
+    });
+}
+
+/***
+*   oneDriveFolderExists: Check if the trustydrive folder exists
+*       token: authentication token
+*       func: the function to deal with the result of the checking
+***/
+function oneDriveFolderExist(provider, func) {
+    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drives/' + provider.user + '/root/children?select=id,name,folder';
+    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                var data = $.parseJSON(jsonInfo)['value'], notfound = true;
+                data.forEach(function (f) {
+                    if (f.folder != undefined && f.name + '/' == g_cloudFolder) {
+                        notfound = false;
+                        provider['folder'] = f.id;
+                        func();
+                    }
+                });
+                if (notfound) {
+                    // Create the app folder
+                    uri = 'https://api.onedrive.com/v1.0/drive/root/children?select=id';
+                    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+                    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+                    requestMessage.content = new Windows.Web.Http.HttpStringContent('{ "name": "' + g_cloudFolder.substr(0, g_cloudFolder.length - 1) + '", "folder": {} }',
+                        Windows.Storage.Streams.UnicodeEncoding.utf8, 'application/json; charset=UTF-8');
+                    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+                        if (success.isSuccessStatusCode) {
+                            success.content.readAsStringAsync().then(function (jsonInfo) {
+                                provider['folder'] = $.parseJSON(jsonInfo)['id'];
+                                func();
+                            });
+                        } else {
+                            log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
+                        }
+                    });
+                }
+            });
+        } else {
+            log('Folder Exist Check Failure: ' + success.statusCode + ' - ' + success.requestMessage);
+        }
+    });
+}
+
+/***
+*   oneDriveLogin: Login to a new provider
+*       func: the function to execute after the login
+***/
 function oneDriveLogin(func) {
     var webtools = Windows.Security.Authentication.Web;
     var webAuthenticationBroker = webtools.WebAuthenticationBroker;
@@ -41,6 +194,82 @@ function oneDriveLogin(func) {
         });
 }
 
+/***
+*   oneDriveSync: Check if every file on the cloud is used by TrustyDrive, i.e., every file located in the trustydrive folder
+*       chunks: the names of every chunk used by TrustyDrive
+*       provider: the provider information to the authentication process
+*       orphans: the list of chunks that are not used by TrustyDrive
+***/
+function oneDriveSync(chunks, provider, orphans) {
+    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + '/children?select=id,name';
+    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        if (response.isSuccessStatusCode) {
+            response.content.readAsStringAsync().then(function (jsonInfo) {
+                var data = $.parseJSON(jsonInfo)['value'], found = false;
+                data.forEach(function (f) {
+                    if (chunks.indexOf(f.name) == -1) {
+                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
+                    }
+                });
+                g_complete++;
+                syncComplete(orphans);
+            });
+        } else {
+            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
+            func(args);
+        }
+    });
+}
+
+
+/***
+*   oneDriveUpload: Upload one chunk
+*       reader: the reader that reads the file
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to upload
+*       data: the data to upload
+*       callNb: counter to limit the number of attempts
+***/
+function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
+    // Create a new file with the name provided inside the 'data' buffer
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content?select=id';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
+    requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+    requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                chunk.info[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
+                uploadComplete(reader, file);
+            });
+        } else {
+            log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
+                }, 1000);
+            } else {
+                // Fail to upload
+            }
+        }
+    });
+}
+
+/***
+*   oneDriveUserInfo: Get the user information (email, storage stats - free space & total space) and refresh the token
+*       token: refresh token
+*       reconnect: boolean, try to reconnect or not
+*       func: the function to deal with the result of the checking
+***/
 function oneDriveUserInfo(refreshToken, reconnect, func) {
     var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://login.live.com/oauth20_token.srf';
@@ -85,177 +314,6 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
             });
         } else {
             log('Refresh Token Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-        }
-    });
-}
-
-function oneDriveFolderExist(provider, func) {
-    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drives/' + provider.user + '/root/children?select=id,name,folder';
-    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().then(function (jsonInfo) {
-                var data = $.parseJSON(jsonInfo)['value'], notfound = true;
-                data.forEach(function (f) {
-                    if (f.folder != undefined && f.name + '/' == g_cloudFolder) {
-                        notfound = false;
-                        provider['folder'] = f.id;
-                        func();
-                    }
-                });
-                if (notfound) {
-                    // Create the app folder
-                    uri = 'https://api.onedrive.com/v1.0/drive/root/children?select=id';
-                    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
-                    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-                    requestMessage.content = new Windows.Web.Http.HttpStringContent('{ "name": "' + g_cloudFolder.substr(0, g_cloudFolder.length - 1) + '", "folder": {} }',
-                        Windows.Storage.Streams.UnicodeEncoding.utf8, 'application/json; charset=UTF-8');
-                    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-                        if (success.isSuccessStatusCode) {
-                            success.content.readAsStringAsync().then(function (jsonInfo) {
-                                provider['folder'] = $.parseJSON(jsonInfo)['id'];
-                                func();
-                            });
-                        } else {
-                            log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
-                        }
-                    });
-                }
-            });
-        } else {
-            log('Folder Exist Check Failure: ' + success.statusCode + ' - ' + success.requestMessage);
-        }
-    });
-}
-
-function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
-    // Create a new file with the name provided inside the 'data' buffer
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content?select=id';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
-    var httpClient = new Windows.Web.Http.HttpClient();
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
-    requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
-    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().then(function (jsonInfo) {
-                chunk.info[chunkIdx]['id'] = $.parseJSON(jsonInfo)['id'];
-                uploadComplete(reader, file);
-            });
-        } else {
-            log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-            if (callNb < 5) {
-                setTimeout(function () {
-                    oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
-                }, 1000);
-            } else {
-                // Fail to upload
-            }
-        }
-    });
-}
-
-function oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
-    var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsBufferAsync().then(function (buffer) {
-                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
-                downloadComplete(file, folder, writer);
-            });
-        } else {
-            log('OneDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-            if (callNb < 5) {
-                setTimeout(function () {
-                    oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
-                }, 1000);
-            } else {
-                downloadComplete(file, folder, writer);
-            }
-        }
-    });
-}
-
-function oneDriveExists(chunk, chunkIdx, func) {
-    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + '/children?select=id,name';
-    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
-    chunk.info[chunkIdx].exists = false;
-    httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        if (response.isSuccessStatusCode) {
-            response.content.readAsStringAsync().then(function (jsonInfo) {
-                $.parseJSON(jsonInfo)['value'].forEach(function (f) {
-                    if (f.name == chunk.info[chunkIdx].name) {
-                        chunk.info[chunkIdx].exists = true;
-                        chunk.info[chunkIdx].id = f.id;
-                    }
-                });
-                func(chunk, chunkIdx);
-            });
-        } else {
-            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
-            func(chunk, chunkIdx);
-        }
-    });
-}
-
-function oneDriveSync(chunks, provider, orphans) {
-    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + provider.folder + '/children?select=id,name';
-    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        if (response.isSuccessStatusCode) {
-            response.content.readAsStringAsync().then(function (jsonInfo) {
-                var data = $.parseJSON(jsonInfo)['value'], found = false;
-                data.forEach(function (f) {
-                    if (chunks.indexOf(f.name) == -1) {
-                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
-                    }
-                });
-                g_complete++;
-                syncComplete(orphans);
-            });
-        } else {
-            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
-            func(args);
-        }
-    });
-}
-
-function oneDriveDelete(chunkId, provider, nbDelete, func, callNb) {
-    var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunkId;
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        if (response.isSuccessStatusCode || response.statusCode == 404) {
-            deleteComplete(nbDelete, func);
-        } else {
-            log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
-            if (callNb < 5) {
-                setTimeout(function () {
-                    oneDriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
-                }, 500);
-            } else {
-                // We delete the chunk later from the metadata editor
-                deleteComplete(nbDelete, func);
-            }
         }
     });
 }

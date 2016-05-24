@@ -1,20 +1,15 @@
-﻿// Dropbox connector
-function dropboxCreateFolder(token, func) {
-    var reader, size;
-    var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.dropboxapi.com/1/fileops/create_folder?root=auto&path=%2F' + g_cloudFolder;
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + token);
-    httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        if (response.isSuccessStatusCode) {
-            func();
-        } else {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', 'Can not create the trustydrive folder!. Please restart the application');
-        }
-    });
-}
+﻿/***
+**  DROPBOX CONNECTOR
+***/
 
-// nbDelete: number of chunks to delete to complete the operation
+/***
+*   dropboxDelete: Delete one chunk
+*       chunkName: the name of the chunk
+*       provider: the provider information to the authentication process
+*       nbDelete: the number of chunks to delete to complete the whole operation
+*       func: the function to execute after the folder creation
+*       callNb: counter to limit the number of attempts
+***/
 function dropboxDelete(chunkName, provider, nbDelete, func, callNb) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -44,6 +39,16 @@ function dropboxDelete(chunkName, provider, nbDelete, func, callNb) {
     });
 }
 
+/***
+*   dropboxDownload: Download one chunk
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       bufferIdx: the index of the buffer to fill with the chunk data
+*       folder: the folder to display when the download is completed
+*       writer: the writer to a file located in the working folder
+*       callNb: counter to limit the number of attempts
+***/
 function dropboxDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
     var reader, size;
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -76,6 +81,12 @@ function dropboxDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callN
     );
 }
 
+/***
+*   dropboxExists: Check if the chunk exists
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       func: the function to execute after the checking
+***/
 function dropboxExists(chunk, chunkIdx, func) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder + chunk.info[chunkIdx].name;
@@ -96,6 +107,35 @@ function dropboxExists(chunk, chunkIdx, func) {
     });
 }
 
+/***
+*   dropboxFolderExists: Check if the trustydrive folder exists
+*       token: authentication token
+*       func: the function to deal with the result of the checking
+***/
+function dropboxFolderExists(token, func) {
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder;
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    httpClient.sendRequestAsync(requestMessage).done(function (success) {
+        if (success.isSuccessStatusCode) {
+            success.content.readAsStringAsync().done(function (info) {
+                if (info.indexOf('is_deleted') == -1) {
+                    func(true);
+                } else {
+                    func(false);
+                }
+            });
+        } else {
+            func(false);
+        }
+    });
+}
+
+/***
+*   dropboxLogin: Login to a new provider
+*       func: the function to execute after the login
+***/
 function dropboxLogin(func) {
     var webtools = Windows.Security.Authentication.Web;
     var webAuthenticationBroker = webtools.WebAuthenticationBroker;
@@ -123,6 +163,12 @@ function dropboxLogin(func) {
     });
 }
 
+/***
+*   dropboxSync: Check if every file on the cloud is used by TrustyDrive, i.e., every file located in the trustydrive folder
+*       chunks: the names of every chunk used by TrustyDrive
+*       provider: the provider information to the authentication process
+*       orphans: the list of chunks that are not used by TrustyDrive
+***/
 function dropboxSync(chunks, provider, orphans) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder;
@@ -147,12 +193,21 @@ function dropboxSync(chunks, provider, orphans) {
     });
 }
 
+/***
+*   dropboxUpload: Upload one chunk
+*       reader: the reader that reads the file
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to upload
+*       data: the data to upload
+*       callNb: counter to limit the number of attempts
+***/
 function dropboxUpload(reader, file, chunk, chunkIdx, data, callNb) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://content.dropboxapi.com/1/files_put/auto/' + g_cloudFolder + chunk.info[chunkIdx].name;
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
     if (callNb == undefined) {
-        // Number of call with erros
+        // Number of call with errors
         callNb = 0;
     }
     requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
@@ -171,26 +226,12 @@ function dropboxUpload(reader, file, chunk, chunkIdx, data, callNb) {
     });
 }
 
-function dropboxFolderExists(token, func) {
-    var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.dropboxapi.com/1/metadata/auto/' + g_cloudFolder;
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + token);
-    httpClient.sendRequestAsync(requestMessage).done(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().done(function (info) {
-                if (info.indexOf('is_deleted') == -1) {
-                    func(true);
-                } else {
-                    func(false);
-                }
-            });
-        } else {
-            func(false);
-        }
-    });
-}
-
+/***
+*   dropboxUserInfo: Get the user information (email, storage stats - free space & total space)
+*       token: authentication token
+*       reconnect: boolean, try to reconnect or not
+*       func: the function to deal with the result of the checking
+***/
 function dropboxUserInfo(token, reconnect, func) {
     var httpClient = new Windows.Web.Http.HttpClient();
     var uri = 'https://api.dropboxapi.com/1/account/info';
@@ -209,9 +250,18 @@ function dropboxUserInfo(token, reconnect, func) {
                             createProvider('dropbox', data['email'], undefined, token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
                             func();
                         } else {
-                            dropboxCreateFolder(token, function () {
-                                createProvider('dropbox', data['email'], undefined, token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
-                                func();
+                            // Create the 'trustydrive' folder
+                            httpClient = new Windows.Web.Http.HttpClient();
+                            uri = 'https://api.dropboxapi.com/1/fileops/create_folder?root=auto&path=%2F' + g_cloudFolder;
+                            requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+                            requestMessage.headers.append('Authorization', 'Bearer ' + token);
+                            httpClient.sendRequestAsync(requestMessage).then(function (response) {
+                                if (response.isSuccessStatusCode) {
+                                    createProvider('dropbox', data['email'], undefined, token, storage['quota'] - storage['shared'] - storage['normal'], storage['quota']);
+                                    func();
+                                } else {
+                                    WinJS.Navigation.navigate('/pages/folder/folder.html', 'Can not create the trustydrive folder!. Please restart the application');
+                                }
                             });
                         }
                     });

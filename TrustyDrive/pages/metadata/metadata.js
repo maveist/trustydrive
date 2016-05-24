@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/metadata/metadata.html', {
+﻿/***
+*   metadata scope: read your metadata and check the state of your chunks
+***/
+WinJS.UI.Pages.define('/pages/metadata/metadata.html', {
     ready: function () {
         var allChunks = {}, index = 0;
         g_providers.forEach(function (p) {
@@ -93,6 +96,9 @@
     }
 })
 
+/***
+*   chunkStatus: check if the chunk exists on the cloud (SUCCESS: the chunk exists, ERROR: there is no chunk)
+***/
 function chunkStatus(chunk, chunkIdx) {
     var status = $('#' + chunk.info[chunkIdx].name);
     if (chunk.info[chunkIdx].exists) {
@@ -104,6 +110,10 @@ function chunkStatus(chunk, chunkIdx) {
     }
 }
 
+/***
+*  deleteOrphansDialog: dialog for confirmation before deleting
+*       orphans: information about chunks to delete
+***/
 function deleteOrphansDialog(orphans) {
     var html = '<div class="interface-question">';
     if (orphans.length > 0) {

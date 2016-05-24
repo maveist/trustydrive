@@ -1,4 +1,11 @@
-﻿function downloadChunks(file, chunkIdx, folder, writer) {
+﻿/***
+*   downloadChunks: download one set of chunks, i.e., g_providers.length chunks
+*       file: the file metadata
+*       chunkIdx: the index of chunks to download
+*       folder: the folder to display when the download is completed
+*       writer: the writer to a file located in the working folder
+***/
+function downloadChunks(file, chunkIdx, folder, writer) {
     var i;
     g_chunks = [];
     $.each(file.chunks, function (idx, c) {
@@ -16,6 +23,12 @@
     });
 }
 
+/***
+*   downloadComplete: this function is called after downloading one chunk
+*       file: the file metadata
+*       folder: the folder to display when the download is completed
+*       writer: the writer to a file located in the working folder
+***/
 function downloadComplete(file, folder, writer) {
     var i, nbRead = 0;
     g_complete++;
@@ -124,7 +137,10 @@ function downloadComplete(file, folder, writer) {
     }
 }
 
-// Check if metadata chunks exist, metadata = 1 chunk per provider
+/***
+*   downloadMetadata: check if metadata chunks exist, 
+*       there is only 1 chunk per provider for the metadata
+***/
 function downloadMetadata() {
     g_complete = 0;
     g_files[g_metadataName].chunks.forEach(function (c) {
@@ -142,6 +158,11 @@ function downloadMetadata() {
     });
 }
 
+/***
+*   downloadMetadataComplete: this function is called after downloading one metadata chunk
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: useless
+***/
 function downloadMetadataComplete(chunk, chunkIdx) {
     var metadata = g_files[g_metadataName];
     var i, writer;
@@ -168,6 +189,11 @@ function downloadMetadataComplete(chunk, chunkIdx) {
     }
 }
 
+/***
+*   downloadFile: download one file
+*       file: the file metadata
+*       folder: the folder to display when the download is completed
+***/
 function downloadFile(file, folder) {
     log('Download the file ' + file.name + ' inside ' + folder.name);
     g_complete = 0;

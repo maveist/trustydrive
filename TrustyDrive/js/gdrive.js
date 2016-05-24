@@ -1,79 +1,87 @@
-﻿// Google Drive connector
-function gdriveLogin(func) {
-    var webtools = Windows.Security.Authentication.Web;
-    var webAuthenticationBroker = webtools.WebAuthenticationBroker;
-    var uri = 'https://accounts.google.com/o/oauth2/auth?'
-        + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
-        + 'response_type=code&'
-        + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
-        + 'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive';
-    webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(function (response) {
-        $('.user-interface').show();
-        body = $('.interface-body');
-        body.empty();
-        body.append('<div class="verification-code">Please enter the verification code: <input id="verif-code" type="text"></input><br>'
-            + '<button id="verif-button">Done</button><button id="cancel-button">Cancel</button></div>');
-        $('#cancel-button').click(function () {
-            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-        });
-        $('#verif-button').click(function () {
-            var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
-            uri = 'https://www.googleapis.com/oauth2/v3/token?'
-                + 'code=' + $('#verif-code').val().replace('/', '%2F') + '&'
-                + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
-                + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
-                + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
-                + 'grant_type=authorization_code';
-            requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
-            httpClient.sendRequestAsync(requestMessage).then(function (success) {
-                if (success.isSuccessStatusCode) {
-                    success.content.readAsStringAsync().then(function (jsonInfo) {
-                        gdriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
-                    });
+﻿/***
+**  GOOGLE DRIVE CONNECTOR
+***/
+
+/***
+*   gdriveDelete: Delete one chunk
+*       chunkName: the name of the chunk
+*       provider: the provider information to the authentication process
+*       nbDelete: the number of chunks to delete to complete the whole operation
+*       func: the function to execute after the folder creation
+*       callNb: counter to limit the number of attempts
+***/
+function gdriveDelete(chunkId, provider, nbDelete, func, callNb) {
+    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunkId;
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
+    var httpClient = new Windows.Web.Http.HttpClient();
+    if (callNb == undefined) {
+        callNb = 0;
+    }
+    if (chunkId == undefined) {
+        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user);
+    } else {
+        requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+        httpClient.sendRequestAsync(requestMessage).then(function (response) {
+            if (response.isSuccessStatusCode || response.statusCode == 404) {
+                deleteComplete(nbDelete, func);
+            } else {
+                log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
+                if (callNb < 5) {
+                    setTimeout(function () {
+                        gdriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
+                    }, 500);
                 } else {
-                    $('.interface-body').append('<span class="error-message">Login failure: please check the code or retry to sign in later</span><br>');
+                    // We delete the chunk later from the metadata editor
+                    deleteComplete(nbDelete, func);
                 }
-            });
+            }
         });
-    });
+    }
 }
 
-// Get new token to use the REST API then get the user information
-function gdriveUserInfo(refreshToken, reconnect, func) {
-    var uri = 'https://www.googleapis.com/oauth2/v3/token?'
-        + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
-        + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
-        + 'refresh_token=' + refreshToken + '&'
-        + 'grant_type=refresh_token';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+/***
+*   gdriveDownload: Download one chunk
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       bufferIdx: the index of the buffer to fill with the chunk data
+*       folder: the folder to display when the download is completed
+*       writer: the writer to a file located in the working folder
+*       callNb: counter to limit the number of attempts
+***/
+function gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
     var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunk.info[chunkIdx].id + '?alt=media';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    if (callNb == undefined) {
+        callNb = 0;
+    }
+    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
-            success.content.readAsStringAsync().then(function (jsonInfo) {
-                var token = $.parseJSON(jsonInfo)['access_token'];
-                uri = 'https://www.googleapis.com/drive/v3/about?fields=storageQuota%2Cuser';
-                requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get,
-                    new Windows.Foundation.Uri(uri));
-                requestMessage.headers.append('Authorization', 'Bearer ' + token);
-                httpClient.sendRequestAsync(requestMessage).then(function (success) {
-                    if (success.isSuccessStatusCode) {
-                        success.content.readAsStringAsync().then(function (jsonInfo) {
-                            var data = $.parseJSON(jsonInfo), provider;
-                            provider = createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
-                                    data['storageQuota']['limit'] - data['storageQuota']['usage'], data['storageQuota']['limit']);
-                            gdriveFolderExist(provider, func);
-                        });
-                    } else {
-                        log('gDrive UserInfo Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-                    }
-                });
+            success.content.readAsBufferAsync().then(function (buffer) {
+                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
+                downloadComplete(file, folder, writer);
             });
         } else {
-            log('Refresh Token Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            log('gDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+            if (callNb < 5) {
+                setTimeout(function () {
+                    gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
+                }, 1000);
+            } else {
+                downloadComplete(file, folder, writer);
+            }
         }
     });
 }
 
+/***
+*   gdriveExists: Check if the chunk exists
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to download
+*       func: the function to execute after the checking
+***/
 function gdriveExists(chunk, chunkIdx, func) {
     var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId
         + '%22+in+parents+and+name+%3D+%22' + chunk.info[chunkIdx].name + '%22+and+trashed+%3D+false';
@@ -99,6 +107,11 @@ function gdriveExists(chunk, chunkIdx, func) {
     });
 }
 
+/***
+*   gdriveFolderExists: Check if the trustydrive folder exists
+*       token: authentication token
+*       func: the function to deal with the result of the checking
+***/
 function gdriveFolderExist(provider, func) {
     var uri = 'https://www.googleapis.com/drive/v3/files?q=%22root%22+in+parents'
         + '+and+mimeType+%3D+%22application%2Fvnd.google-apps.folder%22+and+name+%3D+%22trustydrive%22+and+trashed+%3D+false';
@@ -138,6 +151,87 @@ function gdriveFolderExist(provider, func) {
     });
 }
 
+/***
+*   gdriveLogin: Login to a new provider
+*       func: the function to execute after the login
+***/
+function gdriveLogin(func) {
+    var webtools = Windows.Security.Authentication.Web;
+    var webAuthenticationBroker = webtools.WebAuthenticationBroker;
+    var uri = 'https://accounts.google.com/o/oauth2/auth?'
+        + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
+        + 'response_type=code&'
+        + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
+        + 'scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive';
+    webAuthenticationBroker.authenticateAsync(webtools.WebAuthenticationOptions.none, new Windows.Foundation.Uri(uri)).then(function (response) {
+        $('.user-interface').show();
+        body = $('.interface-body');
+        body.empty();
+        body.append('<div class="verification-code">Please enter the verification code: <input id="verif-code" type="text"></input><br>'
+            + '<button id="verif-button">Done</button><button id="cancel-button">Cancel</button></div>');
+        $('#cancel-button').click(function () {
+            WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+        });
+        $('#verif-button').click(function () {
+            var requestMessage, httpClient = new Windows.Web.Http.HttpClient();
+            uri = 'https://www.googleapis.com/oauth2/v3/token?'
+                + 'code=' + $('#verif-code').val().replace('/', '%2F') + '&'
+                + 'redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&'
+                + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
+                + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
+                + 'grant_type=authorization_code';
+            requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
+            httpClient.sendRequestAsync(requestMessage).then(function (success) {
+                if (success.isSuccessStatusCode) {
+                    success.content.readAsStringAsync().then(function (jsonInfo) {
+                        gdriveUserInfo($.parseJSON(jsonInfo)['refresh_token'], false, func);
+                    });
+                } else {
+                    $('.interface-body').append('<span class="error-message">Login failure: please check the code or retry to sign in later</span><br>');
+                }
+            });
+        });
+    });
+}
+
+/***
+*   gdriveSync: Check if every file on the cloud is used by TrustyDrive, i.e., every file located in the trustydrive folder
+*       chunks: the names of every chunk used by TrustyDrive
+*       provider: the provider information to the authentication process
+*       orphans: the list of chunks that are not used by TrustyDrive
+***/
+function gdriveSync(chunks, provider, orphans) {
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents+and+trashed+%3D+false';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
+    httpClient.sendRequestAsync(requestMessage).then(function (response) {
+        response.content.readAsStringAsync().then(function (jsonInfo) {
+            data = $.parseJSON(jsonInfo);
+            if (data['files'] != undefined) {
+                data.files.forEach(function (f) {
+                    if (chunks.indexOf(f.name) == -1) {
+                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
+                    }
+                });
+                g_complete++;
+                syncComplete(orphans);
+            } else {
+                log('Google Drive Sync Error: no contents');
+            }
+        });
+    });
+}
+
+/***
+*   gdriveUpload: Upload one new chunk
+*       reader: the reader that reads the file
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to upload
+*       data: the data to upload
+*       callNb: counter to limit the number of attempts
+***/
 function gdriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
     // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
@@ -166,6 +260,15 @@ function gdriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
     });
 }
 
+/***
+*   gdriveUpdate: Update the content of one existing chunk
+*       reader: the reader that reads the file
+*       file: the file metadata
+*       chunk: information about chunks (provider, name, id)
+*       chunkIdx: the chunk index of the chunk to upload
+*       data: the data to upload
+*       callNb: counter to limit the number of attempts
+***/
 function gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb) {
     // Update the content of an existing file from its ID
     var uri = 'https://www.googleapis.com/upload/drive/v3/files/' + chunk.info[chunkIdx].id + '?uploadType=media';
@@ -191,81 +294,43 @@ function gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb) {
     });
 }
 
-function gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
+/***
+*   gdriveUserInfo: Get the user information (email, storage stats - free space & total space) and refresh the token
+*       token: refresh token
+*       reconnect: boolean, try to reconnect or not
+*       func: the function to deal with the result of the checking
+***/
+function gdriveUserInfo(refreshToken, reconnect, func) {
+    var uri = 'https://www.googleapis.com/oauth2/v3/token?'
+        + 'client_id=1021343691223-1hnh53t8ak8kc17ar782kqjs9giq0hii.apps.googleusercontent.com&'
+        + 'client_secret=HynYVlIhmN5wEFykSmyWEIFY&'
+        + 'refresh_token=' + refreshToken + '&'
+        + 'grant_type=refresh_token';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.post, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunk.info[chunkIdx].id + '?alt=media';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (success) {
         if (success.isSuccessStatusCode) {
-            success.content.readAsBufferAsync().then(function (buffer) {
-                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
-                downloadComplete(file, folder, writer);
-            });
-        } else {
-            log('gDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
-            if (callNb < 5) {
-                setTimeout(function () {
-                    gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
-                }, 1000);
-            } else {
-                downloadComplete(file, folder, writer);
-            }
-        }
-    });
-}
-
-function gdriveDelete(chunkId, provider, nbDelete, func, callNb) {
-    var uri = 'https://www.googleapis.com/drive/v3/files/' + chunkId;
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.delete, new Windows.Foundation.Uri(uri));
-    var httpClient = new Windows.Web.Http.HttpClient();
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    if (chunkId == undefined) {
-        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user);
-    } else {
-        requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-        httpClient.sendRequestAsync(requestMessage).then(function (response) {
-            if (response.isSuccessStatusCode || response.statusCode == 404) {
-                deleteComplete(nbDelete, func);
-            } else {
-                log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
-                if (callNb < 5) {
-                    setTimeout(function () {
-                        gdriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
-                    }, 500);
-                } else {
-                    // We delete the chunk later from the metadata editor
-                    deleteComplete(nbDelete, func);
-                }
-            }
-        });
-    }
-}
-
-function gdriveSync(chunks, provider, orphans) {
-    var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents+and+trashed+%3D+false';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (response) {
-        response.content.readAsStringAsync().then(function (jsonInfo) {
-            data = $.parseJSON(jsonInfo);
-            if (data['files'] != undefined) {
-                data.files.forEach(function (f) {
-                    if (chunks.indexOf(f.name) == -1) {
-                        orphans.push({ 'name': f.name, 'id': f.id, 'provider': provider });
+            success.content.readAsStringAsync().then(function (jsonInfo) {
+                var token = $.parseJSON(jsonInfo)['access_token'];
+                uri = 'https://www.googleapis.com/drive/v3/about?fields=storageQuota%2Cuser';
+                requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get,
+                    new Windows.Foundation.Uri(uri));
+                requestMessage.headers.append('Authorization', 'Bearer ' + token);
+                httpClient.sendRequestAsync(requestMessage).then(function (success) {
+                    if (success.isSuccessStatusCode) {
+                        success.content.readAsStringAsync().then(function (jsonInfo) {
+                            var data = $.parseJSON(jsonInfo), provider;
+                            provider = createProvider('gdrive', data['user']['emailAddress'], refreshToken, token,
+                                    data['storageQuota']['limit'] - data['storageQuota']['usage'], data['storageQuota']['limit']);
+                            gdriveFolderExist(provider, func);
+                        });
+                    } else {
+                        log('gDrive UserInfo Failure ' + success.statusCode + ': ' + success.reasonPhrase);
                     }
                 });
-                g_complete++;
-                syncComplete(orphans);
-            } else {
-                log('Google Drive Sync Error: no contents');
-            }
-        });
+            });
+        } else {
+            log('Refresh Token Failure ' + success.statusCode + ': ' + success.reasonPhrase);
+        }
     });
 }

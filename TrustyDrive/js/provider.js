@@ -1,13 +1,7 @@
-﻿// Return an array with all existing chunk names
-function allChunkNames() {
-    var allChunks = [];
-    $.each(g_files, function (useless, file) {
-        allChunks = allChunks.concat(file.chunks);
-    });
-    return allChunks;
-}
-
-// Compute the chunk name for one piece of metadata
+﻿/***
+*   metadataChunkName: compute the chunk name for one metadata chunk from the provider information
+*       provider: the provider information used to compute the chunk name
+***/
 function metadataChunkName(provider) {
     var crypto = Windows.Security.Cryptography;
     var algo = crypto.Core.HashAlgorithmNames.sha1;
@@ -17,7 +11,15 @@ function metadataChunkName(provider) {
     return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
 }
 
-// Add a provider to the provider list (g_providers)
+/***
+*   createProvider: create a new provider and add it to the provider list (g_providers)
+*       provider: the provider name (dropbox, gdrive, onedrive)
+*       email: the email to identify the account used to connect to the provider
+*       refreshToken: the refresh token for gdrive and onedrive, undefined otherwise
+*       token: the token for the authentication process
+*       freeStorage: the free space on the provider in bytes
+*       totalStorage: the total space on the provider in bytes
+***/
 function createProvider(provider, email, refreshToken, token, freeStorage, totalStorage) {
     var credentials = Windows.Security.Credentials;
     var passwordVault = new credentials.PasswordVault();
@@ -56,8 +58,11 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
     }
 }
 
-// Remove this provider of the provider list then spread the metadata between the remaining providers
-// The metadata chunk on this provider is deleted
+/***
+*   deleteProvider: remove one provider of the provider list.
+*   The metadata chunk on this provider is deleted and the metadata is uploaded on the remaining providers.
+*       provider: information about the provider to delete
+***/
 function deleteProvider(provider) {
     var passwordVault = new Windows.Security.Credentials.PasswordVault();
     var credentials = passwordVault.retrieveAll();
@@ -144,6 +149,10 @@ function deleteProvider(provider) {
     }
 }
 
+/***
+*   log: log messages in a text file (this function does not really work)
+*       message: the message to write  in the log file
+***/
 function log(message) {
     var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
     var dateString, d = new Date();

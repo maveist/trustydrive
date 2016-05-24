@@ -1,4 +1,7 @@
-﻿(function () {
+﻿/***
+*   settings scope: settings to configure TrustyDrive
+***/
+(function () {
     WinJS.UI.Pages.define('/pages/settings/settings.html', {
         ready: function () {
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
@@ -81,6 +84,11 @@
         }
     });
 
+    /***
+    *   setButtonLabel: shorten the name of the picker button
+    *       name: the full path
+    *       return: the shortened full path
+    ***/
     function setButtonLabel(name) {
         if (name.length > 26) {
             $('#picker-button').text('...' + name.substr(-23));
@@ -89,6 +97,9 @@
         }
     }
 
+    /***
+    *   viewFiles: select the sorting type (sort by type or alphabetically)
+    ***/
     function viewFiles() {
         var button = $('#file-view');
         var localSettings = Windows.Storage.ApplicationData.current.localSettings;

@@ -1,4 +1,9 @@
-﻿function addToFolder(parent, child) {
+﻿/***
+*   addToFolder: add a file or a folder object to the system
+*       parent: the parent folder
+*       child: the file/folder to link to its parent
+***/
+function addToFolder(parent, child) {
     var index, path = '';
     if (parent != undefined) {
         if (child.folders != undefined) {
@@ -17,6 +22,10 @@
     }
 }
 
+
+/***
+*   buildFolderStructure: create folders in the g_folders list and link files and folders from file pathes
+***/
 function buildFolderStructure() {
     var path, current, child;
     $.each(g_files, function (name, file) {
@@ -45,6 +54,11 @@ function buildFolderStructure() {
     });
 }
 
+/***
+*   createElement: create a file or a folder object
+*       name: the name of the object
+*       kind: the kind of the object (file, folder)
+***/
 function createElement(name, kind) {
     var element;
     if (kind == 'file') {
@@ -66,6 +80,11 @@ function createElement(name, kind) {
     }
 }
 
+/***
+*   longName: shorten file/folder names to improve the user experience
+*       name: the name of the file/folder
+*       limit: the maximum number of caracters
+***/
 function longName(name, limit) {
     if (limit == undefined) {
         limit = 25;
@@ -77,6 +96,11 @@ function longName(name, limit) {
     }
 }
 
+/***
+*   setPath: set the path of a file
+*       folder: the folder that contains the file
+*       file: the file to update
+***/
 function setPath(folder, file) {
     var path = '';
     // Set the path of the file from the folder
@@ -86,14 +110,4 @@ function setPath(folder, file) {
     }
     path = '/' + path;
     file['path'] = path;
-}
-
-function indexOfChunk(chunks, chunkName) {
-    var result = -1;
-    $.each(chunks, function (idx, c) {
-        if (c.name == chunkName) {
-            result = idx;
-        }
-    });
-    return result;
 }

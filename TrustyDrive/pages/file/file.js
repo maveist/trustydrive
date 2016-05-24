@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/file/file.html', {
+﻿/***
+*   file scope: display files and manage them
+***/
+WinJS.UI.Pages.define('/pages/file/file.html', {
     ready: function () {
         var size;
         // Get parameters
@@ -47,7 +50,7 @@
                 title.append(input);
                 input.keypress(function (e) {
                     if (e.which == 13) {
-                        renameFile(file, $('#fname').val(), folder);
+                        renameFile(file, $('#fname').val());
                     }
                 });
                 input.focus();
@@ -60,7 +63,7 @@
                 var confirm = $('<button>Done</button>');
                 var cancel = $('<button>Cancel</button>');
                 confirm.click(function () {
-                    renameFile(file, $('#fname').val(), folder);
+                    renameFile(file, $('#fname').val());
                 });
                 title.append(confirm);
                 cancel.click(function () {
@@ -81,7 +84,8 @@
                 $.each(g_folders, function (name, dest) {
                     var idString;
                     if (name != folder.name) {
-                        idString = replaceAnnoyingChars(name);
+                        // Remove space to use the string as a HTML id
+                        idString = name.replace(' ', '_');
                         $('.interface-body').append('<div id="folder-' + idString + '" class="interface-folder">' + name + '</div>');
                         $('#folder-' + idString).click(function () {
                             var index = folder.files.indexOf(file);
@@ -154,7 +158,13 @@
     }
 })
 
-// nbDelete = # of chunks of the file or # of chunks in the folder
+/***
+*   cloudDelete: delete the chunks on the cloud related to a file
+*       file: the file metadata
+*       nbDelete: the number of chunks to delete
+*           i.e., # of chunks of the file or the sum of the # of chunks of files included inside a folder
+*       folder: the folder to display after deleting all chunks
+***/
 function cloudDelete(file, nbDelete, folder) {
     log('Delete the file ' + file.name + ' inside ' + folder.name);
     // Delete every chunks
@@ -163,17 +173,17 @@ function cloudDelete(file, nbDelete, folder) {
             switch (c.provider.name) {
                 case 'dropbox':
                     setTimeout(function () {
-                        dropboxDelete(i.name, c.provider, file.nb_chunks, uploadMetadata);
+                        dropboxDelete(i.name, c.provider, nbDelete, uploadMetadata);
                     }, 500);
                     break;
                 case 'gdrive':
                     setTimeout(function () {
-                        gdriveDelete(i.id, c.provider, file.nb_chunks, uploadMetadata);
+                        gdriveDelete(i.id, c.provider, nbDelete, uploadMetadata);
                     }, 500);
                     break;
                 case 'onedrive':
                     setTimeout(function () {
-                        oneDriveDelete(i.id, c.provider, file.nb_chunks, uploadMetadata);
+                        oneDriveDelete(i.id, c.provider, nbDelete, uploadMetadata);
                     }, 500);
                     break;
             }
@@ -186,6 +196,11 @@ function cloudDelete(file, nbDelete, folder) {
     }
 }
 
+/***
+*   deleteComplete: this function is called after deleting one chunks
+*       nbDelete: the number of chunks to delete
+*       func: the function to execute after the deletion
+***/
 function deleteComplete(nbDelete, func) {
     g_complete++;
     if (g_complete == nbDelete) {
@@ -195,15 +210,23 @@ function deleteComplete(nbDelete, func) {
     }
 }
 
+/***
+*   syncComplete: this function is called after dropboxSync, gdriveSync and oneDriveSync
+*       orphans: the chunks that are no longer used by TrustyDrive
+***/
 function syncComplete(orphans) {
     if (g_complete == g_providers.length) {
         deleteOrphansDialog(orphans);
     }
 }
 
-function renameFile(file, newName, folder) {
+/***
+*   renameFile: rename a file
+*       file: the file metadata
+*       newName: the new name of the file
+***/
+function renameFile(file, newName) {
     if (newName.length > 0 && g_files[newName] == undefined) {
-        log('Rename the file ' + file.name + ' inside ' + folder.name);
         delete g_files[file.name];
         file.name = newName;
         g_files[newName] = file;
@@ -213,10 +236,11 @@ function renameFile(file, newName, folder) {
     }
 }
 
-function replaceAnnoyingChars(annoying) {
-    return annoying.replace(' ', '_');
-}
-
+/***
+*   sizeString: compute a string to represent the size in order to display it
+*       size: the size in bytes
+*       return: an object to stylishly display the size
+***/
 function sizeString(size) {
     var res = {};
     if (size > 999999999999) {

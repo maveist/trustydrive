@@ -1,4 +1,7 @@
-﻿WinJS.UI.Pages.define('/pages/wfolder/wfolder.html', {
+﻿/***
+*   wfolder scope: select the working folder (i.e., the folder to download files)
+***/
+WinJS.UI.Pages.define('/pages/wfolder/wfolder.html', {
     ready: function () {
         var index = 0;
         $('.upper-back').click(function () {

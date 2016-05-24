@@ -1,7 +1,4 @@
-﻿//TODO When creating a new user, check if he already exists
-//TODO Write documentation (description of every function)
-
-/*** BUG when uploading
+﻿/*** BUG when uploading
 Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
 0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.
 ***/
@@ -11,18 +8,27 @@ Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e
 // Global variables
 // Do not forget the '/' at the end of the folder name
 const g_cloudFolder = 'trustydrive/';
+// Key to store the metadata
 const g_metadataName = 'trustydrive_metadata';
 // The maximum size in bytes of one chunk, 100 kB
 const g_maxChunkSize = 100000;
+// Version of the apps
 const g_td_version = '0.1.0';
+// Store the chunk data
 var g_chunks;
 // The cloud folder id for GoogleDrive and OneDrive
 var g_cloudFolderId;
+// Counter of chunks
 var g_complete;
+// File list
 var g_files = {};
+// Folder list
 var g_folders;
+// Default name of the home folder
 var g_homeFolderName = 'Home';
+// Provider list
 var g_providers = [];
+// Folder to download files from the cloud
 var g_workingFolder;
 
 (function () {
