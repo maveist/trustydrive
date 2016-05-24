@@ -340,6 +340,39 @@ function uploadMetadata() {
     }
 }
 
+function metadataExists() {
+    g_complete = 0;
+    g_files[g_metadataName].chunks.forEach(function (c) {
+        switch (c.provider.name) {
+            case 'dropbox':
+                dropboxExists(c, 0, metadataExistsComplete);
+                break;
+            case 'gdrive':
+                gdriveExists(c, 0, metadataExistsComplete);
+                break;
+            case 'onedrive':
+                oneDriveExists(c, 0, metadataExistsComplete);
+                break;
+        }
+    });
+}
+
+function metadataExistsComplete() {
+    var metadata = g_files[g_metadataName];
+    var exists = false;
+    g_complete++;
+    if (g_complete == metadata.chunks.length) {
+        metadata.chunks.forEach(function (c) {
+            exists |= c.info[0].exists;
+        });
+        if (exists) {
+            $('#new-error').html('<b>The user already exists!</b>');
+        } else {
+            uploadMetadata();
+        }
+    }
+}
+
 function uploadNewFile(folder) {
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;

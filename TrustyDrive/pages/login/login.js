@@ -108,7 +108,7 @@ function createAccount() {
             $('#new-error').html('<b>Passwords do not match!</b>');
         } else {
             metadataInit(user, pwd);
-            uploadMetadata();
+            metadataExists();
         }
     }
 }
