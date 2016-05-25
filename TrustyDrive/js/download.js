@@ -62,7 +62,7 @@ function downloadComplete(file, folder, writer) {
                 // There are more chunks to download
                 downloadChunks(file, g_complete / file.chunks.length, folder, writer);
             } else {
-                log('Download ' + file.name + ' complete');
+                // The download is complete
                 writer.storeAsync().done(function () {
                     writer.flushAsync().done(function () {
                         var stream, metadata, reader, error = '', pwd;
@@ -103,7 +103,6 @@ function downloadComplete(file, folder, writer) {
                                         error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
                                     }
                                 } catch (ex) {
-                                    log('error when parsing metadata: ' + ex);
                                     error = 'The metadata file is malformed. Please check your cloud accounts configuration in Settings'
                                         + ', maybe some providers are missing!'
                                         + '<br>To reset your metadata (<b>all files stored in TrustyDrive will be lost</b>),'
@@ -195,7 +194,6 @@ function downloadMetadataComplete(chunk, chunkIdx) {
 *       folder: the folder to display when the download is completed
 ***/
 function downloadFile(file, folder) {
-    log('Download the file ' + file.name + ' inside ' + folder.name);
     g_complete = 0;
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Downloading the File ' + file.name);
     g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {

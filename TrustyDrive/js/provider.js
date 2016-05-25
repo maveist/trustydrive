@@ -38,7 +38,6 @@ function createProvider(provider, email, refreshToken, token, freeStorage, total
             cred = new credentials.PasswordCredential(provider, email, refreshToken)
         }
         passwordVault.add(cred);
-        log('Add the provider: ' + provider + '/' + email);
         provider = {
             'name': cred.resource, 'user': cred.userName, 'token': token, 'refresh': refreshToken,
             'free': freeStorage, 'total': totalStorage
@@ -70,7 +69,6 @@ function deleteProvider(provider) {
     var message, errorFiles = [];
     var metadata = g_files[g_metadataName];
     var chunksToDelete = [];
-    log('Try to Delete the provider ' + provider.name + '/' + provider.user);
     if (index > -1) {
         // Check that all files using this provider are downloaded
         $.each(g_files, function (useless, f) {
@@ -94,7 +92,6 @@ function deleteProvider(provider) {
             });
             WinJS.Navigation.navigate('/pages/folder/folder.html', message);
         } else {
-            log('Delete ' + provider.name + '/' + provider.user);
             // Remove credential for the provider
             credentials.forEach(function (c) {
                 if (c.userName == provider.user && c.resource == provider.name) {
@@ -144,38 +141,5 @@ function deleteProvider(provider) {
                 }
             });
         }
-    } else {
-        log('Can not delete ' + provider.name + '/' + provider.user);
     }
-}
-
-/***
-*   log: log messages in a text file (this function does not really work)
-*       message: the message to write  in the log file
-***/
-function log(message) {
-    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
-    var dateString, d = new Date();
-    dateString = '[' + d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
-    if (d.getMinutes() > 9) {
-        dateString += d.getHours() + ':' + d.getMinutes() + ':';
-    } else {
-        dateString += d.getHours() + ':0' + d.getMinutes() + ':';
-    }
-    if (d.getSeconds() > 9) {
-        dateString += d.getSeconds() + '] ';
-    } else {
-        dateString += '0' + d.getSeconds() + '] ';
-    }
-    Windows.Storage.ApplicationData.current.localFolder.getFileAsync('logs.txt').then(
-        function (file) {
-            Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n').then();
-        },
-        function (error) {
-            Windows.Storage.ApplicationData.current.localFolder.createFileAsync('logs.txt').then(function (file) {
-                Windows.Storage.FileIO.appendTextAsync(file, dateString + '##### NEW FILE ######\n');
-                Windows.Storage.FileIO.appendTextAsync(file, dateString + message + '\n');
-            });
-        }
-    );
 }

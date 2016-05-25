@@ -24,8 +24,6 @@
                         g_workingFolder = folder;
                         setButtonLabel(folder.path);
                         WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
-                    } else {
-                        // The picker was dismissed with no selected file
                     }
                 });
             });
@@ -70,8 +68,6 @@
                 });
                 // Display currently used accounts
                 $('.my-accounts').append(div);
-                // Display size in MB
-                //log('User: ' + p.user + ', Storage ' + (p.free / 1000000).toFixed(1) + '/' + (p.total / 1000000).toFixed(1));
             });
             // Display the current working directory path
             if (futureAccess.containsItem('PickedFolderToken')) {

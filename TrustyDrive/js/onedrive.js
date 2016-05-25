@@ -22,7 +22,6 @@ function oneDriveDelete(chunkId, provider, nbDelete, func, callNb) {
         if (response.isSuccessStatusCode || response.statusCode == 404) {
             deleteComplete(nbDelete, func);
         } else {
-            log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
             if (callNb < 5) {
                 setTimeout(function () {
                     oneDriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
@@ -60,7 +59,6 @@ function oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, call
                 downloadComplete(file, folder, writer);
             });
         } else {
-            log('OneDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
                     oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
@@ -96,7 +94,6 @@ function oneDriveExists(chunk, chunkIdx, func) {
                 func(chunk, chunkIdx);
             });
         } else {
-            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
             func(chunk, chunkIdx);
         }
     });
@@ -136,14 +133,10 @@ function oneDriveFolderExist(provider, func) {
                                 provider['folder'] = $.parseJSON(jsonInfo)['id'];
                                 func();
                             });
-                        } else {
-                            log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
                         }
                     });
                 }
             });
-        } else {
-            log('Folder Exist Check Failure: ' + success.statusCode + ' - ' + success.requestMessage);
         }
     });
 }
@@ -218,7 +211,6 @@ function oneDriveSync(chunks, provider, orphans) {
                 syncComplete(orphans);
             });
         } else {
-            log('File Exist Check Failure: ' + response.statusCode + ' - ' + response.requestMessage);
             func(args);
         }
     });
@@ -252,13 +244,10 @@ function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
                 uploadComplete(reader, file);
             });
         } else {
-            log('Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
                     oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
                 }, 1000);
-            } else {
-                // Fail to upload
             }
         }
     });
@@ -307,13 +296,9 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
                             // Create the TrustyDrive folder
                             oneDriveFolderExist(provider, func);
                         });
-                    } else {
-                        log('onedrive connection failed!');
                     }
                 });
             });
-        } else {
-            log('Refresh Token Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
     });
 }

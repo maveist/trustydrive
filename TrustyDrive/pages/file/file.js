@@ -89,7 +89,6 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                         $('.interface-body').append('<div id="folder-' + idString + '" class="interface-folder">' + name + '</div>');
                         $('#folder-' + idString).click(function () {
                             var index = folder.files.indexOf(file);
-                            log('Move the file ' + file.name + ' from ' + folder.name + ' to ' + dest.name);
                             if (index > -1) {
                                 folder.files.splice(index, 1);
                             }
@@ -166,7 +165,6 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
 *       folder: the folder to display after deleting all chunks
 ***/
 function cloudDelete(file, nbDelete, folder) {
-    log('Delete the file ' + file.name + ' inside ' + folder.name);
     // Delete every chunks
     file.chunks.forEach(function (c) {
         c.info.forEach(function(i) {

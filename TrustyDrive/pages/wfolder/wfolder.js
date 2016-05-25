@@ -18,8 +18,6 @@ WinJS.UI.Pages.define('/pages/wfolder/wfolder.html', {
                     futureAccess.addOrReplace('PickedFolderToken', folder);
                     g_workingFolder = folder;
                     WinJS.Navigation.navigate('/pages/login/login.html', '');
-                } else {
-                    // The picker was dismissed with no selected file
                 }
             });
         });

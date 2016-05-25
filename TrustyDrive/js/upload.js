@@ -173,7 +173,6 @@ function uploadComplete(reader, file) {
 ***/
 function uploadChunks(filename, folder, readStream) {
     var file, nbChunks, nbProviders = g_providers.length;
-    log('File to Upload: ' + filename + ', size=' + readStream.size);
     if (g_files[filename] == undefined) {
         // Initialize the file metadata
         file = createElement(filename, 'file');
@@ -185,6 +184,7 @@ function uploadChunks(filename, folder, readStream) {
     if (readStream.size < nbProviders * 3) {
         readStream.close();
         throw "The file is too small. Required size: " + nbProviders * 3;
+        WinJS.Navigation.navigate('/pages/login/login.html', 'The file is too small. Required minimal size: ' + nbProviders * 3);
     }
     // Compute the number of chunks to encode the file
     nbChunks = Math.ceil(readStream.size / g_maxChunkSize);
@@ -199,9 +199,10 @@ function uploadChunks(filename, folder, readStream) {
     if (file.name == g_metadataName) {
         if (file.nb_chunks > g_providers.length) {
             readStream.close();
-            throw 'The maximum number of files is reached. You can not upload new files!'
+            WinJS.Navigation.navigate('/pages/login/login.html', 'The maximum number of files is reached. You can not upload new files!');
+        } else {
+            startUpload(file, readStream, folder);
         }
-        startUpload(file, readStream, folder);
     } else {
         // Check the number of providers
         if (file.chunks.length < nbProviders) {
@@ -307,7 +308,7 @@ function addChunks(file, readStream, nbChunks, folder) {
             existingChunks.push(chunkName);
         }
     });
-    startUpload(file, readStream, folder);
+    startUpload(file, readStream);
 }
 
 /***
@@ -316,16 +317,15 @@ function addChunks(file, readStream, nbChunks, folder) {
 *       readStream: the stream opened from the file to upload
 *       folder: the folder to display after uploading the file
 ***/
-function startUpload(file, readStream, folder) {
+function startUpload(file, readStream) {
     var reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
     var chunkSize = Math.floor(readStream.size / file.nb_chunks);
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
-    log('Nb. of Chunks: ' + file.nb_chunks + ', chunksize=' + chunkSize);
     // Counter for the number of upload chunks
     g_complete = 0;
     // Delay the chunk creation to display the progress bar
     setTimeout(function () {
-        createChunks(file, folder, reader, chunkSize, readStream.size % file.nb_chunks, 0);
+        createChunks(file, reader, chunkSize, readStream.size % file.nb_chunks, 0);
     }, 100);
 }
 
@@ -333,7 +333,7 @@ function startUpload(file, readStream, folder) {
 *   uploadMetadata: build, encrypt and upload the metadata
 ***/
 function uploadMetadata() {
-    var metadata, crypto, cBuffer, writer, metadataChunks = g_files[g_metadataName].chunks;
+    var metadata, crypto, cBuffer, readStream, metadataChunks = g_files[g_metadataName].chunks;
     // Check the number of providers
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
@@ -364,8 +364,8 @@ function uploadMetadata() {
         metadata = cBuffer.encodeToBase64String(buffer);
         buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
         // Save the metadata to the cloud
-        writer = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-        writer.writeAsync(buffer);
+        readStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+        readStream.writeAsync(buffer);
         // Synchronize the provider list and the metadata chunks
         $.each(g_providers, function (idx, p) {
             if (idx == metadataChunks.length) {
@@ -377,7 +377,7 @@ function uploadMetadata() {
                 }
             }
         });
-        uploadChunks(g_metadataName, undefined, writer);
+        uploadChunks(g_metadataName, undefined, readStream);
     }
 }
 
@@ -458,31 +458,18 @@ function uploadNewFile(folder) {
                 $('.user-interface').show();
                 $('.interface-body').append(html);
                 $('#upload-button').click(function () {
-                    file.openReadAsync().done(
-                        function (readStream) {
-                            uploadChunks(file.name, folder, readStream);
-                        },
-                        function (error) {
-                            log('Failed to open read stream');
-                        }
-                    );
+                    file.openReadAsync().done(function (readStream) {
+                        uploadChunks(file.name, folder, readStream);
+                    });
                 });
                 $('#cancel-button').click(function () {
                     $('.user-interface').hide();
                 });
             } else {
-                file.openReadAsync().done(
-                    function (readStream) {
-                        uploadChunks(file.name, folder, readStream);
-                    },
-                    function (error) {
-                        log('Failed to open read stream');
-                    }
-                );
+                file.openReadAsync().done(function (readStream) {
+                    uploadChunks(file.name, folder, readStream);
+                });
             }
-        } else {
-            // The picker was dismissed with no selected file
-            log('No picked file');
         }
     });
 }

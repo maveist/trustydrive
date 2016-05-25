@@ -24,7 +24,6 @@ function dropboxDelete(chunkName, provider, nbDelete, func, callNb) {
         if (response.isSuccessStatusCode) {
             deleteComplete(nbDelete, func);
         } else {
-            log('ERROR can not delete the chunk ' + chunkName + ' from ' + provider.user + ': ' + response.statusCode);
             if (response.statusCode == 404) {
                 deleteComplete(nbDelete, func);
             } else if (callNb < 5) {
@@ -59,7 +58,6 @@ function dropboxDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callN
     }
     requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
     //WARN: Delete the file if exists
-    log('download the chunk ' + chunk.info[chunkIdx].name);
     httpClient.sendRequestAsync(requestMessage).then(
         function (success) {
             if (success.isSuccessStatusCode) {
@@ -186,8 +184,6 @@ function dropboxSync(chunks, provider, orphans) {
                 });
                 g_complete++;
                 syncComplete(orphans);
-            } else {
-                log('Dropbox Sync Error: no contents');
             }
         });
     });
@@ -216,7 +212,6 @@ function dropboxUpload(reader, file, chunk, chunkIdx, data, callNb) {
         if (response.isSuccessStatusCode) {
             uploadComplete(reader, file);
         } else {
-            log('ERROR uploading again: ' + chunk.info[chunkIdx].name);
             if (callNb < 5) {
                 setTimeout(function () {
                     dropboxUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
@@ -266,7 +261,6 @@ function dropboxUserInfo(token, reconnect, func) {
                         }
                     });
                 } catch (ex) {
-                    log('error: ' + ex);
                 }
             });
         },

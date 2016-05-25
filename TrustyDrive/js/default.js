@@ -1,4 +1,6 @@
-﻿/*** BUG when uploading
+﻿//TODO Check the size of the metadata before uploading a file
+
+/*** BUG when uploading
 Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
 0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.
 ***/
@@ -10,8 +12,8 @@ Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e
 const g_cloudFolder = 'trustydrive/';
 // Key to store the metadata
 const g_metadataName = 'trustydrive_metadata';
-// The maximum size in bytes of one chunk, 100 kB
-const g_maxChunkSize = 100000;
+// The maximum size in bytes of one chunk, 1 MB
+const g_maxChunkSize = 1000000;
 // Version of the apps
 const g_td_version = '0.1.0';
 // Store the chunk data

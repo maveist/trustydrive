@@ -18,14 +18,12 @@ function gdriveDelete(chunkId, provider, nbDelete, func, callNb) {
         callNb = 0;
     }
     if (chunkId == undefined) {
-        log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user);
     } else {
         requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
         httpClient.sendRequestAsync(requestMessage).then(function (response) {
             if (response.isSuccessStatusCode || response.statusCode == 404) {
                 deleteComplete(nbDelete, func);
             } else {
-                log('ERROR can not delete the chunk ' + chunkId + ' from ' + provider.user + ': ' + response.statusCode);
                 if (callNb < 5) {
                     setTimeout(function () {
                         gdriveDelete(chunkId, provider, nbDelete, func, callNb + 1);
@@ -64,7 +62,6 @@ function gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb
                 downloadComplete(file, folder, writer);
             });
         } else {
-            log('gDrive Download Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
                     gdriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
@@ -136,8 +133,6 @@ function gdriveFolderExist(provider, func) {
                                 g_cloudFolderId = $.parseJSON(jsonInfo)['id'];
                                 func();
                             });
-                        } else {
-                            log('Failed to create the app folder ' + g_cloudFolder + ': ' + success.statusCode + ' - ' + success.reasonPhrase);
                         }
                     });
                 } else {
@@ -145,8 +140,6 @@ function gdriveFolderExist(provider, func) {
                     func();
                 }
             });
-        } else {
-            log('List Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
     });
 }
@@ -216,8 +209,6 @@ function gdriveSync(chunks, provider, orphans) {
                 });
                 g_complete++;
                 syncComplete(orphans);
-            } else {
-                log('Google Drive Sync Error: no contents');
             }
         });
     });
@@ -250,7 +241,6 @@ function gdriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
                 uploadComplete(reader, file);
             });
         } else {
-            log('gDrive Upload Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
                     gdriveUpload(reader, file, chunk, chunkIdx, data, callNb + 1);
@@ -284,7 +274,6 @@ function gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb) {
         if (success.isSuccessStatusCode) {
             uploadComplete(reader, file);
         } else {
-            log('gDrive Update Failure ' + success.statusCode + ': ' + success.reasonPhrase);
             if (callNb < 5) {
                 setTimeout(function () {
                     gdriveUpdate(reader, file, chunk, chunkIdx, data, callNb + 1);
@@ -324,13 +313,9 @@ function gdriveUserInfo(refreshToken, reconnect, func) {
                                     data['storageQuota']['limit'] - data['storageQuota']['usage'], data['storageQuota']['limit']);
                             gdriveFolderExist(provider, func);
                         });
-                    } else {
-                        log('gDrive UserInfo Failure ' + success.statusCode + ': ' + success.reasonPhrase);
                     }
                 });
             });
-        } else {
-            log('Refresh Token Failure ' + success.statusCode + ': ' + success.reasonPhrase);
         }
     });
 }
