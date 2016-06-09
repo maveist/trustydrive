@@ -222,6 +222,32 @@ function dropboxUpload(reader, file, chunk, chunkIdx, data, callNb) {
 }
 
 /***
+*   dropboxUploadFile: Measure the time to upload a file on dropbox
+*       filename: name of the file located in the appData folder
+*       token: the token for the authentication process
+***/
+function dropboxUploadFile(filename, token) {
+    var start = new Date();
+    start = start.getTime();
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://content.dropboxapi.com/1/files_put/auto/' + filename;
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(filename).done(function (file) {
+        Windows.Storage.FileIO.readBufferAsync(file).done(function (data) {
+            requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+            httpClient.sendRequestAsync(requestMessage).done(function (response) {
+                if (response.isSuccessStatusCode) {
+                    var d = new Date();
+                    start = (d.getTime() - start) / 1000;
+                    $('body').append('time: ' + start);
+                }
+            });
+        });
+    });
+}
+
+/***
 *   dropboxUserInfo: Get the user information (email, storage stats - free space & total space)
 *       token: authentication token
 *       reconnect: boolean, try to reconnect or not

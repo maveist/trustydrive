@@ -227,7 +227,6 @@ function oneDriveSync(chunks, provider, orphans) {
 *       callNb: counter to limit the number of attempts
 ***/
 function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
-    // Create a new file with the name provided inside the 'data' buffer
     var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content?select=id';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -250,6 +249,33 @@ function oneDriveUpload(reader, file, chunk, chunkIdx, data, callNb) {
                 }, 1000);
             }
         }
+    });
+}
+
+/***
+*   oneDriveUploadFile: Measure the time to upload a file on oneDrive
+*       filename: name of the file located in the appData folder
+*       token: the token for the authentication process
+***/
+function ondeDriveUploadFile(filename, token) {
+    var start = new Date();
+    start = start.getTime();
+    var httpClient = new Windows.Web.Http.HttpClient();
+    var uri = 'https://api.onedrive.com/v1.0/drive/items/root:/' + filename + ':/content?select=id';
+    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.put, new Windows.Foundation.Uri(uri));
+    requestMessage.headers.append('Authorization', 'Bearer ' + token);
+    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(filename).done(function (file) {
+        Windows.Storage.FileIO.readBufferAsync(file).done(function (data) {
+            requestMessage.content = new Windows.Web.Http.HttpBufferContent(data);
+    requestMessage.content.headers.append('Content-Type', 'application/octet-stream');
+            httpClient.sendRequestAsync(requestMessage).done(function (response) {
+                if (response.isSuccessStatusCode) {
+                    var d = new Date();
+                    start = (d.getTime() - start) / 1000;
+                    $('body').append('time: ' + start);
+                }
+            });
+        });
     });
 }
 
