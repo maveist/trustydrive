@@ -87,7 +87,7 @@ function createElement(name, kind) {
 ***/
 function longName(name, limit) {
     if (limit == undefined) {
-        limit = 25;
+        limit = 24;
     }
     if (name.length > limit) {
         return name.substr(0, limit - 3) + '...';
