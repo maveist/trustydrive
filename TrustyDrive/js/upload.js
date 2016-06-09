@@ -186,14 +186,8 @@ function uploadChunks(filename, folder, readStream) {
         throw "The file is too small. Required size: " + nbProviders * 3;
         WinJS.Navigation.navigate('/pages/login/login.html', 'The file is too small. Required minimal size: ' + nbProviders * 3);
     }
-    // Compute the number of chunks to encode the file
-    nbChunks = Math.ceil(readStream.size / g_maxChunkSize);
     // Compute the number of chunks per provider
-    if (nbChunks % nbProviders > 0) {
-        nbChunks = Math.trunc(nbChunks / nbProviders) + 1;
-    } else {
-        nbChunks = nbChunks / nbProviders;
-    }
+    nbChunks = Math.ceil(readStream.size / g_maxChunkSize / g_providers.length);
     file['size'] = readStream.size;
     file['nb_chunks'] = nbChunks * g_providers.length;
     if (file.name == g_metadataName) {
