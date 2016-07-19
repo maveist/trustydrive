@@ -191,11 +191,12 @@ function uploadChunks(filename, folder, readStream) {
     file['size'] = readStream.size;
     file['nb_chunks'] = nbChunks * g_providers.length;
     if (file.name == g_metadataName) {
+        // Metadata = 1 chunk per provider
         if (file.nb_chunks > g_providers.length) {
             readStream.close();
             WinJS.Navigation.navigate('/pages/login/login.html', 'The maximum number of files is reached. You can not upload new files!');
         } else {
-            startUpload(file, readStream, folder);
+            startUpload(file, readStream);
         }
     } else {
         // Check the number of providers
@@ -312,15 +313,54 @@ function addChunks(file, readStream, nbChunks, folder) {
 *       folder: the folder to display after uploading the file
 ***/
 function startUpload(file, readStream) {
-    var reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
-    var chunkSize = Math.floor(readStream.size / file.nb_chunks);
+    //var reader = new Windows.Storage.Streams.DataReader(readStream.getInputStreamAt(0));
+    //var chunkSize = Math.floor(readStream.size / file.nb_chunks);
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
     // Counter for the number of upload chunks
     g_complete = 0;
     // Delay the chunk creation to display the progress bar
     setTimeout(function () {
-        createChunks(file, reader, chunkSize, readStream.size % file.nb_chunks, 0);
+        var encoder = new breaker.Instance();
+        var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
+        file.chunks.forEach(function (c) {
+            providerNameList.push(c.provider.name);
+            providerTokenList.push(c.provider.token);
+            switch (c.provider.name) {
+                case 'dropbox':
+                    cloudFolderList.push("none");
+                    break;
+                case 'gdrive':
+                    cloudFolderList.push(g_cloudFolderId);
+                    break;
+                case 'onedrive':
+                    cloudFolderList.push(c.provider.folder);
+                    break;
+            }
+            c.info.forEach(function (i) {
+                chunkNameList.push(i.name);
+                if (i.id == undefined) {
+                    chunkIdList.push("none");
+                } else {
+                    chunkIdList.push(i.id);
+                }
+            });
+        });
+        encoder.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
+        setTimeout(function () {
+            checkEncoding(encoder, file);
+        }, 2000);
     }, 100);
+}
+
+function checkEncoding(encoder, file) {
+    progressBar(encoder.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + encoder.result.length);
+    if (file.chunks.length == encoder.result.length) {
+        $('body').append('upload complete');
+    } else {
+        setTimeout(function () {
+            checkEncoding(encoder, file)
+        }, 2000);
+    }
 }
 
 /***

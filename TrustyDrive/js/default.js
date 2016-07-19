@@ -1,4 +1,5 @@
 ﻿//TODO Check the size of the metadata before uploading a file
+//TODO remove g_cloudFolderId from gdrive and use provider.folder as with onedrive
 
 //BUG noms des fichiers et répertoires sont trop longs dans la upper-bar
 //BUG after uploading, the download button does not work
