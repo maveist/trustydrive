@@ -5,3 +5,5 @@ TrustyDrive/TrustyDrive.jsproj.user
 TrustyDrive/TrustyDrive_TemporaryKey.pfx
 TrustyDrive/AppPackages/
 TrustyDrive/BundleArtifacts/
+breaker/bin/x64/
+breaker/obj/x64/
