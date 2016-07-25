@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Networking;
+using Windows.Networking.Sockets;
 using Windows.Storage;
-using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
 
@@ -20,6 +20,14 @@ namespace breaker
 
     public sealed class Instance
     {
+        // Answer of dispatcher requests
+        private IList<string> _answer = new List<string>();
+        public IList<string> Answer
+        {
+            get { return _answer; }
+        }
+
+        // Result of chunk uploads
         private IList<string> _result = new List<string>();
         public IList<string> Result
         {
@@ -163,6 +171,31 @@ namespace breaker
             {
                 StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
                 await FileIO.WriteTextAsync(log, "error from the upload process: " + e);
+            }
+        }
+
+        public async void dispatcher(string message)
+        {
+            try
+            {
+                StreamSocket socket = new StreamSocket();
+                socket.Control.KeepAlive = true;
+                HostName host = new HostName("localhost");
+                await socket.ConnectAsync(host, "8989");
+                Stream streamOut = socket.OutputStream.AsStreamForWrite();
+                Stream streamIn = socket.InputStream.AsStreamForRead();
+                StreamWriter writer = new StreamWriter(streamOut);
+                StreamReader reader = new StreamReader(streamIn);
+                string request = "hello:";
+                await writer.WriteLineAsync(request);
+                await writer.FlushAsync();
+                string reply = await reader.ReadLineAsync();
+                _answer.Add(reply);
+            }
+            catch (Exception e)
+            {
+                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteTextAsync(log, "error from the dispacther communication: " + e);
             }
         }
     }

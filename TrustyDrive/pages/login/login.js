@@ -2,8 +2,24 @@
 *   login scope: the entry point of TrustyDrive. Check precondition about the working folder and the number of providers
 *       and download the metadata
 ***/
+var done = true;
+function readAnswer(sender) {
+    $('body').append('ANSWER: ' + sender.answer);
+    setTimeout(function () {
+        readAnswer(sender);
+    }, 1000);
+}
+
 WinJS.UI.Pages.define('/pages/login/login.html', {
     ready: function () {
+        // TEST the connection to the dispatcher
+        //if (done) {
+        //    done = false;
+        //    var sender = new breaker.Instance();
+        //    sender.dispatcher("hello:\n");
+        //    readAnswer(sender);
+        //}
+        // END TEST
         // Do not forget to provider the string argument
         var logError = WinJS.Navigation.state;
         // Credentials to load registered providers
