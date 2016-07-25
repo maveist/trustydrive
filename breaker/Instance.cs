@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
@@ -10,6 +12,12 @@ using Windows.Web.Http;
 
 namespace breaker
 {
+    public sealed class Chunk
+    {
+        public string name { get; set; }
+        public string id { get; set; }
+    }
+
     public sealed class Instance
     {
         private IList<string> _result = new List<string>();
@@ -118,17 +126,17 @@ namespace breaker
                         message.Content.Headers.Append("Content-Type", "application/octet-stream");
                         break;
                     case "gdrive":
-                        //if (chunkId == "none")
-                        //{
+                        if (chunkId == "none")
+                        {
 
                             uri = "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart";
                             message = new HttpRequestMessage(HttpMethod.Post, new Uri(uri));
-                        //}
-                        //else
-                        //{
-                        //uri = "https://www.googleapis.com/upload/drive/v3/files/" + chunkId + "?uploadType=media";
-                        //message = new HttpRequestMessage(HttpMethod.Patch, new Uri(uri));
-                        //}
+                        }
+                        else
+                        {
+                            uri = "https://www.googleapis.com/upload/drive/v3/files/" + chunkId + "?uploadType=media";
+                            message = new HttpRequestMessage(HttpMethod.Patch, new Uri(uri));
+                        }
                         message.Headers.Append("Authorization", "Bearer " + token);
                         message.Content = new HttpBufferContent(data);
                         message.Content.Headers.Append("Content-Type", "multipart/related; boundary=trustydrive_separator");
@@ -140,12 +148,21 @@ namespace breaker
                 }
                 response = await client.SendRequestAsync(message);
                 response.EnsureSuccessStatusCode();
-                _result.Add(chunkName);
+                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(Chunk));
+                Chunk ch = (Chunk)jsonSerializer.ReadObject(WindowsRuntimeStreamExtensions.AsStreamForRead(await response.Content.ReadAsInputStreamAsync()));
+                if (providerName == "dropbox")
+                {
+                    _result.Add(chunkName);
+                }
+                else
+                {
+                    _result.Add(ch.name + ":$$:" + ch.id);
+                }
             }
             catch (Exception e)
             {
-                //StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                //await FileIO.WriteTextAsync(log, "error from the upload process: " + e);
+                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
+                await FileIO.WriteTextAsync(log, "error from the upload process: " + e);
             }
         }
     }
