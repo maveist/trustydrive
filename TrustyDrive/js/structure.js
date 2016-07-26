@@ -63,7 +63,7 @@ function createElement(name, kind) {
     var element;
     if (kind == 'file') {
         if (g_files[name] == undefined) {
-            element = { 'name': name, 'nb_chunks': 0, 'chunks': []};
+            element = { 'name': name, 'nb_chunks': 0, 'chunks': [] };
             g_files[name] = element;
             return element;
         } else {
@@ -110,4 +110,35 @@ function setPath(folder, file) {
     }
     path = '/' + path;
     file['path'] = path;
+}
+
+function file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList) {
+    var maxIdx, i;
+    file.chunks.forEach(function (c) {
+        providerNameList.push(c.provider.name);
+        providerTokenList.push(c.provider.token);
+        switch (c.provider.name) {
+            case 'dropbox':
+                cloudFolderList.push(g_cloudFolder);
+                break;
+            case 'gdrive':
+                cloudFolderList.push(g_cloudFolderId);
+                break;
+            case 'onedrive':
+                cloudFolderList.push(c.provider.folder);
+                break;
+        }
+        maxIdx = c.info.length;
+    });
+    for (i = 0; i < maxIdx; i++) {
+        file.chunks.forEach(function (c) {
+            var chunk = c.info[i];
+            chunkNameList.push(chunk.name);
+            if (chunk.id == undefined) {
+                chunkIdList.push("none");
+            } else {
+                chunkIdList.push(chunk.id);
+            }
+        });
+    }
 }

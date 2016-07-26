@@ -194,11 +194,33 @@ function downloadMetadataComplete(chunk, chunkIdx) {
 *       folder: the folder to display when the download is completed
 ***/
 function downloadFile(file, folder) {
-    g_complete = 0;
+    var downloader = new breaker.Instance();
+    var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
+    file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
+    downloader.downloadFile(g_workingFolder, file.name, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Downloading the File ' + file.name);
-    g_workingFolder.createFileAsync(file.name, Windows.Storage.CreationCollisionOption.replaceExisting).done(function (myfile) {
-        myfile.openAsync(Windows.Storage.FileAccessMode.readWrite).done(function (output) {
-            downloadChunks(file, 0, folder, new Windows.Storage.Streams.DataWriter(output.getOutputStreamAt(0)));
-        });
-    });
+    checkDownloading(downloader, file, folder);
+}
+
+/***
+*   checkDownload: detect the end of the downloading process
+*       downloader: the downloader instance that downloads the file
+*       file: the metadata of the file
+*       folder: the folder including the file
+***/
+function checkDownloading(downloader, file, folder) {
+    progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length);
+    if (downloader.downloaded) {
+        if (file.name == g_metadataName) {
+
+        } else {
+            setTimeout(function () {
+                WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+            }, 300);
+        }
+    } else {
+        setTimeout(function () {
+            checkDownloading(downloader, file, folder);
+        }, 1000);
+    }
 }

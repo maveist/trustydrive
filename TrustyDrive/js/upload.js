@@ -230,39 +230,12 @@ function startUpload(file, readStream) {
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
     // Delay the chunk creation to display the progress bar
     setTimeout(function () {
-        var encoder = new breaker.Instance();
+        var uploader = new breaker.Instance();
         var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
-        var maxIdx, i;
-        file.chunks.forEach(function (c) {
-            providerNameList.push(c.provider.name);
-            providerTokenList.push(c.provider.token);
-            switch (c.provider.name) {
-                case 'dropbox':
-                    cloudFolderList.push("none");
-                    break;
-                case 'gdrive':
-                    cloudFolderList.push(g_cloudFolderId);
-                    break;
-                case 'onedrive':
-                    cloudFolderList.push(c.provider.folder);
-                    break;
-            }
-            maxIdx = c.info.length;
-        });
-        for (i = 0; i < maxIdx; i++) {
-            file.chunks.forEach(function (c) {
-                var chunk = c.info[i];
-                chunkNameList.push(chunk.name);
-                if (chunk.id == undefined) {
-                    chunkIdList.push("none");
-                } else {
-                    chunkIdList.push(chunk.id);
-                }
-            });
-        }
-        encoder.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
+        file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
+        uploader.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
         setTimeout(function () {
-            checkEncoding(encoder, file);
+            checkEncoding(uploader, file);
         }, 1000);
     }, 100);
 }
@@ -272,11 +245,11 @@ function startUpload(file, readStream) {
 *       encoder: the encoder instance that uploads the file
 *       file: the metadata of the file
 ***/
-function checkEncoding(encoder, file) {
+function checkEncoding(uploader, file) {
     var resultMap = {};
-    progressBar(encoder.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + encoder.result.length);
-    if (file.nb_chunks == encoder.result.length) {
-        encoder.result.forEach(function (r) {
+    progressBar(uploader.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + uploader.result.length);
+    if (file.nb_chunks == uploader.result.length) {
+        uploader.result.forEach(function (r) {
             var result = r.split(":$$:");
             if (result.length == 2) {
                 resultMap[result[0]] = result[1];
@@ -292,7 +265,7 @@ function checkEncoding(encoder, file) {
         uploadComplete(file);
     } else {
         setTimeout(function () {
-            checkEncoding(encoder, file)
+            checkEncoding(uploader, file)
         }, 1000);
     }
 }
