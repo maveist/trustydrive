@@ -35,42 +35,6 @@ function oneDriveDelete(chunkId, provider, nbDelete, func, callNb) {
 }
 
 /***
-*   oneDriveDownload: Download one chunk
-*       file: the file metadata
-*       chunk: information about chunks (provider, name, id)
-*       chunkIdx: the chunk index of the chunk to download
-*       bufferIdx: the index of the buffer to fill with the chunk data
-*       folder: the folder to display when the download is completed
-*       writer: the writer to a file located in the working folder
-*       callNb: counter to limit the number of attempts
-***/
-function oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb) {
-    var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://api.onedrive.com/v1.0/drive/items/' + chunk.provider.folder + ':/' + chunk.info[chunkIdx].name + ':/content';
-    var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
-    if (callNb == undefined) {
-        callNb = 0;
-    }
-    requestMessage.headers.append('Authorization', 'Bearer ' + chunk.provider.token);
-    httpClient.sendRequestAsync(requestMessage).then(function (success) {
-        if (success.isSuccessStatusCode) {
-            success.content.readAsBufferAsync().then(function (buffer) {
-                g_chunks.push({ 'idx': bufferIdx, 'reader': Windows.Storage.Streams.DataReader.fromBuffer(buffer), 'size': buffer.length });
-                downloadComplete(file, folder, writer);
-            });
-        } else {
-            if (callNb < 5) {
-                setTimeout(function () {
-                    oneDriveDownload(file, chunk, chunkIdx, bufferIdx, folder, writer, callNb + 1);
-                }, 1000);
-            } else {
-                downloadComplete(file, folder, writer);
-            }
-        }
-    });
-}
-
-/***
 *   oneDriveExists: Check if the chunk exists
 *       chunk: information about chunks (provider, name, id)
 *       chunkIdx: the chunk index of the chunk to download

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Networking;
 using Windows.Networking.Sockets;
+using Windows.Security.Cryptography;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.Web.Http;
@@ -47,6 +47,7 @@ namespace breaker
         // Store downloaded data from chunk downloads
         private DownloadedChunk[] _downloads;
 
+        public string metadata { get; set; }
         private bool _downloaded = false;
         public bool Downloaded
         {
@@ -113,8 +114,6 @@ namespace breaker
                                     chunkWriters[i % nbProviders].WriteString("--trustydrive_separator\nContent-Type: application/json; charset=UTF-8\n\n"
                                         + "{\n\"name\": \"" + chunkNames[chunkIdx + i % nbProviders] + "\",\n\"parents\": [ \"" + cloudFolders[i % nbProviders]
                                         + "\" ]\n}\n\n--trustydrive_separator\nContent-Type: application/octet-stream\n\n");
-                                    StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                                    await FileIO.WriteTextAsync(log, "idata: " + i + "/" + nbloaded);
                                 }
                                 chunkWriters[i % nbProviders].WriteByte(temp[i]);
                                 if (i + nbProviders >= nbloaded && providerNames[i % nbProviders] == "gdrive" && chunkIds[chunkIdx + i % nbProviders] == "none")
@@ -228,10 +227,21 @@ namespace breaker
             int chunkIdx = 0;
             try
             {
-                // Open the file
-                StorageFile file = await folder.CreateFileAsync(filename, CreationCollisionOption.ReplaceExisting);
-                IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.ReadWrite);
-                DataWriter writer = new DataWriter(stream.GetOutputStreamAt(0));
+                // Open the stream to write
+                DataWriter writer;
+                IRandomAccessStream stream = null;
+                if (filename == "trustydrive_metadata")
+                {
+                    //DO NOT write the metadata to a file
+                    stream = new InMemoryRandomAccessStream();
+                    writer = new DataWriter(stream);
+                }
+                else
+                {
+                    StorageFile file = await folder.CreateFileAsync(filename, CreationCollisionOption.ReplaceExisting);
+                    stream = await file.OpenAsync(FileAccessMode.ReadWrite);
+                    writer = new DataWriter(stream.GetOutputStreamAt(0));
+                }
                 int currentResult;
                 while (chunkIdx < chunkNames.Length)
                 {
@@ -271,8 +281,21 @@ namespace breaker
                 }
                 await writer.StoreAsync();
                 await writer.FlushAsync();
+                if (filename == "trustydrive_metadata")
+                {
+                    // We just download the metadata
+                    DataReader reader = new DataReader(stream.GetInputStreamAt(0));
+                    reader.UnicodeEncoding = UnicodeEncoding.Utf8;
+                    reader.ByteOrder = ByteOrder.LittleEndian;
+                    await reader.LoadAsync((uint)stream.Size);
+                    metadata = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, reader.ReadBuffer((uint)stream.Size));
+                    metadata = CryptographicBuffer.ConvertBinaryToString(BinaryStringEncoding.Utf8, CryptographicBuffer.DecodeFromBase64String(metadata));
+                }
+                else
+                {
+                    stream.Dispose();
+                }
                 writer.Dispose();
-                stream.Dispose();
                 _downloaded = true;
             }
             catch (Exception e)
