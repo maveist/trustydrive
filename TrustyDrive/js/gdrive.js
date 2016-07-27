@@ -44,7 +44,7 @@ function gdriveDelete(chunkId, provider, nbDelete, func, callNb) {
 *       func: the function to execute after the checking
 ***/
 function gdriveExists(chunk, chunkIdx, func) {
-    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + chunk.provider.folder
         + '%22+in+parents+and+name+%3D+%22' + chunk.info[chunkIdx].name + '%22+and+trashed+%3D+false';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     var httpClient = new Windows.Web.Http.HttpClient();
@@ -94,13 +94,13 @@ function gdriveFolderExist(provider, func) {
                     httpClient.sendRequestAsync(requestMessage).then(function (success) {
                         if (success.isSuccessStatusCode) {
                             success.content.readAsStringAsync().then(function (jsonInfo) {
-                                g_cloudFolderId = $.parseJSON(jsonInfo)['id'];
+                                provider['folder'] = $.parseJSON(jsonInfo)['id'];
                                 func();
                             });
                         }
                     });
                 } else {
-                    g_cloudFolderId = myFiles[0].id;
+                    provider['folder'] = myFiles[0].id;
                     func();
                 }
             });
@@ -159,7 +159,7 @@ function gdriveLogin(func) {
 ***/
 function gdriveSync(chunks, provider, orphans) {
     var httpClient = new Windows.Web.Http.HttpClient();
-    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + g_cloudFolderId + '%22+in+parents+and+trashed+%3D+false';
+    var uri = 'https://www.googleapis.com/drive/v3/files?q=%22' + provider.folder + '%22+in+parents+and+trashed+%3D+false';
     var requestMessage = Windows.Web.Http.HttpRequestMessage(Windows.Web.Http.HttpMethod.get, new Windows.Foundation.Uri(uri));
     requestMessage.headers.append('Authorization', 'Bearer ' + provider.token);
     httpClient.sendRequestAsync(requestMessage).then(function (response) {

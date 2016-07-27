@@ -24,8 +24,6 @@ const g_maxChunkSize = 500000;
 const g_td_version = '0.1.0';
 // Store the chunk data
 var g_chunks;
-// The cloud folder id for GoogleDrive and OneDrive
-var g_cloudFolderId;
 // Counter of chunks
 var g_complete;
 // File list

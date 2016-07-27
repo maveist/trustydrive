@@ -119,10 +119,11 @@ function file2lists(file, chunkNameList, chunkIdList, providerNameList, provider
         providerTokenList.push(c.provider.token);
         switch (c.provider.name) {
             case 'dropbox':
+                // Dropbox directly uses cloud folder name instead of ID
                 cloudFolderList.push(g_cloudFolder);
                 break;
             case 'gdrive':
-                cloudFolderList.push(g_cloudFolderId);
+                cloudFolderList.push(c.provider.folder);
                 break;
             case 'onedrive':
                 cloudFolderList.push(c.provider.folder);
