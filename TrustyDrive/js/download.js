@@ -74,60 +74,64 @@ function downloadFile(file, folder) {
 function checkDownloading(downloader, file, folder) {
     var pwd, error = "";
     progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length);
-    if (downloader.downloaded) {
-        if (file.name == g_metadataName) {
-            try {
-                g_files = JSON.parse(downloader.metadata, function (k, v) {
-                    if (k == g_metadataName) {
-                        // Do not modify the information of the metadata
-                        pwd = v.password;
-                        return g_files[g_metadataName];
-                    } else {
-                        return v;
-                    }
-                });
-                if (pwd == g_files[g_metadataName].password) {
-                    buildFolderStructure();
-                    // Add provider information to the metadata
-                    $.each(g_files, function (useless, file) {
-                        file.chunks.forEach(function (c) {
-                            g_providers.forEach(function (fullp) {
-                                if (c.provider.user == fullp.user && c.provider.name == fullp.name) {
-                                    c.provider = fullp;
-                                }
+    if (downloader.result.every(r => r != 'error')) {
+        if (downloader.downloaded) {
+            if (file.name == g_metadataName) {
+                try {
+                    g_files = JSON.parse(downloader.metadata, function (k, v) {
+                        if (k == g_metadataName) {
+                            // Do not modify the information of the metadata
+                            pwd = v.password;
+                            return g_files[g_metadataName];
+                        } else {
+                            return v;
+                        }
+                    });
+                    if (pwd == g_files[g_metadataName].password) {
+                        buildFolderStructure();
+                        // Add provider information to the metadata
+                        $.each(g_files, function (useless, file) {
+                            file.chunks.forEach(function (c) {
+                                g_providers.forEach(function (fullp) {
+                                    if (c.provider.user == fullp.user && c.provider.name == fullp.name) {
+                                        c.provider = fullp;
+                                    }
+                                });
                             });
                         });
+                    } else {
+                        // Delete the metadata
+                        g_files = { [g_metadataName]: g_files[g_metadataName] };
+                        error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
+                    }
+                } catch (ex) {
+                    error = 'The metadata file is malformed. Please check your cloud accounts configuration in Settings'
+                        + ', maybe some providers are missing!'
+                        + '<br>To reset your metadata (<b>all files stored in TrustyDrive will be lost</b>),'
+                        + ' delete the trustydrive folder on the following accounts:<div>';
+                    g_providers.forEach(function (p) {
+                        error += p.name + ' - ' + p.user + '<br>';
                     });
-                } else {
-                    // Delete the metadata
-                    g_files = { [g_metadataName]: g_files[g_metadataName] };
-                    error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
+                    error += '</div>';
                 }
-            } catch (ex) {
-                error = 'The metadata file is malformed. Please check your cloud accounts configuration in Settings'
-                    + ', maybe some providers are missing!'
-                    + '<br>To reset your metadata (<b>all files stored in TrustyDrive will be lost</b>),'
-                    + ' delete the trustydrive folder on the following accounts:<div>';
-                g_providers.forEach(function (p) {
-                    error += p.name + ' - ' + p.user + '<br>';
-                });
-                error += '</div>';
+                setTimeout(function () {
+                    if (error.length == 0) {
+                        WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+                    } else {
+                        WinJS.Navigation.navigate('/pages/login/login.html', error);
+                    }
+                }, 1000);
+            } else {
+                setTimeout(function () {
+                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+                }, 300);
             }
-            setTimeout(function () {
-                if (error.length == 0) {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
-                } else {
-                    WinJS.Navigation.navigate('/pages/login/login.html', error);
-                }
-            }, 1000);
         } else {
             setTimeout(function () {
-                WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
-            }, 300);
+                checkDownloading(downloader, file, folder);
+            }, 1000);
         }
     } else {
-        setTimeout(function () {
-            checkDownloading(downloader, file, folder);
-        }, 1000);
+        WinJS.Navigation.navigate('/pages/login/login.html', 'Download failure, please check the provider list');
     }
 }

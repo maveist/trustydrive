@@ -1,6 +1,5 @@
-﻿//TODO Check the size of the metadata before uploading a file
-//TODO remove both g_cloudFolder and g_cloudFolderId from respectively dropbox and gdrive and use provider.folder as with onedrive
-//TODO At the login time, simulate the download of chunks when a wrong username is given
+﻿//TODO At the login time, simulate the download of chunks when a wrong username is given
+//TODO Check the size of the metadata before uploading a file
 
 //BUG noms des fichiers et répertoires sont trop longs dans la upper-bar
 //BUG after uploading, the download button does not work (on mobile phone only)

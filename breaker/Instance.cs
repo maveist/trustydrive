@@ -300,6 +300,7 @@ namespace breaker
             }
             catch (Exception e)
             {
+                _result.Add("error");
                 StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
                 await FileIO.WriteTextAsync(log, "error from the downloading process: " + e);
             }

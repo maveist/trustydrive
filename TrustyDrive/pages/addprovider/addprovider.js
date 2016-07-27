@@ -10,31 +10,39 @@ WinJS.UI.Pages.define('/pages/addprovider/addprovider.html', {
         $('.signin-link').click(function () {
             WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
-        if (g_providers.length == 0) {
-            $('#registered').append('<b>none</b>');
-        } else {
-            g_providers.forEach(function (p) {
-                if (p.name == 'onedrive') {
-                    $('#registered').append('<li>' + p.name + ' - ' + p.username + '</li>');
-                } else {
-                    $('#registered').append('<li>' + p.name + ' - ' + p.user + '</li>');
-                }
-            });
-        }
+        providerList();
         $('.add-dropbox').click(function () {
             dropboxLogin(function () {
-                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                providerList();
             });
         });
         $('.add-drive').click(function () {
             gdriveLogin(function () {
-                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                providerList();
             });
         });
         $('.add-onedrive').click(function () {
             oneDriveLogin(function () {
-                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
+                providerList();
             });
         });
     }
 })
+
+function providerList() {
+    $('#registered').empty();
+    if (g_providers.length == 0) {
+        $('#registered').append('<b>none</b>');
+    } else {
+        g_providers.forEach(function (p) {
+            if (p.name == 'onedrive') {
+                $('#registered').append('<li>' + p.name + ' - ' + p.username + '</li>');
+            } else {
+                $('#registered').append('<li>' + p.name + ' - ' + p.user + '</li>');
+            }
+        });
+    }
+    if ($('.user-interface').is(':visible')) {
+        $('.user-interface').hide();
+    }
+}

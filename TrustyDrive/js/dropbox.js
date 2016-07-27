@@ -114,8 +114,8 @@ function dropboxLogin(func) {
         } else {
             $('.interface-body').append('<span class="error-message">Login failure: please retry to sign in later</span>');
             setTimeout(function () {
-                WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
-            }, 5000);
+                $('.user-interface').hide();
+            }, 3000);
         }
     });
 }

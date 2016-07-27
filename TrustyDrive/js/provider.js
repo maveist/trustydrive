@@ -120,26 +120,30 @@ function deleteProvider(provider) {
             // Delete chunk(s)
             g_complete = 0;
             progressBar(g_complete, chunksToDelete.length + 1, 'Initialization', 'Delete Metadata Chunks');
-            chunksToDelete.forEach(function (c) {
-                // Delete the chunk leads to upload the metadata
-                switch (c.provider.name) {
-                    case 'dropbox':
-                        dropboxDelete(c.name, c.provider, chunksToDelete.length, function () {
-                            uploadMetadata();
-                        });
-                        break;
-                    case 'gdrive':
-                        gdriveDelete(c.id, c.provider, chunksToDelete.length, function () {
-                            uploadMetadata();
-                        });
-                        break;
-                    case 'onedrive':
-                        oneDriveDelete(c.id, c.provider, chunksToDelete.length, function () {
-                            uploadMetadata();
-                        });
-                        break;
-                }
-            });
+            if (chunksToDelete.length == 0) {
+                uploadMetadata();
+            } else {
+                chunksToDelete.forEach(function (c) {
+                    // Delete the chunk leads to upload the metadata
+                    switch (c.provider.name) {
+                        case 'dropbox':
+                            dropboxDelete(c.name, c.provider, chunksToDelete.length, function () {
+                                uploadMetadata();
+                            });
+                            break;
+                        case 'gdrive':
+                            gdriveDelete(c.id, c.provider, chunksToDelete.length, function () {
+                                uploadMetadata();
+                            });
+                            break;
+                        case 'onedrive':
+                            oneDriveDelete(c.id, c.provider, chunksToDelete.length, function () {
+                                uploadMetadata();
+                            });
+                            break;
+                    }
+                });
+            }
         }
     }
 }
