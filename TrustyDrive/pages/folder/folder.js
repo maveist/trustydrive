@@ -7,6 +7,10 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
         var height = $('#content').innerHeight();
         var home, body, div, files = $('.file-list'), fileArray = [];
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
+        if (folder.name == g_homeFolderName) {
+            // Delete the navigation history if the home page is display
+            WinJS.Navigation.history.backStack = [];
+        }
         // Position of the menu bar
         $('.menu-bar').css('top', height - 60);
         // Remove the menu-bar height and the upper-bar height and padding
