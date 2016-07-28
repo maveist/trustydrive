@@ -21,6 +21,18 @@ function downloadMetadata() {
     });
 }
 
+function fakeDownload(idx, nbChunks) {
+    idx++;
+    if (idx == nbChunks + 2) {
+        WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.');
+    } else {
+        setTimeout(function () {
+            progressBar(idx, nbChunks + 1, 'Number of Downloaded Chunks: ' + idx, 'Downloading...');
+            fakeDownload(idx, nbChunks);
+        }, 600);
+    }
+}
+
 /***
 *   checkMetadataComplete: start the download of existing metadata chunks
 ***/
@@ -37,7 +49,8 @@ function checkMetadataComplete() {
             }
         }
         if (metadata.chunks.length == 0) {
-            WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + metadata.user + '" does not exist or the password is incorrect.');
+            progressBar(0, g_complete + 1, 'Initialization', 'Downloading the Metadata');
+            fakeDownload(-1, g_complete);
         } else if (metadata.chunks.length == 1) {
             WinJS.Navigation.navigate('/pages/login/login.html', 'There is only one chunk for metadata. The metadata are illegible!'
                 + 'You have to re-create your user.');

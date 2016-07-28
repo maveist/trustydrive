@@ -1,6 +1,4 @@
-﻿//TODO At the login time, simulate the download of chunks when a wrong username is given
-
-//LOGIN remy / toto
+﻿//LOGIN remy / toto
 
 // Global variables
 // Do not forget the '/' at the end of the folder name
