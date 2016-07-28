@@ -5,7 +5,7 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
     ready: function () {
         var folder = WinJS.Navigation.state;
         var height = $('#content').innerHeight();
-        var home, body, div, files = $('.file-list');
+        var home, body, div, files = $('.file-list'), fileArray = [];
         var sorting = Windows.Storage.ApplicationData.current.localSettings.values['sortingFiles'];
         // Position of the menu bar
         $('.menu-bar').css('top', height - 60);
@@ -112,13 +112,22 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
         } else {
             folder.files.sort(alphabetic);
         }
+        // Display the files of the folder
         $.each(folder.files, function (useless, file) {
             if (file.name != g_metadataName) {
                 div = $('<div id="' + file.name + '" class="file ' + file.type + '">' + longName(file.name) + '</div>');
                 div.click(function () {
                     WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
                 });
+                fileArray.push(div);
                 files.append(div);
+            }
+        });
+        $.each(folder.files, function (index, file) {
+            if (file.name != g_metadataName) {
+                g_workingFolder.getFileAsync(file.name).then(function (f) {
+                    fileArray[index].css('font-weight', 'bold');
+                });
             }
         });
     }

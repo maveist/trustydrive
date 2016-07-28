@@ -1,4 +1,6 @@
-﻿//LOGIN remy / toto
+﻿//TODO define the home page as the first page of the apps
+
+//LOGIN remy / toto
 
 // Global variables
 // Do not forget the '/' at the end of the folder name
