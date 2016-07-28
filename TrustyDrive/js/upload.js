@@ -121,32 +121,47 @@ function uploadChunks(filename, folder, readStream) {
     nbChunks = Math.ceil(readStream.size / g_maxChunkSize / g_providers.length);
     file['size'] = readStream.size;
     file['nb_chunks'] = nbChunks * g_providers.length;
-    if (file.name == g_metadataName) {
-        // Metadata = 1 chunk per provider
-        if (file.nb_chunks > g_providers.length) {
-            readStream.close();
-            WinJS.Navigation.navigate('/pages/login/login.html', 'The maximum number of files is reached. You can not upload new files!');
-        } else {
-            startUpload(file, readStream);
-        }
+    if (file.nb_chunks > g_maxFileChunks) {
+        // Display the error: the file is too large
+        var body = $('.interface-body');
+        var maxSize = sizeString(g_maxFileChunks * g_maxChunkSize);
+        div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+        div.click(function () {
+            $('.user-interface').hide();
+        });
+        body.empty();
+        body.append('<b>This file is too large</b>. ' +
+            'The maximum file size is ' + maxSize.value + ' ' + maxSize.unit + '<br><br>');
+        body.append(div);
+        $('.user-interface').show();
     } else {
-        // Check the number of providers
-        if (file.chunks.length < nbProviders) {
-            g_providers.forEach(function (p) {
-                var notfound = file.chunks.every(function (c) {
-                    if (c.provider.name == p.name && c.provider.user == p.user) {
-                        return false;
-                    } else {
-                        return true;
+        if (file.name == g_metadataName) {
+            // Metadata = 1 chunk per provider
+            if (file.nb_chunks > g_providers.length) {
+                readStream.close();
+                WinJS.Navigation.navigate('/pages/login/login.html', 'The maximum number of files is reached. You can not upload new files!');
+            } else {
+                startUpload(file, readStream);
+            }
+        } else {
+            // Check the number of providers
+            if (file.chunks.length < nbProviders) {
+                g_providers.forEach(function (p) {
+                    var notfound = file.chunks.every(function (c) {
+                        if (c.provider.name == p.name && c.provider.user == p.user) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    });
+                    if (notfound) {
+                        file.chunks.push({ 'provider': p, 'info': [] });
                     }
                 });
-                if (notfound) {
-                    file.chunks.push({ 'provider': p, 'info': [] });
-                }
-            });
+            }
+            // Fill the file structure with the right number of chunks
+            removeChunks(file, readStream, nbChunks, folder);
         }
-        // Fill the file structure with the right number of chunks
-        removeChunks(file, readStream, nbChunks, folder);
     }
 }
 
@@ -402,10 +417,10 @@ function metadataExistsComplete() {
 }
 
 /***
-*   uploadNewFile: select and upload a new file
+*   uploadFile: select and upload one file
 *       folder: the folder that will contain the file
 ***/
-function uploadNewFile(folder) {
+function uploadFile(folder) {
     // Verify that we are currently not snapped, or that we can unsnap to open the picker
     var currentState = Windows.UI.ViewManagement.ApplicationView.value;
     var filePicker = new Windows.Storage.Pickers.FileOpenPicker();

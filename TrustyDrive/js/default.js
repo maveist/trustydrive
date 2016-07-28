@@ -9,6 +9,8 @@ const g_cloudFolder = 'trustydrive/';
 const g_metadataName = 'trustydrive_metadata';
 // The maximum size in bytes of one chunk, 500 kB
 const g_maxChunkSize = 500000;
+// The maximum number of chunks to encode one file
+const g_maxFileChunks = 300;
 // Version of the apps
 const g_td_version = '0.1.0';
 // Store the chunk data

@@ -23,7 +23,7 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
             WinJS.Navigation.navigate('/pages/settings/settings.html');
         });
         $('.upload').click(function () {
-            uploadNewFile(folder);
+            uploadFile(folder);
         });
         $('.local-delete').click(function () {
             var html = '<div class="interface-question">';
