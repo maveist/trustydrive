@@ -243,19 +243,32 @@ function addChunks(file, readStream, nbChunks, folder) {
 *       readStream: the stream opened from the file to upload
 ***/
 function startUpload(file, readStream) {
-    //TODO Check the size of the metadata
-
-    progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
-    // Delay the chunk creation to display the progress bar
-    setTimeout(function () {
-        var uploader = new breaker.Instance();
-        var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
-        file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
-        uploader.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
+    //Check the size of the metadata with the file metadata
+    if (prepareMetadata().length > g_providers.length * g_maxChunkSize) {
+        // Display the error: too many files
+        var body = $('.interface-body');
+        div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+        div.click(function () {
+            $('.user-interface').hide();
+        });
+        body.empty();
+        body.append('<b>The maximum number of files is reached</b>. ' +
+            'You have to register to new providers to increase the maximum number of files to upload!<br><br>');
+        body.append(div);
+        $('.user-interface').show();
+    } else {
+        progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
+        // Delay the chunk creation to display the progress bar
         setTimeout(function () {
-            checkEncoding(uploader, file);
-        }, 1000);
-    }, 100);
+            var uploader = new breaker.Instance();
+            var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
+            file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
+            uploader.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
+            setTimeout(function () {
+                checkEncoding(uploader, file);
+            }, 1000);
+        }, 100);
+    }
 }
 
 /***
@@ -288,55 +301,63 @@ function checkEncoding(uploader, file) {
     }
 }
 
+function prepareMetadata() {
+    var metadata, crypto, cBuffer, buffer;
+    // Build data from the metadata
+    metadata = $.extend(true, {}, g_files);
+    $.each(metadata, function (filename, file) {
+        if (filename == g_metadataName) {
+            // Minimize the information about metadata
+            metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'chunks': [] };
+        } else {
+            // Remove tokens from providers
+            file.chunks.forEach(function (c) {
+                c.provider = { 'name': c.provider.name, 'user': c.provider.user };
+                c.info.forEach(function (i) {
+                    delete i.exists;
+                });
+            });
+        }
+    });
+    // Build the JSON
+    metadata = JSON.stringify(metadata);
+    crypto = Windows.Security.Cryptography;
+    cBuffer = crypto.CryptographicBuffer;
+    // Convert to buffer
+    buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
+    // Encrypt metadata data
+    metadata = cBuffer.encodeToBase64String(buffer);
+    buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
+    return buffer;
+}
+
 /***
 *   uploadMetadata: build, encrypt and upload the metadata
 ***/
 function uploadMetadata() {
-    var metadata, crypto, cBuffer, readStream, metadataChunks = g_files[g_metadataName].chunks;
+    var readStream;
     // Check the number of providers
     if (g_providers.length < 2) {
         WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
     } else {
-        // Build data from the metadata
-        metadata = $.extend(true, {}, g_files);
-        $.each(metadata, function (filename, file) {
-            if (filename == g_metadataName) {
-                // Minimize the information about metadata
-                metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'chunks': [] };
-            } else {
-                // Remove tokens from providers
-                file.chunks.forEach(function (c) {
-                    c.provider = { 'name': c.provider.name, 'user': c.provider.user };
-                    c.info.forEach(function (i) {
-                        delete i.exists;
-                    });
-                });
-            }
-        });
-        // Build the JSON
-        metadata = JSON.stringify(metadata);
-        crypto = Windows.Security.Cryptography;
-        cBuffer = crypto.CryptographicBuffer;
-        // Convert to buffer
-        buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
-        // Encrypt metadata data
-        metadata = cBuffer.encodeToBase64String(buffer);
-        buffer = cBuffer.convertStringToBinary(metadata, crypto.BinaryStringEncoding.utf8);
         // Save the metadata to the cloud
         readStream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
-        readStream.writeAsync(buffer);
-        // Synchronize the provider list and the metadata chunks
-        $.each(g_providers, function (idx, p) {
-            if (idx == metadataChunks.length) {
-                metadataChunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
-            } else {
-                if (!(metadataChunks[idx].provider.name == p.name && metadataChunks[idx].provider.user == p.user)) {
-                    // Insert a new chunk for this provider
-                    metadataChunks.splice(idx, 0, { 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+        readStream.writeAsync(prepareMetadata()).done(function () {
+            // Synchronize the provider list and the metadata chunks
+            $.each(g_providers, function (idx, p) {
+                // Check the metadata chunks
+                var metadataChunks = g_files[g_metadataName].chunks;
+                if (idx == metadataChunks.length) {
+                    metadataChunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+                } else {
+                    if (!(metadataChunks[idx].provider.name == p.name && metadataChunks[idx].provider.user == p.user)) {
+                        // Insert a new chunk for this provider
+                        metadataChunks.splice(idx, 0, { 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
+                    }
                 }
-            }
+            });
+            uploadChunks(g_metadataName, undefined, readStream);
         });
-        uploadChunks(g_metadataName, undefined, readStream);
     }
 }
 

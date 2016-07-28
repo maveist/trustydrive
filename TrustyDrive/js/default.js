@@ -1,10 +1,4 @@
 ﻿//TODO At the login time, simulate the download of chunks when a wrong username is given
-//TODO Check the size of the metadata before uploading a file
-
-/*** BUG when uploading
-Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
-0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.
-***/
 
 //LOGIN remy / toto
 
@@ -13,7 +7,7 @@ Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e
 const g_cloudFolder = 'trustydrive/';
 // Key to store the metadata
 const g_metadataName = 'trustydrive_metadata';
-// The maximum size in bytes of one chunk, 1 MB
+// The maximum size in bytes of one chunk, 500 kB
 const g_maxChunkSize = 500000;
 // Version of the apps
 const g_td_version = '0.1.0';
