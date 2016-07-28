@@ -8,9 +8,8 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
         var file = WinJS.Navigation.state.file;
         var folder = WinJS.Navigation.state.folder;
         // Status property
-        var status = $('#file-status');
+
         // Menu location
-        var height = $('#content').innerHeight();
         if (file.name == g_metadataName) {
             WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
         } else {
@@ -67,7 +66,7 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                 });
                 title.append(confirm);
                 cancel.click(function () {
-                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+                    title.html(file.name);
                 });
                 title.append(cancel);
             });
@@ -93,6 +92,12 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                                 folder.files.splice(index, 1);
                             }
                             addToFolder(dest, file);
+                            // Modify the destination of the back button
+                            $('.upper-back').off();
+                            $('.upper-back').click(function () {
+                                WinJS.Navigation.navigate('/pages/folder/folder.html', dest);
+                            });
+                            // Save the modification
                             uploadMetadata();
                         });
                     }
@@ -123,39 +128,56 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
                 // Display currently used accounts
                 $('.file-providers').append(div);
             });
-            // Configure properties and actions for a downloaded file
-            g_workingFolder.getFileAsync(file.name).then(
-                function (f) {
-                    $('.menu-bar').css('top', height - 120);
-                    $('.open').click(function () {
-                        g_workingFolder.getFileAsync(file.name).done(function (toOpen) {
-                            Windows.System.Launcher.launchFileAsync(toOpen).done();
-                        });
-                    });
-                    $('.local-delete').click(function () {
-                        g_workingFolder.getFileAsync(file.name).then(function (toDelete) {
-                            toDelete.deleteAsync().then(function () {
-                                WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
-                            });
-                        });
-                    });
-                    f.getBasicPropertiesAsync().done(function (props) {
-                        if (props.size == file.size) {
-                            status.html('On the Local Drive');
-                        } else {
-                            status.html('To Be Upload');
-                        }
-                    });
-                },
-                function (error) {
-                    $('.menu-bar').css('top', height - 60);
-                    $('.menu-container')[0].remove();
-                    status.html('On the Cloud');
-                }
-            );
+            showDownloadedFileMenu(file);
         }
     }
 })
+
+function showDownloadedFileMenu(file) {
+    var status = $('#file-status');
+    var height = $('#content').innerHeight();
+    // Check the existence of the file on the working folder
+    g_workingFolder.getFileAsync(file.name).then(
+        function (f) {
+            var menubar = $('.menu-bar');
+            // Increase the size of the menu bar
+            menubar.css('top', height - 120);
+            // Add new buttons
+            menubar.prepend('<div class="menu-container">' +
+                '<div title="Open this File" class="menu-item open"></div>' +
+                '<div title="Delete the Local Version" class="menu-item local-delete"></div>' +
+                '</div>');
+            // Configure new buttons
+            $('.open').click(function () {
+                g_workingFolder.getFileAsync(file.name).done(function (toOpen) {
+                    Windows.System.Launcher.launchFileAsync(toOpen).done();
+                });
+            });
+            $('.local-delete').click(function () {
+                g_workingFolder.getFileAsync(file.name).then(function (toDelete) {
+                    toDelete.deleteAsync().then(function () {
+                        showDownloadedFileMenu(file);
+                    });
+                });
+            });
+            // Check the size of the file
+            f.getBasicPropertiesAsync().done(function (props) {
+                if (props.size == file.size) {
+                    status.html('On the Local Drive');
+                } else {
+                    status.html('To Be Upload');
+                }
+            });
+        },
+        function (error) {
+            $('.menu-bar').css('top', height - 60);
+            if ($('.menu-container').length > 1) {
+                $('.menu-container')[0].remove();
+            }
+            status.html('On the Cloud');
+        }
+    );
+}
 
 /***
 *   cloudDelete: delete the chunks on the cloud related to a file
@@ -165,9 +187,11 @@ WinJS.UI.Pages.define('/pages/file/file.html', {
 *       folder: the folder to display after deleting all chunks
 ***/
 function cloudDelete(file, nbDelete, folder) {
+    // Display the folder after the deletion
+    g_file2display = folder;
     // Delete every chunks
     file.chunks.forEach(function (c) {
-        c.info.forEach(function(i) {
+        c.info.forEach(function (i) {
             switch (c.provider.name) {
                 case 'dropbox':
                     setTimeout(function () {
@@ -204,7 +228,7 @@ function deleteComplete(nbDelete, func) {
     if (g_complete == nbDelete) {
         func();
     } else {
-        progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete);
+        progressBar(g_complete, nbDelete + 1, 'Number of Deleted Chunks: ' + g_complete, 'Deleting...');
     }
 }
 
@@ -224,7 +248,10 @@ function syncComplete(orphans) {
 *       newName: the new name of the file
 ***/
 function renameFile(file, newName) {
+    var title = $('.upper-title');
     if (newName.length > 0 && g_files[newName] == undefined) {
+        title.empty();
+        title.append(newName);
         delete g_files[file.name];
         file.name = newName;
         g_files[newName] = file;

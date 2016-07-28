@@ -73,7 +73,7 @@ function downloadFile(file, folder) {
 ***/
 function checkDownloading(downloader, file, folder) {
     var pwd, error = "";
-    progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length);
+    progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length, 'Downloading...');
     if (downloader.result.every(r => r != 'error')) {
         if (downloader.downloaded) {
             if (file.name == g_metadataName) {
@@ -123,7 +123,10 @@ function checkDownloading(downloader, file, folder) {
                 }, 1000);
             } else {
                 setTimeout(function () {
-                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': file, 'folder': folder });
+                    if ($('.user-interface').is(':visible')) {
+                        $('.user-interface').hide();
+                    }
+                    showDownloadedFileMenu(file);
                 }, 300);
             }
         } else {

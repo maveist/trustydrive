@@ -7,3 +7,5 @@ TrustyDrive/AppPackages/
 TrustyDrive/BundleArtifacts/
 breaker/bin/x64/
 breaker/obj/x64/
+breaker/bin/ARM/
+breaker/obj/ARM/

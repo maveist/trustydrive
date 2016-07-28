@@ -134,17 +134,17 @@ function deleteOrphansDialog(orphans) {
                 switch (o.provider.name) {
                     case 'dropbox':
                         dropboxDelete(o.name, o.provider, orphans.length, function () {
-                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                            $('.user-interface').hide();
                         });
                         break;
                     case 'gdrive':
                         gdriveDelete(o.id, o.provider, orphans.length, function () {
-                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                            $('.user-interface').hide();
                         });
                         break;
                     case 'onedrive':
                         oneDriveDelete(o.id, o.provider, orphans.length, function () {
-                            WinJS.Navigation.navigate('/pages/metadata/metadata.html');
+                            $('.user-interface').hide();
                         });
                         break;
                 }

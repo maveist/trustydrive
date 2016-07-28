@@ -7,9 +7,25 @@ function uploadComplete(file) {
     var idx, d = new Date(), filetype = 'unknown';
     if (file.name == g_metadataName) {
         setTimeout(function () {
-            WinJS.Navigation.navigate('/pages/folder/folder.html', g_folders[g_homeFolderName]);
+            var myfile = g_file2display;
+            g_file2display = undefined;
+            if (myfile == undefined) {
+                if ($('.user-interface').is(':visible')) {
+                    $('.user-interface').hide();
+                }
+            } else {
+                if (myfile.files == undefined) {
+                    // Display a file
+                    WinJS.Navigation.navigate('/pages/file/file.html', { 'file': myfile, 'folder': getFolder(myfile) });
+                } else {
+                    // Display a folder
+                    WinJS.Navigation.navigate('/pages/folder/folder.html', myfile);
+                }
+            }
         }, 1000);
     } else {
+        // Display this file after uploading the metadata
+        g_file2display = file;
         // Update the last upload date
         file['lastupload'] = d.getDate() + '-' + month[d.getMonth()] + '-' + d.getFullYear().toString().substr(-2) + ' ';
         if (d.getMinutes() > 9) {
@@ -247,7 +263,7 @@ function startUpload(file, readStream) {
 ***/
 function checkEncoding(uploader, file) {
     var resultMap = {};
-    progressBar(uploader.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + uploader.result.length);
+    progressBar(uploader.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + uploader.result.length, 'Uploading...');
     if (file.nb_chunks == uploader.result.length) {
         uploader.result.forEach(function (r) {
             var result = r.split(":$$:");

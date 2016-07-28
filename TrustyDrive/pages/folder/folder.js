@@ -13,17 +13,7 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
         $('.file-list').innerHeight(height - 60 - 60 - 5);
         // Default folder to display
         if (typeof folder === 'string') {
-            $('.user-interface').show();
-            // Create a close button
-            div = $('<div id="close-button" class="interface-button">CLOSE</div>');
-            div.click(function () {
-                $('.user-interface').hide();
-            });
-            // Configure body
-            body = $('.interface-body');
-            body.empty();
-            body.append(folder + '<br><br>');
-            body.append(div);
+            showFolderError(folder);
             folder = g_folders[g_homeFolderName];
         } else if (folder == undefined) {
             folder = g_folders[g_homeFolderName];
@@ -38,7 +28,7 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
         $('.local-delete').click(function () {
             var html = '<div class="interface-question">';
             html += 'This action permanently deletes the <b>' + folder.files.length + ' files</b> of the <b>' + folder.name + '</b> folder.<br>';
-            html += 'This action can not be undone! Do you really want to delete this folder?<br>';
+            html += 'This action can not be undone! Do you really want to delete the content of this folder?<br>';
             html += '<br><br><div id="delete-button" class="interface-button">DELETE</div>' +
                 '<div id="cancel-button" class="interface-button">CANCEL</div>';
             html += '</div>';
@@ -72,7 +62,8 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
             });
             title.append(confirm);
             cancel.click(function () {
-                WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
+                title.empty();
+                title.append(folder.name);
             });
             title.append(cancel);
         });
@@ -109,14 +100,12 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
             });
         }
         folder.folders.sort(alphabetic);
-        $.each(folder.folders, function (useless, file) {
-            if (file.name != g_metadataName) {
-                div = $('<div id="' + file.name + '" class="file folder">' + longName(file.name) + '</div>');
-                div.click(function () {
-                    WinJS.Navigation.navigate('/pages/folder/folder.html', file);
-                });
-                files.append(div);
-            }
+        $.each(folder.folders, function (useless, f) {
+            div = $('<div id="' + f.name + '" class="file folder">' + longName(f.name) + '</div>');
+            div.click(function () {
+                WinJS.Navigation.navigate('/pages/folder/folder.html', f);
+            });
+            files.append(div);
         });
         if (sorting == 'type') {
             folder.files.sort(byType);
@@ -134,6 +123,24 @@ WinJS.UI.Pages.define('/pages/folder/folder.html', {
         });
     }
 })
+
+/***
+*   showFolderError: display the error
+*       errorMessage: the text describing the error
+***/
+function showFolderError(errorMessage) {
+    $('.user-interface').show();
+    // Create a close button
+    div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+    div.click(function () {
+        $('.user-interface').hide();
+    });
+    // Configure body
+    body = $('.interface-body');
+    body.empty();
+    body.append(errorMessage + '<br><br>');
+    body.append(div);
+}
 
 /***
 *   alphabetic: sort alphabetically the files of a folder
@@ -173,7 +180,7 @@ function createFolder(fname, folder) {
         addToFolder(folder, newfolder);
         WinJS.Navigation.navigate('/pages/folder/folder.html', newfolder);
     } else {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', 'Folder <b>' + fname + '</b> already exists!');
+        showFolderError('Folder <b>' + fname + '</b> already exists!');
     }
 }
 
@@ -197,9 +204,13 @@ function deleteFolder(folder) {
     }
     g_complete = 0;
     progressBar(g_complete, nbChunks + 1, 'Initialization', 'Delete the Content of the Folder ' + folder.name);
-    allFiles.forEach(function (af) {
-        cloudDelete(af.file, nbChunks, af.folder);
-    });
+    if (allFiles.length == 0) {
+        $('.user-interface').hide();
+    } else {
+        allFiles.forEach(function (af) {
+            cloudDelete(af.file, nbChunks, af.folder);
+        });
+    }
 }
 
 /***
@@ -209,9 +220,14 @@ function deleteFolder(folder) {
 ***/
 function renameFolder(folder, newName) {
     var current = [], future = [], modify = false;
+    var title = $('.upper-title');
+    title.empty();
+    // Check the new name
     if (newName.length == 0 || g_folders[newName] != undefined) {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', 'The folder <b>' + newName + '</b> already exists!');
+        title.append(folder.name);
+        showFolderError('The folder <b>' + newName + '</b> already exists!');
     } else {
+        title.append(newName);
         delete g_folders[folder.name];
         g_folders[newName] = folder;
         if (folder.name == g_homeFolderName) {
@@ -237,7 +253,5 @@ function renameFolder(folder, newName) {
     }
     if (modify) {
         uploadMetadata();
-    } else {
-        WinJS.Navigation.navigate('/pages/folder/folder.html', folder);
     }
 }

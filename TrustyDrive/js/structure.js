@@ -22,7 +22,6 @@ function addToFolder(parent, child) {
     }
 }
 
-
 /***
 *   buildFolderStructure: create folders in the g_folders list and link files and folders from file pathes
 ***/
@@ -110,6 +109,17 @@ function setPath(folder, file) {
     }
     path = '/' + path;
     file['path'] = path;
+}
+
+function getFolder(file) {
+    var res = undefined;
+    $.each(g_folders, function (useless, folder) {
+        if(folder.files.indexOf(file) > -1){
+            res = folder;
+            return;
+        }
+    });
+    return res;
 }
 
 function file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList) {

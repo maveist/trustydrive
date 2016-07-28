@@ -35,6 +35,8 @@ var g_homeFolderName = 'Home';
 var g_providers = [];
 // Folder to download files from the cloud
 var g_workingFolder;
+// File to display after uploads
+var g_file2display = undefined;
 
 (function () {
     "use strict";
