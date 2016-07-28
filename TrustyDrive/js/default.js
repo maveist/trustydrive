@@ -1,10 +1,6 @@
 ﻿//TODO At the login time, simulate the download of chunks when a wrong username is given
 //TODO Check the size of the metadata before uploading a file
 
-//BUG noms des fichiers et répertoires sont trop longs dans la upper-bar
-//BUG after uploading, the download button does not work (on mobile phone only)
-//BUG Rename a file causes an exception, after using back button
-
 /*** BUG when uploading
 Exception was thrown at line 163, column 13 in ms-appx://1cee9efb-b8db-46ff-b36e-6aad85b039fd/js/provider.js
 0x80070020 - JavaScript runtime error: The process cannot access the file because it is being used by another process.

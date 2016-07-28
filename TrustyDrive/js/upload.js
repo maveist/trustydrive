@@ -243,6 +243,8 @@ function addChunks(file, readStream, nbChunks, folder) {
 *       readStream: the stream opened from the file to upload
 ***/
 function startUpload(file, readStream) {
+    //TODO Check the size of the metadata
+
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Uploading the File ' + file.name);
     // Delay the chunk creation to display the progress bar
     setTimeout(function () {
