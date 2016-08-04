@@ -27,6 +27,7 @@
                     }
                 });
             });
+            $('#delete-logins').click(deleteCredentials);
             $('#change-pwd').click(function () {
                 WinJS.Navigation.navigate('/pages/changepwd/changepwd.html');
             });
@@ -79,6 +80,18 @@
             }
         }
     });
+
+    /***
+    *   deleteCredentials: delete all registered credentials used to connect to cloud accounts
+    ***/
+    function deleteCredentials() {
+        var passwordVault = new Windows.Security.Credentials.PasswordVault();
+        var credentials = passwordVault.retrieveAll();
+        credentials.forEach(function (c) {
+            passwordVault.remove(c);
+        });
+        WinJS.Navigation.navigate('/pages/login/login.html', '');
+    }
 
     /***
     *   setButtonLabel: shorten the name of the picker button

@@ -258,6 +258,7 @@ function renameFile(file, newName) {
         file.name = newName;
         g_files[newName] = file;
         uploadMetadata();
+        showDownloadedFileMenu(file);
     } else {
         WinJS.Navigation.navigate('/pages/folder/folder.html', 'The file <b>' + newName + '</b> already exists!');
     }
