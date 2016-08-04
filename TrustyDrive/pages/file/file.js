@@ -139,35 +139,37 @@ function showDownloadedFileMenu(file) {
     // Check the existence of the file on the working folder
     g_workingFolder.getFileAsync(file.name).then(
         function (f) {
-            var menubar = $('.menu-bar');
-            // Increase the size of the menu bar
-            menubar.css('top', height - 120);
-            // Add new buttons
-            menubar.prepend('<div class="menu-container">' +
-                '<div title="Open this File" class="menu-item open"></div>' +
-                '<div title="Delete the Local Version" class="menu-item local-delete"></div>' +
-                '</div>');
-            // Configure new buttons
-            $('.open').click(function () {
-                g_workingFolder.getFileAsync(file.name).done(function (toOpen) {
-                    Windows.System.Launcher.launchFileAsync(toOpen).done();
-                });
-            });
-            $('.local-delete').click(function () {
-                g_workingFolder.getFileAsync(file.name).then(function (toDelete) {
-                    toDelete.deleteAsync().then(function () {
-                        showDownloadedFileMenu(file);
+            if ($('.menu-container').length == 1) {
+                var menubar = $('.menu-bar');
+                // Increase the size of the menu bar
+                menubar.css('top', height - 120);
+                // Add new buttons
+                menubar.prepend('<div class="menu-container">' +
+                    '<div title="Open this File" class="menu-item open"></div>' +
+                    '<div title="Delete the Local Version" class="menu-item local-delete"></div>' +
+                    '</div>');
+                // Configure new buttons
+                $('.open').click(function () {
+                    g_workingFolder.getFileAsync(file.name).done(function (toOpen) {
+                        Windows.System.Launcher.launchFileAsync(toOpen).done();
                     });
                 });
-            });
-            // Check the size of the file
-            f.getBasicPropertiesAsync().done(function (props) {
-                if (props.size == file.size) {
-                    status.html('On the Local Drive');
-                } else {
-                    status.html('To Be Upload');
-                }
-            });
+                $('.local-delete').click(function () {
+                    g_workingFolder.getFileAsync(file.name).then(function (toDelete) {
+                        toDelete.deleteAsync().then(function () {
+                            showDownloadedFileMenu(file);
+                        });
+                    });
+                });
+                // Check the size of the file
+                f.getBasicPropertiesAsync().done(function (props) {
+                    if (props.size == file.size) {
+                        status.html('On the Local Drive');
+                    } else {
+                        status.html('To Be Upload');
+                    }
+                });
+            }
         },
         function (error) {
             $('.menu-bar').css('top', height - 60);
