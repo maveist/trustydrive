@@ -90,6 +90,7 @@
         credentials.forEach(function (c) {
             passwordVault.remove(c);
         });
+        g_providers = [];
         WinJS.Navigation.navigate('/pages/login/login.html', '');
     }
 
