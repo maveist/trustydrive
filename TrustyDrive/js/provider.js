@@ -147,3 +147,16 @@ function deleteProvider(provider) {
         }
     }
 }
+
+/***
+*   deleteCredentials: delete all registered credentials
+***/
+function deleteCredentials() {
+    var passwordVault = new Windows.Security.Credentials.PasswordVault();
+    var credentials = passwordVault.retrieveAll();
+    credentials.forEach(function (c) {
+        passwordVault.remove(c);
+    });
+    g_providers = [];
+    WinJS.Navigation.navigate('/pages/login/login.html', '');
+}

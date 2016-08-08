@@ -1,4 +1,5 @@
 ﻿//TODO define the home page as the first page of the apps
+//TODO After creating users, the oneDrive providers failed to check the new metadata chunk (oneDriveExists)
 
 //LOGIN remy / toto
 

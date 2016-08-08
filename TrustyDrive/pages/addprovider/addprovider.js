@@ -11,6 +11,7 @@ WinJS.UI.Pages.define('/pages/addprovider/addprovider.html', {
             WinJS.Navigation.navigate('/pages/login/login.html', '');
         });
         providerList();
+        $('#delete-cred').click(deleteCredentials);
         $('.add-dropbox').click(function () {
             dropboxLogin(function () {
                 providerList();

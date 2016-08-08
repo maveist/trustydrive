@@ -10,8 +10,8 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
         var credentials = passwordVault.retrieveAll();
         //TESTING Delete all credentials
-        //credentials.forEach(function (c) {
-        //    passwordVault.remove(c);
+        //credentials.foreach(function (c) {
+        //    passwordvault.remove(c);
         //});
         //TESTING END
         if (g_workingFolder == undefined) {

@@ -27,6 +27,7 @@
                     }
                 });
             });
+            $('#delete-logins').click(deleteCredentials);
             $('#change-pwd').click(function () {
                 WinJS.Navigation.navigate('/pages/changepwd/changepwd.html');
             });
