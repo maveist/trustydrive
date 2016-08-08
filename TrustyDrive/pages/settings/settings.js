@@ -82,6 +82,19 @@
     });
 
     /***
+    *   deleteCredentials: delete all registered credentials used to connect to cloud accounts
+    ***/
+    function deleteCredentials() {
+        var passwordVault = new Windows.Security.Credentials.PasswordVault();
+        var credentials = passwordVault.retrieveAll();
+        credentials.forEach(function (c) {
+            passwordVault.remove(c);
+        });
+        g_providers = [];
+        WinJS.Navigation.navigate('/pages/login/login.html', '');
+    }
+
+    /***
     *   setButtonLabel: shorten the name of the picker button
     *       name: the full path
     *       return: the shortened full path
