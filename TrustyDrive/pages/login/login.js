@@ -130,9 +130,6 @@ function createAccount() {
         } else {
             metadataInit(user, pwd);
             metadataExists();
-            setTimeout(function () {
-                showConnectFields('');
-            }, 300);
         }
     }
 }

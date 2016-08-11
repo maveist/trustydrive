@@ -412,6 +412,16 @@ function metadataExistsComplete() {
             $('#new-error').html('<b>The user already exists!</b>');
         } else {
             uploadMetadata();
+            // Display the login page
+            if (g_providers.some(p => p.name == 'onedrive')) {
+                setTimeout(function () {
+                    showConnectFields('Because of the OneDrive issue (see the FAQ), you must restart TrustyDrive before connecting with the new account');
+                }, 300);
+            } else {
+                setTimeout(function () {
+                    showConnectFields('');
+                }, 300);
+            }
         }
     }
 }
