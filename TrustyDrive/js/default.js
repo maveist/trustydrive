@@ -58,6 +58,7 @@ var g_file2display = undefined;
                 g_homeFolderName = localSettings.values['home'];
             }
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
+            //futureAccess.clear();
             if (futureAccess.containsItem('PickedFolderToken')) {
                 futureAccess.getFolderAsync('PickedFolderToken').then(function (folder) {
                     g_workingFolder = folder;

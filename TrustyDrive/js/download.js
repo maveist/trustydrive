@@ -69,11 +69,7 @@ function downloadFile(file, folder) {
     var downloader = new breaker.Instance();
     var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
     file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
-    if (file.name == g_metadataName) {
-        downloader.downloadFile(g_workingFolder, file.name, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
-    } else {
-        downloader.downloadFile(g_workingFolder, file.name, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
-    }
+    downloader.downloadFile(g_workingFolder, file.name, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
     progressBar(0, file.nb_chunks + 1, 'Initialization', 'Downloading the File ' + file.name);
     checkDownloading(downloader, file, folder);
 }
@@ -85,7 +81,7 @@ function downloadFile(file, folder) {
 *       folder: the folder including the file
 ***/
 function checkDownloading(downloader, file, folder) {
-    var pwd, error = "";
+    var pwd, error = '';
     progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length, 'Downloading...');
     if (downloader.result.every(r => r != 'error')) {
         if (downloader.downloaded) {
@@ -93,8 +89,10 @@ function checkDownloading(downloader, file, folder) {
                 try {
                     g_files = JSON.parse(downloader.metadata, function (k, v) {
                         if (k == g_metadataName) {
-                            // Do not modify the information of the metadata
+                            // Complete the information of the existing metadata
                             pwd = v.password;
+                            g_files[g_metadataName].question = v.question;
+                            g_files[g_metadataName].answer = v.answer;
                             return g_files[g_metadataName];
                         } else {
                             return v;
@@ -113,8 +111,7 @@ function checkDownloading(downloader, file, folder) {
                             });
                         });
                     } else {
-                        // Delete the metadata
-                        g_files = { [g_metadataName]: g_files[g_metadataName] };
+                        g_files[g_metadataName].password = pwd;
                         error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
                     }
                 } catch (ex) {

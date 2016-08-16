@@ -41,13 +41,13 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
 *       user: the user name
 *       password: the password to protect the account
 ***/
-function metadataInit(user, password) {
+function metadataInit(user, password, question, answer) {
     // Initialize the metadata of folders
     g_folders = {};
     g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'files': [], 'folders': [] };
     // Initialize the metadata of files
     g_files = {};
-    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [] };
+    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [], 'question': question, 'answer': answer};
     g_providers.forEach(function (p) {
         g_files[g_metadataName].chunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
     });
@@ -62,7 +62,7 @@ function connectToFilesystem() {
     if (user.length == 0 || pwd.length == 0) {
         $('#connect-error').html('<b>Wrong login or password!</b>');
     } else {
-        metadataInit(user, pwd);
+        metadataInit(user, pwd, '', '');
         downloadMetadata();
     }
 }
@@ -109,7 +109,8 @@ function connect(credentials, idx, vault) {
                 break;
         }
     } else {
-        metadataInit('', '');
+        // Set an empty metadata to show that every credentials is loaded
+        metadataInit('', '', '', '');
         // Enter the login/password to load metadata
         WinJS.Navigation.navigate('/pages/login/login.html', '');
     }
@@ -122,13 +123,13 @@ function createAccount() {
     var user = $('#new-login').val(), pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val(),
         question = $('#new-que').val(), answer = $('#new-ans').val();
     // Check there is no empty fields
-    if (user.length == 0 || pwd.length == 0 || pwd.length == 0 || pwdbis.length == 0 || question.length == 0 || answer.length == 0) {
-        $('#new-error').html('<b>All fields are required!</b>');
+    if (user.length == 0 || pwd.length == 0 || pwd.length == 0 || pwdbis.length == 0) {
+        $('#new-error').html('<b>Fields "user" and "password" are required!</b>');
     } else {
         if (pwd != pwdbis) {
             $('#new-error').html('<b>Passwords do not match!</b>');
         } else {
-            metadataInit(user, pwd);
+            metadataInit(user, pwd, question, answer);
             metadataExists();
         }
     }
@@ -208,23 +209,31 @@ function showConnectFields(logError) {
                 });
             }
         });
-        $('#lost-link').click(function () {
-            $('#connect-form').hide();
-            $('#lost-form').show();
-            $('#lost-error').html('');
-            $('#lost-que').html('Ou est parti Toto ?');
-            if ($._data($('#lost-confirm').get(0), 'events') == undefined) {
-                // Define click listeners
-                $('#lost-confirm').click(function () {
-                    if ($('#lost-ans').val() == g_files[g_metadataName].answer) {
-                    } else {
-                        $('#lost-error').html('Wrong answer!');
+        if (g_files[g_metadataName].question != undefined && g_files[g_metadataName].question != '') {
+            if ($._data($('#lost-link').get(0), 'events') == undefined) {
+                $('#lost-link').show();
+                $('#lost-link').click(function () {
+                    $('#connect-form').hide();
+                    $('#lost-form').show();
+                    $('#lost-error').html('');
+                    $('#lost-que').html(g_files[g_metadataName].question + '<br>');
+                    if ($._data($('#lost-confirm').get(0), 'events') == undefined) {
+                        // Define click listeners
+                        $('#lost-confirm').click(function () {
+                            if ($('#lost-ans').val() == g_files[g_metadataName].answer) {
+                                $('#lost-error').html('Your password: ' + g_files[g_metadataName].password);
+                            } else {
+                                $('#lost-error').html('Wrong answer!');
+                            }
+                        });
+                        $('#connect-link3').click(function () {
+                            showConnectFields('');
+                        });
                     }
                 });
-                $('#connect-link3').click(function () {
-                    showConnectFields('');
-                });
             }
-        });
+        } else {
+            $('#lost-link').hide();
+        }
     }
 }

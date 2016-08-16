@@ -323,7 +323,7 @@ function prepareMetadata() {
     $.each(metadata, function (filename, file) {
         if (filename == g_metadataName) {
             // Minimize the information about metadata
-            metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'chunks': [] };
+            metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'question': file.question, 'answer': file.answer, 'chunks': [] };
         } else {
             // Remove tokens from providers
             file.chunks.forEach(function (c) {
