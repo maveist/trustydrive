@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TrustyDrive</title>
+    <!-- Trustydrive CSS file -->
+    <link rel="stylesheet" type="text/css" href="css/trustydrive.css">
+  </head>
+  <body>
+    <a href="index.html">Back to Home</a>
+    <div class="question">
+      <div class="que">
+        Message d'erreur lors de la suppression d'un provider ?
+      </div>
+      <div class="ans">
+        Les fichiers protégés par TrustyDrive sont découpés en plusieurs morceaux puis ces morceaux sont répartis sur un
+        nombre précis de providers. Si un des morceaux est manquant,
+        le fichier ne peut pas être reconstitué. Dans le but de supprimer un provider, il faut donc qu'aucun morceau ne
+        soit hébergé sur ce provider ou alors que le fichier soit
+        déjà téléchargé sur le disque local.
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        Je viens d'ajouter un provider, comment faire pour que les fichiers existants soient présents sur le nouveau
+        provider ?
+      </div>
+      <div class="ans">
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        Mes fichiers existants sur mes providers n'apparaissent pas dans TrustyDrive ?
+      </div>
+      <div class="ans">
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        Que signifie le status de mon fichier ?
+      </div>
+      <div class="ans">
+        On the Cloud: the file does not exist on the working directory (local storage)
+        On the Local Drive: The file belongs to the working directory
+        To Be Uploaded: The file belongs to the working directory and the file size is different of the cloud size
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        Pourquoi le dossier que je viens de supprimer est toujours présent ?
+      </div>
+      <div class="ans">
+        Les dossiers restent présents jusqu'au prochain redémarrage de l'application. Lors du redémarrage, tous les
+        dossiers vides sont supprimés.
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        L'importance de la taille maximale d'un morceau de fichiers
+      </div>
+      <div class="ans">
+        La taille maximale d'un morceau a un impact important sur la performance de l'application et la sécurité des
+        fichiers.<br>
+        i. La performance<br>
+        La taille maximale d'un morceau définit le nombre de morceaux nécessaires pour encoder un fichier. Plus il y a
+        de morceaux, plus les opérations sur le fichier (upload et download) sont longues.<br>
+        <br>
+        ii. La sécurité<br>
+        Plus la taille maximale d'un morceau est petite, plus il va y avoir de morceaux sur chaque fournisseur. Si un
+        attaquant accède à tous les stockages, il y a plus de combinaisons à tester pour reconstruire les fichiers. De
+        plus, la taille des morceaux hébergés par les fournisseurs va tendre vers la taille maximale. Il y a donc plus
+        de chances pour que des morceaux appartenant à des fichiers différents possèdent une taille identique. Il
+        devient alors plus difficile pour un attaquant de reconstituer les fichiers.<br>
+        Par exemple, deux fichiers, un fichier A de 3 Mo et un fichier B de 9 Mo, doivent être stockés chez 3
+        fournisseurs. Avec une taille maximale de 1 Mo, on obtient 12 morceaux (3x1 Mo, 9x1 Mo) de 1 Mo à répartir.  Un
+        attaquant ayant accès à tous les fournisseurs ne peut pas différencier quels sont les morceaux de A et quels
+        sont les morceaux de B. Dans ce cas précis, l'attaquant ne sait même pas combien de fichiers sont stockés (12
+        morceaux de même taille => de 1 à 4 fichiers).<br>
+        Pour une taille maximale de 2 Mo, on obtient 3x1 Mo pour A et 6x1,5 Mo pour B. Si un attaquant récupère les 9
+        morceaux, il sait qu'il y a probablement 2 fichiers (peut-être 3 fichiers si les morceaux de B
+        appartiennent à des fichiers différents). De plus, il est capable d'identifier les morceaux appartenant à A (ils
+        ont une taille de 1 Mo) et les morceaux appartenant à B (ils ont une taille de 1,5 Mo).
+        Pour une taille de 0,5 Mo, on obtient 24 morceaux de taille identique. Le nombre de combinaisons pour
+        l'attaquant augmentent (entre 1 à 8 fichiers).
+      </div>
+    </div>
+    <div class="question">
+      <div class="que">
+        Dans le metadata editor, TrustyDrive marque en erreur des chunks qui sont présent sur mon OneDrive ?
+      </div>
+      <div class="ans">
+        Nous avons des certaines erreurs de détection des créations et des effacements des chunks dûs au cache de
+        OneDrive. Habituellement, redémarrer l'application corrige le problème.
+      </div>
+    </div>
+    <!-- Add a question
+    <div class="question">
+      <div class="que">
+      </div>
+      <div class="ans">
+      </div>
+    </div>
+    -->
+    <div class="blank"></div>
+  </body>
+</html>
+
