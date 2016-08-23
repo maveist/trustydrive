@@ -289,6 +289,10 @@ function oneDriveUserInfo(refreshToken, reconnect, func) {
                     }
                 });
             });
+        } else {
+            oneDriveLogin(function () {
+                WinJS.Navigation.navigate('/pages/login/login.html', '');
+            });
         }
     });
 }

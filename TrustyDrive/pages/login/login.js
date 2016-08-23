@@ -9,11 +9,14 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
         // Credentials to load registered providers
         var passwordVault = new Windows.Security.Credentials.PasswordVault();
         var credentials = passwordVault.retrieveAll();
-        //TESTING Delete all credentials
-        //credentials.foreach(function (c) {
-        //    passwordvault.remove(c);
+        //RESET
+        //// Remove the path to the download folder
+        //Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList.clear();
+        ////Delete all credentials
+        //$.each(credentials, function (useless, c) {
+        //    passwordVault.remove(c);
         //});
-        //TESTING END
+        //RESET END
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
             WinJS.Navigation.navigate('/pages/wfolder/wfolder.html');
