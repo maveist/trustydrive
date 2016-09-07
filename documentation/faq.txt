@@ -39,3 +39,6 @@ Pour une taille de 0,5 Mo, on obtient 24 morceaux de taille identique. Le nombre
 7. Dans le metadata editor, TrustyDrive marque en erreur des chunks qui sont présent sur mon OneDrive ?
 Nous avons des certaines erreurs de détection des créations et des effacements des chunks dûs au cache de OneDrive. Habituellement, redémarrer l'application corrige le problème.
 
+8. Message d'erreur lors de l'upload d'un fichier
+Dans un premier temps, vérifier que l'accès internet est fonctionnel. Si le réseau fonctionne correctement, il est possible que le nombre important de blocs stockés sur les différents cloud providers surcharge le provider qui décide de refuser l'ajout de nouveaux blocs. Dans ce cas, il faut attendre quelques minutes avant de réessayer d'uploader le fichier.
+

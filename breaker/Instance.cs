@@ -46,8 +46,9 @@ namespace breaker
     {
         // Store downloaded data from chunk downloads
         private DownloadedChunk[] _downloads;
-
+        // Get the response from downloading the metadata
         public string metadata { get; set; }
+        // Notify the end of the download
         private bool _downloaded = false;
         public bool Downloaded
         {
@@ -128,6 +129,7 @@ namespace breaker
                                 chunkWriters[i].Dispose();
                                 if (chunkIdx > 0 && chunkIdx % 10 == 0)
                                 {
+                                    // Try to avoid getting errors 503: Too Many Requests
                                     await Task.Delay(TimeSpan.FromSeconds(1));
                                 }
                             }
@@ -137,10 +139,8 @@ namespace breaker
                 }
                 readStream.Dispose();
             }
-            catch (Exception e)
+            catch
             {
-                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(log, "error from the encoding process: " + e);
             }
         }
 
@@ -201,10 +201,9 @@ namespace breaker
                     _result.Add(ch.name + ":$$:" + ch.id);
                 }
             }
-            catch (Exception e)
+            catch
             {
-                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(log, "error from the upload process: " + e);
+                _result.Add(chunkName + ":$$:error");
             }
         }
 
@@ -246,6 +245,7 @@ namespace breaker
                 while (chunkIdx < chunkNames.Length)
                 {
                     currentResult = _result.Count;
+                    // TODO Refactoring to increase the number of concurrent downloads
                     _downloads = new DownloadedChunk[providerNames.Length];
                     for (int i = 0; i < providerNames.Length; i++, chunkIdx++)
                     {
@@ -298,11 +298,9 @@ namespace breaker
                 writer.Dispose();
                 _downloaded = true;
             }
-            catch (Exception e)
+            catch
             {
                 _result.Add("error");
-                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(log, "error from the downloading process: " + e);
             }
         }
 
@@ -332,10 +330,9 @@ namespace breaker
                 _downloads[downloadIdx] = new DownloadedChunk(buffer, chunkName);
                 _result.Add(chunkName);
             }
-            catch (Exception e)
+            catch
             {
-                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(log, "error from the downnload async: " + e);
+                _result.Add("error");
             }
         }
 
@@ -357,10 +354,8 @@ namespace breaker
                 string reply = await reader.ReadLineAsync();
                 _answer.Add(reply);
             }
-            catch (Exception e)
+            catch
             {
-                StorageFile log = await ApplicationData.Current.LocalFolder.CreateFileAsync("log.txt", CreationCollisionOption.ReplaceExisting);
-                await FileIO.WriteTextAsync(log, "error from the dispacther communication: " + e);
             }
         }
     }

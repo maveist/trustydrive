@@ -279,6 +279,7 @@ function startUpload(file, readStream) {
             var chunkNameList = [], chunkIdList = [], providerNameList = [], providerTokenList = [], cloudFolderList = [];
             file2lists(file, chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList);
             uploader.createChunks(chunkNameList, chunkIdList, providerNameList, providerTokenList, cloudFolderList, readStream, g_maxChunkSize);
+            g_complete = [];
             setTimeout(function () {
                 checkEncoding(uploader, file);
             }, 1000);
@@ -293,26 +294,76 @@ function startUpload(file, readStream) {
 ***/
 function checkEncoding(uploader, file) {
     var resultMap = {};
+    var failed = 0;
+    // Remember the last time of updating the number of uploaded chunks
+    if (g_complete.length < 2) {
+        g_complete.push({ 'size': uploader.result.length, 'time': new Date().getTime() });
+    } else {
+        if (uploader.result.length > g_complete[0].size) {
+            g_complete.splice(0, 1);
+        } else {
+            g_complete.splice(1, 1);
+        }
+        g_complete.push({ 'size': uploader.result.length, 'time': new Date().getTime() });
+    }
+    // A beautiful progress bar (upload status)
     progressBar(uploader.result.length, file.nb_chunks + 1, 'Number of Uploaded Chunks: ' + uploader.result.length, 'Uploading...');
-    if (file.nb_chunks == uploader.result.length) {
-        uploader.result.forEach(function (r) {
-            var result = r.split(":$$:");
-            if (result.length == 2) {
-                resultMap[result[0]] = result[1];
-            }
+    // FIX BUG: the counter of uploaded chunks stays stuck on a value close to the expected number of chunks (probably causes by concurrent access)
+    if (g_complete.length == 2 && g_complete[1].time - g_complete[0].time > 10000) {
+        // There is no uploaded chunks since 10s, give up the upload
+        // Display an error message
+        body = $('.interface-body');
+        if (failed > 0) {
+            body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now.' +
+                ' Please try again in few minutes</span><br>Number of errors: ' + failed + '<br><br>');
+        } else {
+            body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now. Please try again in few minutes</span><br><br>');
+        }
+        div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+        div.click(function () {
+            $('.user-interface').hide();
         });
-        file.chunks.forEach(function (c) {
-            c.info.forEach(function (i) {
-                if (resultMap[i.name] != undefined) {
-                    i.id = resultMap[i.name];
+        body.append(div);
+    } else {
+        if (file.nb_chunks == uploader.result.length) {
+            // The upload is complete, check the state of every chunk
+            uploader.result.forEach(function (r) {
+                var result = r.split(':$$:');
+                if (result.length == 2) {
+                    if (result[1] == 'error') {
+                        failed++;
+                    } else {
+                        resultMap[result[0]] = result[1];
+                    }
                 }
             });
-        });
-        uploadComplete(file);
-    } else {
-        setTimeout(function () {
-            checkEncoding(uploader, file)
-        }, 1000);
+            if (failed > 0) {
+                // Display an error message
+                body = $('.interface-body');
+                body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now.' +
+                    ' Please try again in few minutes</span><br>Number of errors: ' + failed + '<br><br>');
+                div = $('<div id="close-button" class="interface-button">CLOSE</div>');
+                div.click(function () {
+                    $('.user-interface').hide();
+                });
+                body.append(div);
+            } else {
+                // Record ID for Google Drive chunks
+                file.chunks.forEach(function (c) {
+                    c.info.forEach(function (i) {
+                        if (resultMap[i.name] != undefined) {
+                            i.id = resultMap[i.name];
+                        }
+                    });
+                });
+                uploadComplete(file);
+            }
+        } else {
+            // Continue to wait the end of the upload
+            setTimeout(function () {
+                checkEncoding(uploader, file)
+            }, 2000);
+        }
     }
 }
 
