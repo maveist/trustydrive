@@ -242,41 +242,48 @@ namespace breaker
                     writer = new DataWriter(stream.GetOutputStreamAt(0));
                 }
                 int currentResult;
+                int downloadIdx;
                 while (chunkIdx < chunkNames.Length)
                 {
                     currentResult = _result.Count;
                     // TODO Refactoring to increase the number of concurrent downloads
-                    _downloads = new DownloadedChunk[providerNames.Length];
-                    for (int i = 0; i < providerNames.Length; i++, chunkIdx++)
+                    _downloads = new DownloadedChunk[5 * providerNames.Length];
+                    for (downloadIdx = 0; downloadIdx < 5 * providerNames.Length && chunkIdx < chunkNames.Length; downloadIdx++, chunkIdx++)
                     {
-                        switch (providerNames[i])
+                        int providerIdx = downloadIdx % providerNames.Length;
+                        switch (providerNames[providerIdx])
                         {
                             case "dropbox":
                             case "onedrive":
-                                downloadAsync(chunkNames[chunkIdx], providerNames[i], providerTokens[i], cloudFolders[i], i);
+                                downloadAsync(chunkNames[chunkIdx], providerNames[providerIdx], providerTokens[providerIdx], cloudFolders[providerIdx], downloadIdx);
                                 break;
                             case "gdrive":
-                                downloadAsync(chunkIds[chunkIdx], providerNames[i], providerTokens[i], cloudFolders[i], i);
+                                downloadAsync(chunkIds[chunkIdx], providerNames[providerIdx], providerTokens[providerIdx], cloudFolders[providerIdx], downloadIdx);
                                 break;
                         }
                     }
-                    while (_result.Count < currentResult + providerNames.Length)
+                    // Wait the end of the downloads
+                    while (_result.Count < currentResult + downloadIdx)
                     {
-                        await Task.Delay(TimeSpan.FromMilliseconds(300));
+                        await Task.Delay(TimeSpan.FromMilliseconds(500));
                     }
-                    for (int i = 0; i < _downloads[0].size; i++)
+                    // Write the file by putting chunks together
+                    for (int d = 0; d < downloadIdx; d += providerNames.Length)
                     {
-                        for (int j = 0; j < providerNames.Length; j++)
+                        for (int i = 0; i < _downloads[d].size; i++)
                         {
-                            if (i < _downloads[j].size)
+                            for (int j = d; j < d + providerNames.Length; j++)
                             {
-                                writer.WriteByte(_downloads[j].readByte());
+                                if (i < _downloads[j].size)
+                                {
+                                    writer.WriteByte(_downloads[j].readByte());
+                                }
                             }
                         }
                     }
-                    for (int i = 0; i < providerNames.Length; i++)
+                    for (int d = 0; d < downloadIdx; d++)
                     {
-                        _downloads[i].close();
+                        _downloads[d].close();
                     }
                 }
                 await writer.StoreAsync();
