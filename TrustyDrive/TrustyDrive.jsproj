@@ -68,11 +68,11 @@
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>$(VersionNumberMajor).$(VersionNumberMinor)</MinimumVisualStudioVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <PackageCertificateKeyFile>TrustyDrive_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>TrustyDrive_StoreKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>arm</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>F46997CEE9CCA857C807555505C5A673CFFC7EEF</PackageCertificateThumbprint>
+    <AppxBundlePlatforms>x86|x64|arm</AppxBundlePlatforms>
+    <PackageCertificateThumbprint>F8A1892A7D1B8513D943CAD39AA5D12A4A328C74</PackageCertificateThumbprint>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
   </PropertyGroup>
   <ItemGroup>
@@ -136,9 +136,10 @@
     <Content Include="js\onedrive.js" />
     <Content Include="js\dropbox.js" />
     <Content Include="js\provider.js" />
-    <Content Include="js\structure.js" />
     <Content Include="js\jquery-2.2.0.min.js" />
+    <Content Include="js\structure.js" />
     <Content Include="js\upload.js" />
+    <None Include="Package.StoreAssociation.xml" />
     <Content Include="pages\changepwd\changepwd.css" />
     <Content Include="pages\changepwd\changepwd.html" />
     <Content Include="pages\changepwd\changepwd.js" />
@@ -164,6 +165,7 @@
     <Content Include="pages\settings\settings.html" />
     <Content Include="pages\settings\settings.js" />
     <None Include="TrustyDrive_TemporaryKey.pfx" />
+    <None Include="TrustyDrive_StoreKey.pfx" />
     <Content Include="WinJS\css\ui-dark.css" />
     <Content Include="WinJS\css\ui-light.css" />
     <Content Include="WinJS\fonts\Symbols.ttf" />

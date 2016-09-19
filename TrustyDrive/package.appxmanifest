@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="1cee9efb-b8db-46ff-b36e-6aad85b039fd" Version="0.1.0.0" Publisher="CN=remy" />
+  <Identity Name="16451EMN-Apps.trustydrive" Version="1.1.0.0" Publisher="CN=CD18356A-E3EE-42B1-988B-C7794EB48914" />
   <mp:PhoneIdentity PhoneProductId="1cee9efb-b8db-46ff-b36e-6aad85b039fd" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>TrustyDrive</DisplayName>
-    <PublisherDisplayName>remy</PublisherDisplayName>
+    <DisplayName>trustydrive</DisplayName>
+    <PublisherDisplayName>EMN-Apps</PublisherDisplayName>
     <Logo>images\storelogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -15,13 +15,17 @@
   </Resources>
   <Applications>
     <Application Id="App" StartPage="default.html">
-      <uap:VisualElements DisplayName="TrustyDrive" Description="TrustyDrive" BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
+      <uap:VisualElements DisplayName="trustydrive" Description="TrustyDrive is a cloud storage service that allows you to protect your privacy while storing files on cloud providers like Dropbox, Google Drive and Microsoft One Drive. Consequently, cloud providers can not read files stored with TrustyDrive." BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
         <uap:DefaultTile Wide310x150Logo="images\Wide310x150Logo.png" ShortName="TrustyDrive">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="wide310x150Logo" />
           </uap:ShowNameOnTiles>
         </uap:DefaultTile>
         <uap:SplashScreen Image="images\splashscreen.png" />
+        <uap:InitialRotationPreference>
+          <uap:Rotation Preference="portrait" />
+          <uap:Rotation Preference="portraitFlipped" />
+        </uap:InitialRotationPreference>
       </uap:VisualElements>
     </Application>
   </Applications>
