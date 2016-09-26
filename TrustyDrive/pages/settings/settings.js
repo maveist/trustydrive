@@ -7,8 +7,6 @@
             var futureAccess = Windows.Storage.AccessCache.StorageApplicationPermissions.futureAccessList;
             var localSettings = Windows.Storage.ApplicationData.current.localSettings;
             var height = $('#content').innerHeight();
-            // Display the TrustyDrive current version
-            $('#td-version').html('You are running TrustyDrive v' + g_td_version + '<br>');
             // Set the height of the page
             $('.menu-bar').css('top', height - 60);
             $('.settings-params').innerHeight(height - 60 - 5);

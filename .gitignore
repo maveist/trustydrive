@@ -5,5 +5,10 @@ TrustyDrive/TrustyDrive.jsproj.user
 TrustyDrive/TrustyDrive_TemporaryKey.pfx
 TrustyDrive/AppPackages/
 TrustyDrive/BundleArtifacts/
+TrustyDrive/Package.StoreAssociation.xml
+TrustyDrive/TrustyDrive_StoreKey.pfx
+TrustyDrive/_pkginfo.txt
+TrustyDrive/_scale-100.appx
+TrustyDrive/_scale-400.appx
 breaker/bin/
 breaker/obj/
