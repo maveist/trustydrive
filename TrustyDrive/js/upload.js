@@ -13,6 +13,8 @@ function uploadComplete(file) {
                 if ($('.user-interface').is(':visible')) {
                     $('.user-interface').hide();
                 }
+            } else if (myfile == 'login') {
+                WinJS.Navigation.navigate('/pages/login/login.html', '');
             } else {
                 if (myfile.files == undefined) {
                     // Display a file
@@ -317,7 +319,8 @@ function checkEncoding(uploader, file) {
             body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now.' +
                 ' Please try again in few minutes</span><br>Number of errors: ' + failed + '<br><br>');
         } else {
-            body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now. Please try again in few minutes</span><br><br>');
+            body.append('<span class="error-message ">Upload failure! Sorry, we can not upload your file right now.' +
+                ' Please try again in few minutes</span><br><br>');
         }
         div = $('<div id="close-button" class="interface-button">CLOSE</div>');
         div.click(function () {
@@ -373,8 +376,8 @@ function prepareMetadata() {
     metadata = $.extend(true, {}, g_files);
     $.each(metadata, function (filename, file) {
         if (filename == g_metadataName) {
-            // Minimize the information about metadata
-            metadata[filename] = { 'name': g_metadataName, 'user': file.user, 'password': file.password, 'question': file.question, 'answer': file.answer, 'chunks': [] };
+            // Remove password from the metadata
+            metadata[filename] = { 'name': g_metadataName };
         } else {
             // Remove tokens from providers
             file.chunks.forEach(function (c) {
@@ -424,56 +427,6 @@ function uploadMetadata() {
             });
             uploadChunks(g_metadataName, undefined, readStream);
         });
-    }
-}
-
-/***
-*   metadataExists: check if metadata chunks exist
-***/
-function metadataExists() {
-    g_complete = 0;
-    g_files[g_metadataName].chunks.forEach(function (c) {
-        switch (c.provider.name) {
-            case 'dropbox':
-                dropboxExists(c, 0, metadataExistsComplete);
-                break;
-            case 'gdrive':
-                gdriveExists(c, 0, metadataExistsComplete);
-                break;
-            case 'onedrive':
-                oneDriveExists(c, 0, metadataExistsComplete);
-                break;
-        }
-    });
-}
-
-
-/***
-*   metadataExistsComplete: upload the metadata only if every chunks do not exist
-***/
-function metadataExistsComplete() {
-    var metadata = g_files[g_metadataName];
-    var exists = false;
-    g_complete++;
-    if (g_complete == metadata.chunks.length) {
-        metadata.chunks.forEach(function (c) {
-            exists |= c.info[0].exists;
-        });
-        if (exists) {
-            $('#new-error').html('<b>The user already exists!</b>');
-        } else {
-            uploadMetadata();
-            // Display the login page
-            if (g_providers.some(p => p.name == 'onedrive')) {
-                setTimeout(function () {
-                    showConnectFields('Because of the OneDrive issue (see the FAQ), you must restart TrustyDrive before connecting with the new account');
-                }, 300);
-            } else {
-                setTimeout(function () {
-                    showConnectFields('');
-                }, 300);
-            }
-        }
     }
 }
 

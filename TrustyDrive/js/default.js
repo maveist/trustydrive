@@ -9,6 +9,8 @@ const g_metadataName = 'trustydrive_metadata';
 const g_maxChunkSize = 500000;
 // The maximum number of chunks to encode one file
 const g_maxFileChunks = 300;
+// If the file exists, the user has already set a password
+var g_pwdFile = 'diakdcumja';
 // Store the chunk data
 var g_chunks;
 // Counter of chunks

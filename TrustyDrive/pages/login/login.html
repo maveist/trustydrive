@@ -11,66 +11,39 @@
     </div>
     <div class="login-window">
         <div id="new-form">
-            <b>Create a new user</b>
+            <div id="new-msg"></div>
+            <b>Create a new password</b>
             <table class="new-info">
                 <tr>
-                    <td>Login</td>
-                    <td><input id="new-login" type="text" size="25" tabindex="1" /></td>
-                </tr>
-                <tr>
                     <td>Password</td>
-                    <td><input id="new-pwd" type="password" size="25" tabindex="2" /></td>
+                    <td><input id="new-pwd" type="password" size="25" tabindex="1" /></td>
                 </tr>
                 <tr>
                     <td>Retype your Password</td>
-                    <td><input id="new-pwdbis" type="password" size="25" tabindex="3" /></td>
+                    <td><input id="new-pwdbis" type="password" size="25" tabindex="2" /></td>
                 </tr>
             </table>
-            <div class="new-fields">
-                Enter a Secret Question to Recover your Password<br />
-                <input id="new-que" type="text" size="50" tabindex="4" /><br />
-                Enter a Secret Answer to Recover your Password<br />
-                <input id="new-ans" type="text" size="50" tabindex="5" /><br />
-                <div id="new-confirm" class="login-button" tabindex="6">CREATE</div>
-                <div id="new-error" class="error-message"></div>
-            </div>
+            <div id="new-confirm" tabindex="3" class="login-button">Confirm</div>
+            <div id="new-error" class="error-message"></div>
             <div class="alternative-link">
-                <div id="connect-link">Connect with an existing account</div>
+                <div id="connect-link">Connect with an existing password</div>
             </div>
         </div>
         <div id="connect-form">
             <div class="connect-fields">
-                <b>Connect with an existing user</b>
+                <b>Enter your password</b>
                 <table>
                     <tr>
-                        <td>Login</td>
-                        <td><input id="connect-login" tabindex="1" type="text" /></td>
-                    </tr>
-                    <tr>
                         <td>Password</td>
-                        <td><input id="connect-pwd" tabindex="2" type="password" /></td>
+                        <td><input id="connect-pwd" tabindex="1" type="password" /></td>
                     </tr>
                 </table>
-                <div id="connect-confirm" tabindex="3" class="login-button">CONNECT</div>
+                <div id="connect-confirm" tabindex="2" class="login-button">CONNECT</div>
                 <div id="connect-error" class="error-message"></div>
             </div>
             <div class="alternative-link">
-                <!-- NOTE Add tabindex and keypress listeners to improve the navigation from keyboard -->
-                <div id="lost-link">Lost password</div>
-                <div id="new-link">Create a new user</div>
+                <div id="new-link">Reset my password (and lose my files)</div>
                 <div id="provider-link">Add providers</div>
-            </div>
-        </div>
-        <div id="lost-form">
-            <div class="lost-fields">
-                <b>Answer to your secret question</b><br />
-                <span id="lost-que"></span>
-                <input id="lost-ans" type="text" size="50" tabindex="1" /><br />
-                <div id="lost-confirm" tabindex="2" class="login-button">RECOVER</div>
-                <div id="lost-error" class="error-message"></div>
-            </div>
-            <div class="alternative-link">
-                <div id="connect-link3">Connect with an existing account</div>
             </div>
         </div>
     </div>

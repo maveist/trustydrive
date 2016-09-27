@@ -16,6 +16,8 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
         //$.each(credentials, function (useless, c) {
         //    passwordVault.remove(c);
         //});
+        // Delete the password file, see the declaration of g_pwdFile for more details
+        // Windows.Storage.ApplicationData.current.localFolder.deleteAsync(g_pwdFile).done();
         //RESET END
         if (g_workingFolder == undefined) {
             // The working folder is required to start using TrustyDrive
@@ -33,6 +35,12 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
                     WinJS.Navigation.navigate('/pages/addprovider/addprovider.html');
                 } else {
                     showConnectFields(logError);
+                    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(g_pwdFile).then(function (file) {
+                        // The user has already set a password, do nothing
+                    }, function () {
+                        // The user have no password, display new form to set it
+                        showNewFields();
+                    });
                 }
             }
         }
@@ -44,13 +52,13 @@ WinJS.UI.Pages.define('/pages/login/login.html', {
 *       user: the user name
 *       password: the password to protect the account
 ***/
-function metadataInit(user, password, question, answer) {
+function metadataInit(password) {
     // Initialize the metadata of folders
     g_folders = {};
     g_folders[g_homeFolderName] = { 'name': g_homeFolderName, 'files': [], 'folders': [] };
     // Initialize the metadata of files
     g_files = {};
-    g_files[g_metadataName] = { 'name': g_metadataName, 'user': user, 'password': password, 'chunks': [], 'question': question, 'answer': answer};
+    g_files[g_metadataName] = { 'name': g_metadataName, 'password': password, 'chunks': [] };
     g_providers.forEach(function (p) {
         g_files[g_metadataName].chunks.push({ 'provider': p, 'info': [{ 'name': metadataChunkName(p) }] });
     });
@@ -61,11 +69,11 @@ function metadataInit(user, password, question, answer) {
 *   connectToFilesystem: fill the metadata with password and download the metadata
 ***/
 function connectToFilesystem() {
-    var user = $('#connect-login').val(), pwd = $('#connect-pwd').val();
-    if (user.length == 0 || pwd.length == 0) {
-        $('#connect-error').html('<b>Wrong login or password!</b>');
+    var pwd = $('#connect-pwd').val();
+    if (pwd.length == 0) {
+        $('#connect-error').html('<b>Password is required!</b>');
     } else {
-        metadataInit(user, pwd, '', '');
+        metadataInit(pwd);
         downloadMetadata();
     }
 }
@@ -112,29 +120,29 @@ function connect(credentials, idx, vault) {
                 break;
         }
     } else {
-        // Set an empty metadata to show that every credentials is loaded
-        metadataInit('', '', '', '');
+        // Set an empty metadata to notify that every credentials is loaded
+        metadataInit('');
         // Enter the login/password to load metadata
         WinJS.Navigation.navigate('/pages/login/login.html', '');
     }
 }
 
 /***
-*   createAccount: create an account to a new TrustyDrive user
+*   createPassword: create a new password to store files
 ***/
-function createAccount() {
-    var user = $('#new-login').val(), pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val(),
-        question = $('#new-que').val(), answer = $('#new-ans').val();
+function createPassword() {
+    var pwd = $('#new-pwd').val(), pwdbis = $('#new-pwdbis').val();
     // Check there is no empty fields
-    if (user.length == 0 || pwd.length == 0 || pwd.length == 0 || pwdbis.length == 0) {
-        $('#new-error').html('<b>Fields "user" and "password" are required!</b>');
+    if (pwd.length == 0 || pwd != pwdbis) {
+        $('#new-error').html('<b>Passwords do not match!</b>');
     } else {
-        if (pwd != pwdbis) {
-            $('#new-error').html('<b>Passwords do not match!</b>');
-        } else {
-            metadataInit(user, pwd, question, answer);
-            metadataExists();
-        }
+        metadataInit(pwd);
+        Windows.Storage.ApplicationData.current.localFolder.createFileAsync(g_pwdFile, Windows.Storage.CreationCollisionOption.replaceExisting).then(function (file) {
+            Windows.Storage.FileIO.writeTextAsync(file, 'iopqcumlapjpua').then(function () {
+                g_file2display = 'login';
+                uploadMetadata();
+            });
+        });
     }
 }
 
@@ -175,7 +183,6 @@ function progressBar(current, max, legend, title) {
 *       logError: display why the login failed
 ***/
 function showConnectFields(logError) {
-    $('#lost-form').hide();
     $('#new-form').hide();
     $('#connect-form').show();
     $('#connect-error').html('');
@@ -195,48 +202,36 @@ function showConnectFields(logError) {
         $('#connect-confirm').click(function () {
             connectToFilesystem();
         });
-        $('#new-link').click(function () {
-            $('#connect-form').hide();
-            $('#new-form').show();
-            $('#new-error').html('');
-            if ($._data($('#new-confirm').get(0), 'events') == undefined) {
-                $('#new-confirm').keypress(function (e) {
-                    if (e.which == 13) {
-                        createAccount();
-                    }
-                });
-                // Define click listeners
-                $('#new-confirm').click(createAccount);
-                $('#connect-link').click(function () {
-                    showConnectFields('');
-                });
+        $('#new-link').click(showNewFields);
+    }
+}
+
+/***
+*   showNewFields: show fields to create a new password
+***/
+function showNewFields() {
+    Windows.Storage.ApplicationData.current.localFolder.getFileAsync(g_pwdFile).then(function (file) {
+        // A password already exists, print a warning
+        $('#new-msg').html('A password already exists ? Reset your password involves <b>the loss of your files</b>' +
+            ' previously saved from TrustyDrive.<br><br>');
+    }, function () {
+        $('#new-msg').html('Choose a secure password (more than 8 characters with symbols, numbers and upper/lower case)' +
+            ' is important to secure your TrustyDrive files. However, be sure to not forget it. <b>TrustyDrive does not save this' +
+            ' password. If you lose it, your files cannot be recovered.<br><br>');
+    });
+    $('#connect-form').hide();
+    $('#new-form').show();
+    $('#new-error').html('');
+    if ($._data($('#new-confirm').get(0), 'events') == undefined) {
+        $('#new-confirm').keypress(function (e) {
+            if (e.which == 13) {
+                createPassword();
             }
         });
-        if (g_files[g_metadataName].question != undefined && g_files[g_metadataName].question != '') {
-            if ($._data($('#lost-link').get(0), 'events') == undefined) {
-                $('#lost-link').show();
-                $('#lost-link').click(function () {
-                    $('#connect-form').hide();
-                    $('#lost-form').show();
-                    $('#lost-error').html('');
-                    $('#lost-que').html(g_files[g_metadataName].question + '<br>');
-                    if ($._data($('#lost-confirm').get(0), 'events') == undefined) {
-                        // Define click listeners
-                        $('#lost-confirm').click(function () {
-                            if ($('#lost-ans').val() == g_files[g_metadataName].answer) {
-                                $('#lost-error').html('Your password: ' + g_files[g_metadataName].password);
-                            } else {
-                                $('#lost-error').html('Wrong answer!');
-                            }
-                        });
-                        $('#connect-link3').click(function () {
-                            showConnectFields('');
-                        });
-                    }
-                });
-            }
-        } else {
-            $('#lost-link').hide();
-        }
+        // Define click listeners
+        $('#new-confirm').click(createPassword);
+        $('#connect-link').click(function () {
+            showConnectFields('');
+        });
     }
 }

@@ -24,7 +24,7 @@ function downloadMetadata() {
 function fakeDownload(idx, nbChunks) {
     idx++;
     if (idx == nbChunks + 2) {
-        WinJS.Navigation.navigate('/pages/login/login.html', 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.');
+        WinJS.Navigation.navigate('/pages/login/login.html', 'Wrong password!');
     } else {
         setTimeout(function () {
             progressBar(idx, nbChunks + 1, 'Number of Downloaded Chunks: ' + idx, 'Downloading...');
@@ -53,7 +53,7 @@ function checkMetadataComplete() {
             fakeDownload(-1, g_complete);
         } else if (metadata.chunks.length == 1) {
             WinJS.Navigation.navigate('/pages/login/login.html', 'There is only one chunk for metadata. The metadata are illegible!'
-                + 'You have to re-create your user.');
+                + 'Check your provider list or re-create your password (WARNING: All previously uploaded files will be lost).');
         } else {
             downloadFile(metadata, g_files[g_homeFolderName]);
         }
@@ -81,39 +81,29 @@ function downloadFile(file, folder) {
 *       folder: the folder including the file
 ***/
 function checkDownloading(downloader, file, folder) {
-    var pwd, error = '';
+    var error = '', metadata;
     progressBar(downloader.result.length, file.nb_chunks + 1, 'Number of Downloaded Chunks: ' + downloader.result.length, 'Downloading...');
     if (downloader.result.every(r => r != 'error')) {
         if (downloader.downloaded) {
             if (file.name == g_metadataName) {
                 try {
-                    g_files = JSON.parse(downloader.metadata, function (k, v) {
-                        if (k == g_metadataName) {
-                            // Complete the information of the existing metadata
-                            pwd = v.password;
-                            g_files[g_metadataName].question = v.question;
-                            g_files[g_metadataName].answer = v.answer;
-                            return g_files[g_metadataName];
-                        } else {
-                            return v;
-                        }
-                    });
-                    if (pwd == g_files[g_metadataName].password) {
-                        buildFolderStructure();
-                        // Add provider information to the metadata
-                        $.each(g_files, function (useless, file) {
-                            file.chunks.forEach(function (c) {
-                                g_providers.forEach(function (fullp) {
-                                    if (c.provider.user == fullp.user && c.provider.name == fullp.name) {
-                                        c.provider = fullp;
-                                    }
-                                });
+                    var metadata = g_files[g_metadataName];
+                    // Retrieve the metadata from cloud providers
+                    g_files = JSON.parse(downloader.metadata);
+                    // Add the metadata of the metadata inside the metadata !?!
+                    g_files[g_metadataName] = metadata;
+                    // Build the file/folder structure in the memory
+                    buildFolderStructure();
+                    // Add provider information to the metadata
+                    $.each(g_files, function (useless, file) {
+                        file.chunks.forEach(function (c) {
+                            g_providers.forEach(function (fullp) {
+                                if (c.provider.user == fullp.user && c.provider.name == fullp.name) {
+                                    c.provider = fullp;
+                                }
                             });
                         });
-                    } else {
-                        g_files[g_metadataName].password = pwd;
-                        error = 'The user "' + g_files[g_metadataName].user + '" does not exist or the password is incorrect.';
-                    }
+                    });
                 } catch (ex) {
                     error = 'The metadata file is malformed. Please check your cloud accounts configuration in Settings'
                         + ', maybe some providers are missing!'

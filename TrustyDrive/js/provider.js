@@ -6,7 +6,7 @@ function metadataChunkName(provider) {
     var crypto = Windows.Security.Cryptography;
     var algo = crypto.Core.HashAlgorithmNames.sha1;
     var hasher = crypto.Core.HashAlgorithmProvider.openAlgorithm(algo).createHash();
-    var chunkName = provider.user + g_files[g_metadataName].user + provider.name;
+    var chunkName = provider.user + g_files[g_metadataName].password + provider.name;
     hasher.append(crypto.CryptographicBuffer.convertStringToBinary(chunkName, crypto.BinaryStringEncoding.utf8));
     return crypto.CryptographicBuffer.encodeToHexString(hasher.getValueAndReset());
 }
