@@ -6,6 +6,10 @@ body {
 ===================================*/
 /** RESET AND LAYOUT
 ===================================*/
+.width-div {
+  width: 800px;
+}
+
 .bx-wrapper {
   position: relative;
   margin: 0 auto 60px;
@@ -19,6 +23,8 @@ body {
   display: block;
 }
 .bxslider {
+  font-size: 16px;
+  line-height: 16px;
   margin: 0;
   padding: 0;
 }

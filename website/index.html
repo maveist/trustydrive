@@ -1,48 +1,92 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>TrustyDrive</title>
-    <!-- jQuery library (served from Google) -->
-    <script src="js/jquery-1.11.3.min.js"></script>
-    <!-- bxSlider Javascript file -->
-    <script src="js/jquery.bxslider.js"></script>
-    <!-- Trustydrive Javascript file -->
-    <script src="js/trustydrive.js"></script>
-    <!-- bxSlider CSS file -->
-    <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css">
-    <!-- Trustydrive CSS file -->
-    <link rel="stylesheet" type="text/css" href="css/trustydrive.css">
-  </head>
-  <body>
-    <div class="frame">
-      What is TrustyDrive ?<br/>
-      TrustyDrive is an application to save your files on the cloud as Dropbox. Contrary to Dropbox and other cloud
-      providers, files stored thanks to TrustyDrive can not be read by TrustyDrive or hackers. As TrustyDrive uses
-      several cloud accounts (Dropbox, Google Drive, Microsoft OneDrive), you can verify that TrustyDrive files are
-      unreadable.<b>TrustyDrive does not collect any information</b>
-    </div>
-    <div class="main-ideas">
-      <h3>TrustyDrive protects your files by using several cloud providers</h3>
-      <ul class="bxslider">
-          <li>
-            <img src="images/process/connect-to-providers.png" title="Users connect TrustyDrive to their cloud accounts (OneDrive, Dropbox, Google Drive)" />
-          </li>
-          <li>
-            <img src="images/process/mix-chunks.png" title="Users upload files to TrustyDrive. TrustyDrive divides the
-              file into small blocks. These blocks are mixed to few larger blocks and these are distributed to cloud
-              accounts." />
-          </li>
-          <li>
-            <img src="images/process/download.png" title="Thereafter, users download their documents from Trustydrive.
-              Blocks stored on cloud providers like Dropbox are unreadable. Users can verify it by connecting to their
-              accounts." />
-          </li>
-      </ul>
-    </div>
-    <div class="main-ideas">
-      <h3>TrustyDrive is easy to use</h3>
-      <ul class="bxslider">
+<!--
+	Overflow by HTML5 UP
+	html5up.net | @n33co
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<title>TrustyDrive</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+		<link rel="stylesheet" href="css/main.css">
+		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+	</head>
+	<body>
+		<section style="padding: 333px 0px;" id="header">
+			<header>
+				<h1>TrustyDrive</h1>
+        Keep your files secure and protect your privacy
+			</header>
+			<footer>
+				<a href="#banner" class="button style2 scrolly-middle">Learn more about TrustyDrive</a>
+			</footer>
+		</section>
+		<section id="banner">
+			<header>
+				<h2>Protect your most sensitive files</h2>
+			</header>
+			<p>
+      When your store files to cloud providers like Dropbox, OneDrive or Google Drive, the whole files are stored in one
+      place, and so, someone with access to your cloud account can read your files and it can be annoying.<br><br>
+      With <b>TrustyDrive</b>, your files are stored in several cloud providers but they are not duplicated, they are splitted
+      from a clever algorithm. They become unreadable from cloud providers and, eventually, hackers who get full
+      access to your cloud account. As files are not duplicated, you do not lose storage space.
+			</p>
+			<footer>
+				<a href="#providers" class="button style2 scrolly">An unified cloud storage space</a>
+			</footer>
+		</section>
+		<article id="providers" class="container box style2">
+			<header>
+				<h2>Connect to several cloud providers</h2>
+				<p>
+        To work correctly, <b>TrustyDrive</b> needs to connect to existing cloud accounts. Dropbox, oneDrive and
+        Google Drive accounts could be used. At least two accounts are required but, for optimal data security, three or
+        four accounts is preferred. Once connected, <b>TrustyDrive</b> uses the unified storage space to save your
+        files. All files are created in the folder called <i>trustydrive</i>, so you can check that files are
+        unreadable. As <b>TrustyDrive</b> does not use cryptography, your files do not use more storage space than
+        necessary.<br>
+        <a href="https://youtu.be/WTvi-Z0nzW0" target="blank">See TrustyDrive on YouTube</a>
+        </p>
+			</header>
+			<footer>
+				<a href="#steps" class="button style2 scrolly-middle">How TrustyDrive manages your files</a>
+			</footer>
+		</article>
+		<article id="steps" class="container box style2">
+			<header>
+				<h2>TrustyDrive Main Steps</h2>
+        <div class="width-div"></div>
+				<p>
+          <ul class="bxslider">
+            <li>
+              <img src="images/process/connect-to-providers.png" title="Users connect TrustyDrive to their cloud accounts (OneDrive, Dropbox, Google Drive)" />
+            </li>
+            <li>
+              <img src="images/process/mix-chunks.png" title="Users upload files to TrustyDrive. TrustyDrive divides the
+                file into small blocks. These blocks are mixed to few larger blocks and these are distributed to cloud
+                accounts." />
+            </li>
+            <li>
+              <img src="images/process/download.png" title="Thereafter, users download their documents from Trustydrive.
+                Blocks stored on cloud providers like Dropbox are unreadable. Users can verify it by connecting to their
+                accounts." />
+            </li>
+          </ul>
+        </p>
+			</header>
+			<footer>
+				<a href="#howto" class="button style2 scrolly-middle">How to use trustydrive</a>
+			</footer>
+		</article>
+		<article id="howto" class="container box style2">
+			<header>
+				<h2>TrustyDrive HOWTO</h2>
+        <div class="width-div"></div>
+				<p>
+          <ul class="bxslider">
           <li>
             <img src="images/howto/add-provider.png" title="Connect to cloud accounts (OneDrive, Dropbox, Google
               Drive) <a href='https://www.youtube.com/watch?v=p6FWeXzR7v4' target=blank>See on YouTube</a>" />
@@ -59,30 +103,44 @@
             <img src="images/howto/file.png" title="Retrieve your files
               <a href='https://www.youtube.com/watch?v=srMTpg9Hdfo' target=blank>See on YouTube</a>" />
           </li>
-      </ul>
-    </div>
-    <center><a href="faq.html"><h2>Read the FAQ</h2></a></center>
-    <!--
-    <div class="frame">
-      Easy to Use<br/>
-      1. Connect TrustyDrive to Dropbox, Google Drive or Microsoft OneDrive<br/>
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/p6FWeXzR7v4" frameborder="0"
-        allowfullscreen></iframe>
-      <br/>
-      2. Create your TrustyDrive password<br/>
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/kaRb3aCSmdQ" frameborder="0"
-        allowfullscreen></iframe>
-      <br/>
-      3. Save your files from TrustyDrive<br/>
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/0w_cY0iJow0" frameborder="0"
-        allowfullscreen></iframe>
-      <br/>
-      4. Restore your files from TrustyDrive<br/>
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/srMTpg9Hdfo" frameborder="0"
-        allowfullscreen></iframe>
-      <br/>
-    </div>
-    -->
-  </body>
-</html>
-
+          </ul>
+        </p>
+			</header>
+			<footer>
+				<a href="#contact" class="button style2 scrolly-middle">Contact</a>
+			</footer>
+		</article>
+		<article id="contact" class="container box style1 right">
+			<a href="#" class="image fit"><img src="images/trustydrive.png" alt=""></a>
+			<div class="inner">
+				<header>
+					<h2>Contact US</h2>
+				</header>
+				<p>
+        contact@trustydrive.com
+        <br><br>
+				</p>
+			</div>
+		</article>
+    <br>
+    <center><a class="button style2 scrolly-middle" href="#header">Top of the Page</a></center>
+    <br><br>
+    <br><br>
+    <br><br>
+		<!-- Scripts -->
+		<script src="js/jquery_003.js"></script>
+		<script src="js/jquery.js"></script>
+		<script src="js/jquery_002.js"></script>
+		<script src="js/skel.js"></script>
+		<script src="js/util.js"></script>
+		<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+		<script src="js/main.js"></script>
+    <!-- jQuery library (served from Google) -->
+    <script src="js/jquery-1.11.3.min.js"></script>
+    <!-- bxSlider Javascript file -->
+    <script src="js/jquery.bxslider.js"></script>
+    <!-- Trustydrive Javascript file -->
+    <script src="js/trustydrive.js"></script>
+    <!-- bxSlider CSS file -->
+    <link rel="stylesheet" type="text/css" href="css/jquery.bxslider.css">
+<div style="position: fixed; left: 0px; top: 0px; z-index: 1000; width: 100%; height: 100%; text-align: center; cursor: pointer; display: none;" class="poptrox-overlay"><div style="display:inline-block;height:100%;vertical-align:middle;"></div><div style="position:absolute;left:0;top:0;width:100%;height:100%;background:#0a1919;opacity:0.75;filter:alpha(opacity=75);"></div><div style="display: none; vertical-align: middle; position: relative; z-index: 1; cursor: auto; min-width: 200px; min-height: 100px;" class="poptrox-popup"><div style="display: none;" class="loader"></div><div style="display: none;" class="pic"></div><div style="display: none;" class="caption"></div><span style="cursor: pointer; display: none;" class="closer">×</span><div style="display: none;" class="nav-previous"></div><div style="display: none;" class="nav-next"></div></div></div></body></html>
